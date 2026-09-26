@@ -56,7 +56,7 @@
     
     <!-- 上段ヘッダー部 -->
     <div class="flex justify-between items-start w-full">
-      <!-- 左上: プレイヤー情報・ステータスゲージ・資材 -->
+      <!-- 左上: プレイヤー情報 -->
       <div class="flex flex-col gap-1 w-44 sm:w-60 pointer-events-auto">
         <div class="flex items-center gap-1.5">
           <span id="hudName" class="font-black text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[95px] text-amber-300">勇者</span>
@@ -87,7 +87,7 @@
           </button>
         </div>
 
-        <!-- 座標とセクター (100,000x100,000) -->
+        <!-- 座標とセクター -->
         <div class="text-[9px] font-mono text-cyan-300 bg-slate-900/75 px-2 py-0.5 rounded-lg border border-slate-800 flex justify-between">
           <span>区画: <b id="hudSector" class="text-white font-bold">[50-50]</b></span>
           <span>X:<b id="hudPosX" class="text-white">50000</b> Y:<b id="hudPosY" class="text-white">50000</b></span>
@@ -107,7 +107,7 @@
           </div>
           <span class="text-slate-600">|</span>
           <button id="btnSleepLogout" class="text-[9px] bg-indigo-900/80 hover:bg-indigo-800 px-2 py-0.5 rounded-md border border-indigo-400 text-cyan-200 font-bold active:scale-95 transition">
-            <i class="fa-solid fa-bed mr-0.5"></i>拠点休眠
+            <i class="fa-solid fa-bed mr-0.5"></i>拠点休眠 (1/10HP)
           </button>
         </div>
         <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[260px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
@@ -135,7 +135,7 @@
       <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
     </div>
 
-    <!-- 下部操作パネル (ジョイスティック + 折りたたみ式防衛建築バー + アクションボタン) -->
+    <!-- 下部操作パネル -->
     <div class="flex justify-between items-end w-full pb-2 px-1">
       <!-- 移動＆照準ジョイスティック -->
       <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-cyan-400/40 bg-slate-900/50 backdrop-blur pointer-events-auto flex items-center justify-center">
@@ -146,7 +146,6 @@
 
       <!-- 中央下: 折りたたみ式 拠点防衛建築ドック -->
       <div class="flex flex-col items-center gap-1.5 pointer-events-auto mb-1">
-        <!-- 展開される建築パレット（初期状態は非表示） -->
         <div id="buildDock" class="hidden flex gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 shadow-2xl transition-all">
           <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="50" title="自動迎撃タレット">
             <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
@@ -170,7 +169,6 @@
           </button>
         </div>
 
-        <!-- 建築メニュー開閉トグルボタン -->
         <button id="btnToggleBuild" class="flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 border border-teal-500/50 text-teal-300 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg active:scale-95 transition">
           <i class="fa-solid fa-wrench text-xs"></i>
           <span id="toggleBuildLabel">防衛設置</span>
@@ -180,20 +178,17 @@
       <!-- 右側アクションボタン -->
       <div class="flex flex-col items-end gap-2 pointer-events-auto">
         <div class="flex items-end gap-2.5">
-          <!-- クラス特有アクティブスキル -->
           <button id="btnSkill" class="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="skillIcon" class="fa-solid fa-wind text-base text-white"></i>
             <span class="text-[7px] font-black text-indigo-100">SKILL</span>
             <div id="skillCooldownCover" class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-[10px] font-bold text-white hidden">0s</div>
           </button>
 
-          <!-- ダッシュボタン -->
           <button id="btnDash" class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i class="fa-solid fa-bolt text-lg text-white"></i>
             <span class="text-[8px] font-black text-cyan-100">DASH</span>
           </button>
 
-          <!-- 直線攻撃・斬撃ボタン -->
           <button id="btnAttack" class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="attackIcon" class="fa-solid fa-khanda text-2xl text-white mb-0.5"></i>
             <span id="attackLabel" class="text-[9px] font-black tracking-wider text-rose-100">ATTACK</span>
@@ -225,7 +220,7 @@
     </div>
   </div>
 
-  <!-- 出撃・クラス選択ロビー画面 -->
+  <!-- 出撃ロビー画面 -->
   <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex items-center justify-center p-3 z-40 overflow-y-auto">
     <div class="w-full max-w-lg bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto max-h-[95vh] overflow-y-auto custom-scroll">
       
@@ -239,7 +234,6 @@
         <p class="text-[11px] text-slate-400">斬撃・拠点防衛・自律ボット＆ギミック討伐戦</p>
       </div>
 
-      <!-- プレイヤー名 ＆ 合言葉 -->
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">プレイヤー名</label>
@@ -251,7 +245,6 @@
         </div>
       </div>
 
-      <!-- 出撃クラス選択 -->
       <div>
         <label class="text-[10px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
           <span>出撃クラス選択（全5種）</span>
@@ -264,7 +257,7 @@
               <div class="text-xs font-black text-rose-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-khanda text-rose-400"></i> ブレードマスター (斬撃/近接双剣)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">高速移動・扇状近接斬撃・敵弾丸跳ね返し・全方位回転斬り</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">高速移動・扇状近接斬撃・敵弾跳ね返し・全方位回転斬り</div>
             </div>
             <span class="text-[10px] font-mono text-rose-300 font-bold bg-rose-950 px-2 py-0.5 rounded border border-rose-500/40">近接</span>
           </button>
@@ -304,7 +297,7 @@
               <div class="text-xs font-black text-amber-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-shield-halved text-amber-400"></i> スティール城塞守護者 (タンク)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">最高耐久・被ダメージ反射装甲・城塞シールド展開</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">最高耐久・被ダメージ反射装甲・城塞シールド</div>
             </div>
             <span class="text-[10px] font-mono text-amber-300 font-bold bg-amber-950 px-2 py-0.5 rounded border border-amber-500/40">防壁</span>
           </button>
@@ -312,7 +305,7 @@
       </div>
 
       <button id="btnJoin" class="w-full py-2.5 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 rounded-xl font-black text-sm shadow active:scale-95 transition">
-        コロッサル・オムニバースへ出撃
+        合言葉を確定して出撃
       </button>
 
       <div id="lobbyNetLog" class="text-[9px] text-center text-slate-400 font-mono">合言葉を入力してログイン</div>
@@ -399,6 +392,13 @@
       guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 320, speed: 4.2, attackRate: 380, range: 75, arc: Math.PI * 0.6, damage: 35, reflectArmor: 0.25, initScrap: 130 }
     };
 
+    // ボットのタイプ定義 (3種類)
+    const BOT_VARIANTS = {
+      berserker: { typeName: 'BERSERKER', hp: 160, speed: 4.6, range: 75, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 24, attackRate: 400 },
+      sniper: { typeName: 'SNIPER', hp: 120, speed: 3.2, range: 450, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 18, bulletSpeed: 14, attackRate: 900 },
+      tank: { typeName: 'TANK', hp: 380, speed: 2.2, range: 200, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 12, bulletSpeed: 8, attackRate: 1100 }
+    };
+
     const STRUCTURE_TEMPLATES = {
       turret: { name: '自動迎撃タレット', cost: 50, hp: 250, radius: 24, range: 400, color: '#06b6d4' },
       pylon: { name: '防護障壁パイロン', cost: 80, hp: 450, radius: 32, domeRadius: 220, color: '#818cf8' },
@@ -417,8 +417,10 @@
     ];
 
     /* =========================================================
-       3. プレイヤー・エンティティ状態
+       3. ゲーム状態フラグ & プレイヤー
        ========================================================= */
+    let isPlaying = false; // 合言葉確定前は完全停止するガード
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const miniCanvas = document.getElementById('miniMapCanvas');
@@ -472,72 +474,96 @@
     let bullets = [];
     let slashes = [];
     let dropCores = [];
-    let toxicPools = [];
-    let colossusBosses = [];
     let particles = [];
     let popups = [];
 
-    // 新規要素: ボット & ギミック
+    // ボット & ギミック
     let aiBots = [];
     let fieldGimmicks = [];
 
     /* =========================================================
-       4. ギミック & ボットの管理システム
+       4. ギミック & ボットの適正量スポーン制御
        ========================================================= */
     function initFieldGimmicks() {
       fieldGimmicks = [
-        // バウンドトラップ（接触すると大きく反発）
-        { id: 'g_b1', type: 'bouncer', x: 50200, y: 50100, radius: 45, force: 22, color: '#f59e0b' },
-        { id: 'g_b2', type: 'bouncer', x: 49800, y: 49900, radius: 45, force: 22, color: '#f59e0b' },
-        // 移動加速パルス（踏むと高速で移動方向に押し流される）
-        { id: 'g_p1', type: 'pulse', x: 50500, y: 49800, radius: 60, angle: Math.PI / 4, power: 12, color: '#38bdf8' }
+        // バウンサー（強反発）
+        { id: 'g_b1', type: 'bouncer', x: 50200, y: 50150, radius: 40, force: 20, color: '#f59e0b' },
+        { id: 'g_b2', type: 'bouncer', x: 49800, y: 49850, radius: 40, force: 20, color: '#f59e0b' },
+        // パルス（一方向加速）
+        { id: 'g_p1', type: 'pulse', x: 50400, y: 49700, radius: 55, angle: Math.PI / 4, power: 14, color: '#38bdf8' },
+        // ダメージトラップゾーン
+        { id: 'g_d1', type: 'hazard', x: 49700, y: 50350, radius: 50, dps: 0.5, color: '#ef4444' }
       ];
     }
 
     function maintainBots() {
-      // プレイヤーの周囲に自律AIボットを常時4〜6体維持
-      if (aiBots.length < 5) {
-        const botClasses = ['blademaster', 'gunner', 'sorcerer'];
-        const chosenClass = botClasses[Math.floor(Math.random() * botClasses.length)];
-        const cfg = CLASS_CONFIGS[chosenClass];
+      if (!isPlaying) return;
+      // プレイヤーの周囲に最大6体を維持（過剰スポーン防止）
+      if (aiBots.length < 6) {
+        const types = ['berserker', 'sniper', 'tank'];
+        const chosenKey = types[Math.floor(Math.random() * types.length)];
+        const spec = BOT_VARIANTS[chosenKey];
+
+        // プレイヤーから適度に離れた位置にスポーン
+        const spawnDist = 700 + Math.random() * 400;
+        const spawnAngle = Math.random() * Math.PI * 2;
+
         aiBots.push({
           id: 'bot_' + Math.random().toString(36).substr(2, 6),
-          name: 'BOT-' + Math.floor(Math.random() * 900 + 100),
-          classType: chosenClass,
-          x: myPlayer.x + (Math.random() - 0.5) * 2000,
-          y: myPlayer.y + (Math.random() - 0.5) * 2000,
+          name: `${spec.typeName}-${Math.floor(Math.random() * 899 + 100)}`,
+          variant: chosenKey,
+          spec: spec,
+          x: myPlayer.x + Math.cos(spawnAngle) * spawnDist,
+          y: myPlayer.y + Math.sin(spawnAngle) * spawnDist,
           vx: 0,
           vy: 0,
           angle: Math.random() * Math.PI * 2,
-          hp: cfg.maxHp,
-          maxHp: cfg.maxHp,
-          radius: 24,
-          speed: cfg.speed * 0.7,
-          cores: Math.floor(Math.random() * 15) + 5,
+          hp: spec.hp,
+          maxHp: spec.hp,
+          radius: chosenKey === 'tank' ? 30 : 24,
+          speed: spec.speed,
+          cores: chosenKey === 'tank' ? 25 : chosenKey === 'sniper' ? 15 : 12,
           lastAttack: 0,
-          attackRate: cfg.attackRate * 1.5,
-          range: cfg.isMelee ? 80 : 350
+          wanderTimer: 0
         });
+        updateLeaderboard();
       }
     }
 
     function updateBots() {
       const now = performance.now();
+
       for (let i = aiBots.length - 1; i >= 0; i--) {
         const bot = aiBots[i];
-        const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
-        bot.angle = Math.atan2(myPlayer.y - bot.y, myPlayer.x - bot.x);
+        const spec = bot.spec;
 
-        // 索敵行動: 接近時は追尾、遠いときは適度にランダム徘徊
-        if (dist < 700 && myPlayer.isAlive) {
-          if (dist > bot.range * 0.7) {
-            bot.vx += Math.cos(bot.angle) * bot.speed * 0.2;
-            bot.vy += Math.sin(bot.angle) * bot.speed * 0.2;
+        // 【要件】ボットはログアウト中の休眠体をターゲットにしない（生きているプレイヤーのみ狙う）
+        const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
+        const canSeePlayer = myPlayer.isAlive && dist < 850;
+
+        if (canSeePlayer) {
+          bot.angle = Math.atan2(myPlayer.y - bot.y, myPlayer.x - bot.x);
+
+          // タイプ別の移動ロジック
+          if (bot.variant === 'sniper') {
+            // スナイパーは一定距離を保つ
+            if (dist < 280) {
+              bot.vx -= Math.cos(bot.angle) * bot.speed * 0.15;
+              bot.vy -= Math.sin(bot.angle) * bot.speed * 0.15;
+            } else if (dist > 400) {
+              bot.vx += Math.cos(bot.angle) * bot.speed * 0.15;
+              bot.vy += Math.sin(bot.angle) * bot.speed * 0.15;
+            }
+          } else {
+            // 近接突撃または通常接近
+            bot.vx += Math.cos(bot.angle) * bot.speed * 0.18;
+            bot.vy += Math.sin(bot.angle) * bot.speed * 0.18;
           }
-          // 攻撃処理
-          if (dist <= bot.range && now - bot.lastAttack > bot.attackRate) {
+
+          // 攻撃ロジック
+          if (dist <= spec.range && now - bot.lastAttack > spec.attackRate) {
             bot.lastAttack = now;
-            if (CLASS_CONFIGS[bot.classType].isMelee) {
+            if (spec.isMelee) {
               sound.playSlash();
               const sl = {
                 id: 'sl_' + Math.random().toString(36).substr(2, 6),
@@ -545,7 +571,7 @@
                 ownerName: bot.name,
                 x: bot.x, y: bot.y,
                 angle: bot.angle, arc: Math.PI * 0.6,
-                range: 75, damage: 16, life: 6
+                range: spec.range, damage: spec.damage, life: 6
               };
               slashes.push(sl);
               if (dist < sl.range + myPlayer.radius) takeDamage(sl.damage, bot.name);
@@ -555,18 +581,23 @@
                 id: 'b_' + Math.random().toString(36).substr(2, 6),
                 ownerId: bot.id,
                 ownerName: bot.name,
-                x: bot.x + Math.cos(bot.angle) * 25,
-                y: bot.y + Math.sin(bot.angle) * 25,
-                vx: Math.cos(bot.angle) * 11,
-                vy: Math.sin(bot.angle) * 11,
-                damage: 14, radius: 5, life: 60,
-                color: '#f87171'
+                x: bot.x + Math.cos(bot.angle) * (bot.radius + 6),
+                y: bot.y + Math.sin(bot.angle) * (bot.radius + 6),
+                vx: Math.cos(bot.angle) * spec.bulletSpeed,
+                vy: Math.sin(bot.angle) * spec.bulletSpeed,
+                damage: spec.damage, radius: 5, life: 60,
+                color: spec.color
               });
             }
           }
         } else {
-          bot.vx += Math.cos(bot.angle) * bot.speed * 0.05;
-          bot.vy += Math.sin(bot.angle) * bot.speed * 0.05;
+          // ランダム徘徊
+          if (--bot.wanderTimer <= 0) {
+            bot.angle += (Math.random() - 0.5) * 1.5;
+            bot.wanderTimer = Math.floor(Math.random() * 60 + 60);
+          }
+          bot.vx += Math.cos(bot.angle) * (bot.speed * 0.05);
+          bot.vy += Math.sin(bot.angle) * (bot.speed * 0.05);
         }
 
         bot.vx *= 0.85;
@@ -574,29 +605,39 @@
         bot.x += bot.vx;
         bot.y += bot.vy;
 
-        // ギミックとの接触判定（ボット）
+        // ギミックとの接触
         fieldGimmicks.forEach(g => {
           const gd = Math.hypot(bot.x - g.x, bot.y - g.y);
           if (gd < bot.radius + g.radius) {
-            const ga = Math.atan2(bot.y - g.y, bot.x - g.x);
-            bot.vx += Math.cos(ga) * (g.force || g.power);
-            bot.vy += Math.sin(ga) * (g.force || g.power);
+            if (g.type === 'bouncer') {
+              const ga = Math.atan2(bot.y - g.y, bot.x - g.x);
+              bot.vx += Math.cos(ga) * g.force;
+              bot.vy += Math.sin(ga) * g.force;
+            } else if (g.type === 'pulse') {
+              bot.vx += Math.cos(g.angle) * g.power;
+              bot.vy += Math.sin(g.angle) * g.power;
+            } else if (g.type === 'hazard') {
+              bot.hp -= g.dps;
+            }
           }
         });
 
-        // 死亡判定
+        // ボットの死亡判定
         if (bot.hp <= 0) {
           sound.playExplode();
           dropCoresAt(bot.x, bot.y, bot.cores);
-          triggerPopup(bot.x, bot.y, 'BOT撃破!', '#38bdf8');
+          triggerPopup(bot.x, bot.y, `${bot.name} 撃破!`, '#38bdf8');
           addKillLog(myPlayer.name, bot.name);
+          myPlayer.cores += bot.cores;
+          myPlayer.exp += bot.cores * 4;
           aiBots.splice(i, 1);
+          updateLeaderboard();
         }
       }
     }
 
     /* =========================================================
-       5. 建築UI トグル開閉の実装
+       5. 建築UI トグル開閉
        ========================================================= */
     const buildDock = document.getElementById('buildDock');
     const btnToggleBuild = document.getElementById('btnToggleBuild');
@@ -618,7 +659,7 @@
     });
 
     /* =========================================================
-       6. 描画補助: 頭上HPバー（割合表示）
+       6. 頭上HPバー（割合パーセント）
        ========================================================= */
     function drawEntityHealthBar(x, y, radius, curHp, maxHp, isShield = false) {
       const barW = Math.max(34, radius * 1.6);
@@ -627,11 +668,9 @@
       const barY = y - radius - 10;
       const ratio = Math.max(0, Math.min(1, curHp / maxHp));
 
-      // 背景
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
 
-      // HPゲージ色（割合でグラデーション変化: 緑 -> 黄 -> 赤）
       let fillColor = '#22c55e';
       if (ratio < 0.3) fillColor = '#ef4444';
       else if (ratio < 0.6) fillColor = '#eab308';
@@ -640,7 +679,6 @@
       ctx.fillStyle = fillColor;
       ctx.fillRect(barX, barY, barW * ratio, barH);
 
-      // 割合パーセント表記
       ctx.font = 'bold 8px monospace';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
@@ -648,101 +686,237 @@
     }
 
     /* =========================================================
-       7. 建築・プレイヤー・戦闘制御
+       7. 休眠・セーブ処理（ログアウト時の体力を1/10に設定）
        ========================================================= */
     function getSaveKey() { return `arena_omni_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`; }
     function getSleeperKey() { return `arena_omni_sleepers_${roomCode.toUpperCase()}`; }
-    function getBaseKey() { return `arena_omni_bases_${roomCode.toUpperCase()}`; }
 
-    function savePlayerData() {
+    function registerAsSleeper() {
       try {
-        const data = {
-          name: myPlayer.name, classType: myPlayer.classType,
-          x: Math.round(myPlayer.x), y: Math.round(myPlayer.y),
-          level: myPlayer.level, exp: myPlayer.exp, nextExp: myPlayer.nextExp,
-          cores: myPlayer.cores, scrap: myPlayer.scrap, sp: myPlayer.sp,
-          upgrades: myPlayer.upgrades, hp: Math.round(myPlayer.hp), maxHp: Math.round(myPlayer.maxHp)
+        const sKey = getSleeperKey();
+        const raw = localStorage.getItem(sKey);
+        let list = raw ? JSON.parse(raw) : [];
+        list = list.filter(item => item.name !== myPlayer.name);
+
+        // 【要件】ログアウト中の体力を現在の1/10に設定
+        const sleeperHp = Math.max(1, Math.round(myPlayer.hp / 10));
+
+        const newSleeper = {
+          id: 'sleep_' + myPlayer.name,
+          name: myPlayer.name,
+          classType: myPlayer.classType,
+          x: Math.round(myPlayer.x),
+          y: Math.round(myPlayer.y),
+          level: myPlayer.level,
+          cores: myPlayer.cores,
+          maxHp: sleeperHp,
+          hp: sleeperHp,
+          radius: myPlayer.radius + 4,
+          isSleeper: true
         };
-        localStorage.setItem(getSaveKey(), JSON.stringify(data));
+        list.push(newSleeper);
+        localStorage.setItem(sKey, JSON.stringify(list));
+        sleeperPlayers = list;
       } catch (e) {}
     }
 
-    function loadPlayerData() {
+    function removeMySleeperRecord() {
       try {
-        const raw = localStorage.getItem(getSaveKey());
-        if (!raw) return false;
-        const d = JSON.parse(raw);
-        myPlayer.level = d.level || 1;
-        myPlayer.exp = d.exp || 0;
-        myPlayer.nextExp = d.nextExp || 50;
-        myPlayer.cores = d.cores || 0;
-        myPlayer.scrap = d.scrap !== undefined ? d.scrap : 60;
-        myPlayer.sp = d.sp || 0;
-        if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
-        if (d.x && d.y) { myPlayer.x = d.x; myPlayer.y = d.y; }
-        if (d.classType) myPlayer.classType = d.classType;
-        return true;
-      } catch (e) { return false; }
+        const sKey = getSleeperKey();
+        const raw = localStorage.getItem(sKey);
+        if (!raw) return;
+        let list = JSON.parse(raw);
+        list = list.filter(item => item.name !== myPlayer.name);
+        localStorage.setItem(sKey, JSON.stringify(list));
+        sleeperPlayers = list;
+      } catch (e) {}
     }
 
+    function loadSleeperList() {
+      try {
+        const raw = localStorage.getItem(getSleeperKey());
+        if (raw) sleeperPlayers = JSON.parse(raw);
+      } catch(e) {}
+    }
+
+    /* =========================================================
+       8. リーダーボード（プレイヤー・休眠体・ボットを総合表示）
+       ========================================================= */
+    function updateLeaderboard() {
+      const all = [];
+
+      // 自身
+      if (myPlayer.isAlive) {
+        all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
+      }
+
+      // 休眠体
+      sleeperPlayers.forEach(sp => {
+        all.push({ name: sp.name, cores: sp.cores || 0, tag: '💤', color: 'text-slate-400' });
+      });
+
+      // 【要件】ボットもランキングに参戦
+      aiBots.forEach(bot => {
+        all.push({ name: bot.name, cores: bot.cores, tag: 'BOT', color: 'text-rose-400' });
+      });
+
+      all.sort((a, b) => b.cores - a.cores);
+
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      all.slice(0, 6).forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = `flex justify-between items-center ${item.color}`;
+        li.innerHTML = `
+          <span class="truncate max-w-[100px] text-[8px]">${i + 1}. [${item.tag}] ${item.name}</span>
+          <span class="font-mono text-amber-300 font-bold text-[8px]">${item.cores}</span>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    /* =========================================================
+       9. プレイヤー操作・戦闘
+       ========================================================= */
     function recalcStats() {
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       const u = myPlayer.upgrades;
       myPlayer.maxHp = cfg.maxHp + (u.maxHp * 40) + ((myPlayer.level - 1) * 15);
       if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
-      savePlayerData();
     }
 
-    function buildStructure(type) {
-      if (!myPlayer.isAlive) return;
-      const tpl = STRUCTURE_TEMPLATES[type];
-      if (myPlayer.scrap < tpl.cost) {
-        sound.playTone(180, 'sawtooth', 0.15, 0.15);
-        triggerPopup(myPlayer.x, myPlayer.y - 30, `資材不足! (${myPlayer.scrap}/${tpl.cost}材)`, '#f43f5e');
-        return;
+    function performManualAttack() {
+      if (!isPlaying || !myPlayer.isAlive) return;
+      const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
+      const now = performance.now();
+      if (now - myPlayer.lastAttackTime < cfg.attackRate) return;
+      myPlayer.lastAttackTime = now;
+
+      const dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.15;
+      const damage = Math.round(cfg.damage * dmgBuff);
+
+      if (cfg.isMelee) {
+        sound.playSlash();
+        myPlayer.slashAnimation = 12;
+        const slashObj = {
+          id: 'sl_' + Math.random().toString(36).substr(2, 6),
+          ownerId: myPlayer.id,
+          ownerName: myPlayer.name,
+          x: myPlayer.x, y: myPlayer.y,
+          angle: myPlayer.angle, arc: cfg.arc, range: cfg.range,
+          damage, life: 8
+        };
+        slashes.push(slashObj);
+        checkMeleeHits(slashObj, cfg.deflects);
+      } else {
+        sound.playShoot();
+        bullets.push({
+          id: 'b_' + Math.random().toString(36).substr(2, 6),
+          ownerId: myPlayer.id,
+          ownerName: myPlayer.name,
+          x: myPlayer.x + Math.cos(myPlayer.angle) * (myPlayer.radius + 8),
+          y: myPlayer.y + Math.sin(myPlayer.angle) * (myPlayer.radius + 8),
+          vx: Math.cos(myPlayer.angle) * cfg.bulletSpeed,
+          vy: Math.sin(myPlayer.angle) * cfg.bulletSpeed,
+          damage, radius: 6, life: 70,
+          color: myPlayer.classType === 'sorcerer' ? '#c084fc' : '#38bdf8'
+        });
       }
-      myPlayer.scrap -= tpl.cost;
-      sound.playBuild();
-
-      const struct = {
-        id: 'st_' + Math.random().toString(36).substr(2, 7),
-        ownerName: myPlayer.name,
-        type,
-        x: Math.round(myPlayer.x + Math.cos(myPlayer.angle) * 55),
-        y: Math.round(myPlayer.y + Math.sin(myPlayer.angle) * 55),
-        hp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
-        maxHp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
-        radius: tpl.radius,
-        domeRadius: tpl.domeRadius || 0,
-        range: tpl.range || 0,
-        color: tpl.color,
-        lastShoot: 0
-      };
-
-      defenseStructures.push(struct);
-      triggerPopup(struct.x, struct.y - 20, `${tpl.name} 建造! (-${tpl.cost}材)`, '#2dd4bf');
-      updateBuildButtonsState();
     }
 
-    function updateBuildButtonsState() {
-      Object.keys(STRUCTURE_TEMPLATES).forEach(type => {
-        const cost = STRUCTURE_TEMPLATES[type].cost;
-        const btnId = type === 'turret' ? 'buildTurret' : type === 'pylon' ? 'buildPylon' : type === 'trap' ? 'buildTrap' : 'buildPod';
-        const btn = document.getElementById(btnId);
-        if (btn) {
-          if (myPlayer.scrap < cost) btn.classList.add('build-btn-disabled');
-          else btn.classList.remove('build-btn-disabled');
+    function checkMeleeHits(sl, canDeflect) {
+      // 対ボット
+      aiBots.forEach(bot => {
+        const dist = Math.hypot(bot.x - sl.x, bot.y - sl.y);
+        const ang = Math.atan2(bot.y - sl.y, bot.x - sl.x);
+        const diff = Math.abs(normalizeAngle(ang - sl.angle));
+        if (dist < sl.range + bot.radius && diff < sl.arc / 2) {
+          bot.hp -= sl.damage;
+          sound.playHit();
+          triggerPopup(bot.x, bot.y, `-${sl.damage}`, '#f43f5e');
+        }
+      });
+
+      // 対休眠体（1/10耐久なので倒しやすい）
+      sleeperPlayers.forEach(slp => {
+        const dist = Math.hypot(slp.x - sl.x, slp.y - sl.y);
+        const ang = Math.atan2(slp.y - sl.y, slp.x - sl.x);
+        const diff = Math.abs(normalizeAngle(ang - sl.angle));
+        if (dist < sl.range + slp.radius && diff < sl.arc / 2) {
+          slp.hp -= sl.damage;
+          sound.playHit();
+          triggerPopup(slp.x, slp.y, `-${sl.damage}`, '#e2e8f0');
+          if (slp.hp <= 0) {
+            dropCoresAt(slp.x, slp.y, slp.cores);
+            sleeperPlayers = sleeperPlayers.filter(s => s.name !== slp.name);
+            localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
+            triggerPopup(slp.x, slp.y, `${slp.name}の休眠石像を破壊!`, '#fbbf24');
+            updateLeaderboard();
+          }
         }
       });
     }
 
-    document.getElementById('buildTurret').addEventListener('click', () => buildStructure('turret'));
-    document.getElementById('buildPylon').addEventListener('click', () => buildStructure('pylon'));
-    document.getElementById('buildTrap').addEventListener('click', () => buildStructure('trap'));
-    document.getElementById('buildPod').addEventListener('click', () => buildStructure('pod'));
+    function normalizeAngle(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    function takeDamage(dmg, attacker) {
+      if (!myPlayer.isAlive) return;
+      sound.playHit();
+      const armorRed = (myPlayer.upgrades.armor || 0) * 0.04;
+      dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
+
+      if (myPlayer.shield > 0) {
+        if (myPlayer.shield >= dmg) { myPlayer.shield -= dmg; dmg = 0; }
+        else { dmg -= myPlayer.shield; myPlayer.shield = 0; }
+      }
+
+      myPlayer.hp -= dmg;
+      triggerPopup(myPlayer.x, myPlayer.y - 20, `-${dmg}`, '#f43f5e');
+
+      if (myPlayer.hp <= 0) {
+        myPlayer.isAlive = false;
+        sound.playExplode();
+        const lost = Math.ceil(myPlayer.cores * 0.5);
+        myPlayer.cores -= lost;
+        dropCoresAt(myPlayer.x, myPlayer.y, lost);
+        document.getElementById('lostCoresText').textContent = `-${lost}`;
+        document.getElementById('keptCoresText').textContent = myPlayer.cores;
+        document.getElementById('deathModal').classList.remove('hidden');
+        addKillLog(attacker, myPlayer.name);
+        updateLeaderboard();
+      }
+    }
+
+    function dropCoresAt(x, y, amount) {
+      for (let i = 0; i < Math.min(8, Math.max(2, amount)); i++) {
+        dropCores.push({
+          id: 'c_' + Math.random().toString(36).substr(2, 6),
+          x: x + (Math.random() - 0.5) * 50,
+          y: y + (Math.random() - 0.5) * 50,
+          val: Math.max(1, Math.floor(amount / 4))
+        });
+      }
+    }
+
+    function triggerPopup(x, y, text, color) {
+      popups.push({ x, y, text, color, life: 35 });
+    }
+
+    function addKillLog(killer, victim) {
+      const feed = document.getElementById('killFeed');
+      const item = document.createElement('div');
+      item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
+      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
+      feed.prepend(item);
+      setTimeout(() => item.remove(), 4000);
+    }
 
     /* =========================================================
-       8. ジョイスティック操作
+       10. 操作バインド（ジョイスティック等）
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -799,130 +973,24 @@
     });
     window.addEventListener('touchcancel', resetJoy);
 
-    /* =========================================================
-       9. 攻撃・ヒット・スキル
-       ========================================================= */
-    function performManualAttack() {
-      if (!myPlayer.isAlive) return;
-      const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
-      const now = performance.now();
-      if (now - myPlayer.lastAttackTime < cfg.attackRate) return;
-      myPlayer.lastAttackTime = now;
-
-      const dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.15;
-      const damage = Math.round(cfg.damage * dmgBuff);
-
-      if (cfg.isMelee) {
-        sound.playSlash();
-        myPlayer.slashAnimation = 12;
-        const slashObj = {
-          id: 'sl_' + Math.random().toString(36).substr(2, 6),
-          ownerId: myPlayer.id,
-          ownerName: myPlayer.name,
-          x: myPlayer.x, y: myPlayer.y,
-          angle: myPlayer.angle, arc: cfg.arc, range: cfg.range,
-          damage, life: 8
-        };
-        slashes.push(slashObj);
-        checkMeleeHits(slashObj, cfg.deflects);
-      } else {
-        sound.playShoot();
-        const bullet = {
-          id: 'b_' + Math.random().toString(36).substr(2, 6),
-          ownerId: myPlayer.id,
-          ownerName: myPlayer.name,
-          x: myPlayer.x + Math.cos(myPlayer.angle) * (myPlayer.radius + 8),
-          y: myPlayer.y + Math.sin(myPlayer.angle) * (myPlayer.radius + 8),
-          vx: Math.cos(myPlayer.angle) * cfg.bulletSpeed,
-          vy: Math.sin(myPlayer.angle) * cfg.bulletSpeed,
-          damage,
-          radius: cfg.bulletSize || 6,
-          life: 70,
-          color: myPlayer.classType === 'sorcerer' ? '#c084fc' : myPlayer.classType === 'alchemist' ? '#34d399' : '#38bdf8'
-        };
-        bullets.push(bullet);
-      }
-    }
-
-    function checkMeleeHits(sl, canDeflect) {
-      // 対ボット判定
-      aiBots.forEach(bot => {
-        const dist = Math.hypot(bot.x - sl.x, bot.y - sl.y);
-        const ang = Math.atan2(bot.y - sl.y, bot.x - sl.x);
-        const diff = Math.abs(normalizeAngle(ang - sl.angle));
-        if (dist < sl.range + bot.radius && diff < sl.arc / 2) {
-          bot.hp -= sl.damage;
-          sound.playHit();
-          triggerPopup(bot.x, bot.y, `-${sl.damage}`, '#f43f5e');
-        }
-      });
-
-      // 弾丸跳ね返し
-      if (canDeflect) {
-        for (let i = bullets.length - 1; i >= 0; i--) {
-          const b = bullets[i];
-          if (b.ownerId !== myPlayer.id && Math.hypot(b.x - sl.x, b.y - sl.y) < sl.range + 20) {
-            b.vx = -b.vx * 1.2;
-            b.vy = -b.vy * 1.2;
-            b.ownerId = myPlayer.id;
-            triggerPopup(b.x, b.y, '弾き返し!', '#38bdf8');
-          }
-        }
-      }
-    }
-
-    function normalizeAngle(a) {
-      while (a > Math.PI) a -= Math.PI * 2;
-      while (a < -Math.PI) a += Math.PI * 2;
-      return a;
-    }
-
-    function activateClassSkill() {
-      if (!myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
-      myPlayer.skillCooldown = 280;
-
-      if (myPlayer.classType === 'blademaster') {
-        sound.playSlash();
-        const spin = {
-          id: 'spin_' + Math.random().toString(36).substr(2, 6),
-          ownerId: myPlayer.id,
-          x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 130, damage: 85, life: 12
-        };
-        slashes.push(spin);
-        checkMeleeHits(spin, true);
-        triggerPopup(myPlayer.x, myPlayer.y, '旋風双剣演舞!', '#f43f5e');
-      } else if (myPlayer.classType === 'sorcerer') {
-        sound.playWarp();
-        myPlayer.x += Math.cos(myPlayer.angle) * 350;
-        myPlayer.y += Math.sin(myPlayer.angle) * 350;
-        triggerPopup(myPlayer.x, myPlayer.y, '空間跳躍ブリンク!', '#c084fc');
-      } else {
-        sound.playTone(450, 'sine', 0.2, 0.2);
-        myPlayer.shield += 120;
-        triggerPopup(myPlayer.x, myPlayer.y, '要塞防御態勢!', '#38bdf8');
-      }
-    }
-
-    function triggerDash() {
-      if (!myPlayer.isAlive || myPlayer.stamina < 30) return;
+    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); performManualAttack(); });
+    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); performManualAttack(); });
+    document.getElementById('btnDash').addEventListener('click', () => {
+      if (!isPlaying || !myPlayer.isAlive || myPlayer.stamina < 30) return;
       myPlayer.stamina -= 30;
       myPlayer.isDashing = true;
       sound.playTone(320, 'triangle', 0.1, 0.1);
       myPlayer.vx += Math.cos(myPlayer.angle) * 18;
       myPlayer.vy += Math.sin(myPlayer.angle) * 18;
       setTimeout(() => { myPlayer.isDashing = false; }, 200);
-    }
-
-    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); performManualAttack(); });
-    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); performManualAttack(); });
-    document.getElementById('btnDash').addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
-    document.getElementById('btnDash').addEventListener('mousedown', (e) => { e.preventDefault(); triggerDash(); });
-    document.getElementById('btnSkill').addEventListener('click', activateClassSkill);
+    });
 
     /* =========================================================
-       10. メイン更新ループ
+       11. メイン更新 & 描画ループ
        ========================================================= */
     function update() {
+      // 【要件】合言葉入力前は裏で動かないよう完全ガード
+      if (!isPlaying) return;
       if (!myPlayer.isAlive) return;
 
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
@@ -937,7 +1005,7 @@
       myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
       myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
 
-      // フィールドギミックとの接触判定（プレイヤー）
+      // ギミック判定
       fieldGimmicks.forEach(g => {
         const dist = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
         if (dist < myPlayer.radius + g.radius) {
@@ -950,24 +1018,14 @@
           } else if (g.type === 'pulse') {
             myPlayer.vx += Math.cos(g.angle) * g.power;
             myPlayer.vy += Math.sin(g.angle) * g.power;
+          } else if (g.type === 'hazard') {
+            takeDamage(g.dps, 'トラップゾーン');
           }
         }
       });
 
-      // スクラップ鉱石採取
+      // コア回収
       const magnetRange = 45 + (myPlayer.upgrades.magnet || 0) * 40;
-      for (let i = scrapNodes.length - 1; i >= 0; i--) {
-        const sc = scrapNodes[i];
-        if (Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y) < magnetRange) {
-          myPlayer.scrap += sc.amount;
-          sound.playScrap();
-          triggerPopup(sc.x, sc.y, `+${sc.amount} 廃材`, '#2dd4bf');
-          scrapNodes.splice(i, 1);
-          updateBuildButtonsState();
-        }
-      }
-
-      // ドロップコア回収
       for (let i = dropCores.length - 1; i >= 0; i--) {
         const c = dropCores[i];
         if (Math.hypot(c.x - myPlayer.x, c.y - myPlayer.y) < magnetRange) {
@@ -976,33 +1034,23 @@
           sound.playTone(1200, 'sine', 0.1, 0.1);
           triggerPopup(c.x, c.y, `+${c.val} コア`, '#facc15');
           dropCores.splice(i, 1);
-
-          if (myPlayer.exp >= myPlayer.nextExp) {
-            myPlayer.level++;
-            myPlayer.exp -= myPlayer.nextExp;
-            myPlayer.nextExp = Math.round(myPlayer.nextExp * 1.5);
-            myPlayer.sp += 1;
-            triggerPopup(myPlayer.x, myPlayer.y - 40, 'LEVEL UP!', '#38bdf8');
-            recalcStats();
-          }
+          updateLeaderboard();
         }
       }
 
-      // 弾丸挙動
+      // 弾丸処理
       for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         b.x += b.vx;
         b.y += b.vy;
         if (--b.life <= 0) { bullets.splice(i, 1); continue; }
 
-        // 自プレイヤーへの弾丸ヒット
         if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
-          takeDamage(b.damage, b.ownerName || '砲台');
+          takeDamage(b.damage, b.ownerName || 'ボット');
           bullets.splice(i, 1);
           continue;
         }
 
-        // プレイヤーの弾丸がボットに当たる判定
         if (b.ownerId === myPlayer.id) {
           for (let j = 0; j < aiBots.length; j++) {
             const bot = aiBots[j];
@@ -1017,72 +1065,13 @@
         }
       }
 
-      // 斬撃消滅
       for (let i = slashes.length - 1; i >= 0; i--) {
         if (--slashes[i].life <= 0) slashes.splice(i, 1);
       }
 
-      const regenVal = 0.04 + (myPlayer.upgrades.regen || 0) * 0.05;
-      if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenVal);
-      if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + 0.4);
-      if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
-      if (myPlayer.slashAnimation > 0) myPlayer.slashAnimation--;
-
       maintainBots();
       updateBots();
       updateHud();
-    }
-
-    function takeDamage(dmg, attacker) {
-      if (!myPlayer.isAlive) return;
-      sound.playHit();
-      const armorRed = (myPlayer.upgrades.armor || 0) * 0.04;
-      dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
-
-      if (myPlayer.shield > 0) {
-        if (myPlayer.shield >= dmg) { myPlayer.shield -= dmg; dmg = 0; }
-        else { dmg -= myPlayer.shield; myPlayer.shield = 0; }
-      }
-
-      myPlayer.hp -= dmg;
-      triggerPopup(myPlayer.x, myPlayer.y - 20, `-${dmg}`, '#f43f5e');
-
-      if (myPlayer.hp <= 0) {
-        myPlayer.isAlive = false;
-        sound.playExplode();
-        const lost = Math.ceil(myPlayer.cores * 0.5);
-        myPlayer.cores -= lost;
-        dropCoresAt(myPlayer.x, myPlayer.y, lost);
-        savePlayerData();
-
-        document.getElementById('lostCoresText').textContent = `-${lost}`;
-        document.getElementById('keptCoresText').textContent = myPlayer.cores;
-        document.getElementById('deathModal').classList.remove('hidden');
-      }
-    }
-
-    function dropCoresAt(x, y, amount) {
-      for (let i = 0; i < Math.min(8, Math.max(2, amount)); i++) {
-        dropCores.push({
-          id: 'c_' + Math.random().toString(36).substr(2, 6),
-          x: x + (Math.random() - 0.5) * 50,
-          y: y + (Math.random() - 0.5) * 50,
-          val: Math.max(1, Math.floor(amount / 4))
-        });
-      }
-    }
-
-    function triggerPopup(x, y, text, color) {
-      popups.push({ x, y, text, color, life: 35 });
-    }
-
-    function addKillLog(killer, victim) {
-      const feed = document.getElementById('killFeed');
-      const item = document.createElement('div');
-      item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
-      feed.prepend(item);
-      setTimeout(() => item.remove(), 4000);
     }
 
     function updateHud() {
@@ -1093,23 +1082,14 @@
       document.getElementById('hudSp').textContent = myPlayer.sp;
       document.getElementById('hudPosX').textContent = Math.round(myPlayer.x);
       document.getElementById('hudPosY').textContent = Math.round(myPlayer.y);
-
       const secX = Math.floor(myPlayer.x / 1000);
       const secY = Math.floor(myPlayer.y / 1000);
       document.getElementById('hudSector').textContent = `[${secX}-${secY}]`;
-
-      const cd = document.getElementById('skillCooldownCover');
-      if (myPlayer.skillCooldown > 0) {
-        cd.classList.remove('hidden');
-        cd.textContent = `${Math.ceil(myPlayer.skillCooldown / 60)}s`;
-      } else cd.classList.add('hidden');
     }
 
-    /* =========================================================
-       11. 描画ループ（頭上HPバー・ギミック・ボット反映）
-       ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!isPlaying) return; // 出撃前は描画も停止
 
       const camX = myPlayer.x - canvas.width / 2;
       const camY = myPlayer.y - canvas.height / 2;
@@ -1131,7 +1111,7 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // フィールドギミック描画
+      // ギミック描画
       fieldGimmicks.forEach(gim => {
         ctx.beginPath();
         ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
@@ -1141,26 +1121,32 @@
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        ctx.font = 'bold 10px sans-serif';
+        ctx.font = 'bold 9px sans-serif';
         ctx.fillStyle = gim.color;
         ctx.textAlign = 'center';
-        ctx.fillText(gim.type === 'bouncer' ? '★ BOUNCER' : '➔ PULSE', gim.x, gim.y + 4);
+        ctx.fillText(gim.type === 'bouncer' ? '★BOUNCE' : gim.type === 'pulse' ? '➔PULSE' : '⚠HAZARD', gim.x, gim.y + 3);
       });
 
-      // 設置型防衛建築の描画 & 頭上HPバー
-      defenseStructures.forEach(st => {
-        ctx.beginPath();
-        ctx.arc(st.x, st.y, st.radius, 0, Math.PI * 2);
-        ctx.fillStyle = st.color;
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      // 休眠スリーパー描画 (1/10体力)
+      sleeperPlayers.forEach(sl => {
+        if (Math.hypot(sl.x - myPlayer.x, sl.y - myPlayer.y) < viewR) {
+          ctx.beginPath();
+          ctx.arc(sl.x, sl.y, sl.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#334155';
+          ctx.fill();
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 2;
+          ctx.stroke();
 
-        drawEntityHealthBar(st.x, st.y, st.radius, st.hp, st.maxHp);
+          ctx.font = 'bold 9px sans-serif';
+          ctx.fillStyle = '#94a3b8';
+          ctx.textAlign = 'center';
+          ctx.fillText(`💤 ${sl.name} (休眠)`, sl.x, sl.y - sl.radius - 16);
+          drawEntityHealthBar(sl.x, sl.y, sl.radius, sl.hp, sl.maxHp);
+        }
       });
 
-      // ボット描画 & 頭上HPバー
+      // ボット描画（種類別に外見色とアイコンを描画）
       aiBots.forEach(bot => {
         if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < viewR) {
           ctx.save();
@@ -1169,22 +1155,21 @@
 
           ctx.beginPath();
           ctx.arc(0, 0, bot.radius, 0, Math.PI * 2);
-          ctx.fillStyle = '#ef4444';
+          ctx.fillStyle = bot.spec.color;
           ctx.fill();
-          ctx.strokeStyle = '#fca5a5';
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = bot.spec.border;
+          ctx.lineWidth = 2.5;
           ctx.stroke();
 
           // 砲身
-          ctx.fillStyle = '#64748b';
-          ctx.fillRect(5, -4, 18, 8);
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(5, -4, bot.variant === 'sniper' ? 24 : 16, 8);
           ctx.restore();
 
-          // 名前 & HP割合バー
           ctx.font = 'bold 9px sans-serif';
-          ctx.fillStyle = '#f87171';
+          ctx.fillStyle = bot.spec.border;
           ctx.textAlign = 'center';
-          ctx.fillText(`[BOT] ${bot.name}`, bot.x, bot.y - bot.radius - 18);
+          ctx.fillText(bot.name, bot.x, bot.y - bot.radius - 16);
           drawEntityHealthBar(bot.x, bot.y, bot.radius, bot.hp, bot.maxHp);
         }
       });
@@ -1202,7 +1187,7 @@
         ctx.beginPath();
         ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
         ctx.strokeStyle = '#f43f5e';
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 6;
         ctx.stroke();
       });
 
@@ -1219,13 +1204,12 @@
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3;
         ctx.stroke();
-
         ctx.restore();
-        // プレイヤー自身の頭上にも割合表示
+
         drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
       }
 
-      // ポップアップテキスト
+      // ポップアップ
       for (let i = popups.length - 1; i >= 0; i--) {
         const p = popups[i];
         ctx.font = 'bold 12px sans-serif';
@@ -1240,12 +1224,29 @@
     }
 
     /* =========================================================
-       12. 初期化
+       12. 初期化 & 出撃バインド
        ========================================================= */
+    document.querySelectorAll('.class-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.class-btn').forEach(b => {
+          b.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-950/40');
+          b.classList.add('bg-slate-800/50');
+        });
+        btn.classList.add('ring-2', 'ring-rose-400', 'bg-rose-950/40');
+        btn.classList.remove('bg-slate-800/50');
+        myPlayer.classType = btn.dataset.class;
+      });
+    });
+
     document.getElementById('btnJoin').addEventListener('click', () => {
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
+      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
       myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
+      roomCode = r;
+
+      removeMySleeperRecord();
+      loadSleeperList();
       recalcStats();
       initFieldGimmicks();
 
@@ -1254,6 +1255,17 @@
 
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('gameHud').classList.remove('hidden');
+
+      isPlaying = true; // 出撃確定後に稼働スタート
+      updateLeaderboard();
+    });
+
+    document.getElementById('btnSleepLogout').addEventListener('click', () => {
+      registerAsSleeper();
+      isPlaying = false; // ログアウトしたら処理を停止
+      document.getElementById('gameHud').classList.add('hidden');
+      document.getElementById('lobbyScreen').classList.remove('hidden');
+      document.getElementById('lobbyNetLog').textContent = '現在の1/10耐久で休眠石像を設置しました。';
     });
 
     document.getElementById('btnRespawn').addEventListener('click', () => {
@@ -1263,6 +1275,7 @@
       myPlayer.isAlive = true;
       myPlayer.hp = myPlayer.maxHp;
       document.getElementById('deathModal').classList.add('hidden');
+      updateLeaderboard();
     });
 
     function loop() {
