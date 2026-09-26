@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Firebase App & Realtime Database SDK (compat版) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -313,10 +312,7 @@
   </div>
 
   <script>
-    /* =========================================================
-       ★ Firebase設定（ご自身のプロジェクト設定値に置き換えてください）
-       ========================================================= */
-  const firebaseConfig = {
+   const firebaseConfig = {
   apiKey: "AIzaSyBvnThEak0YIBfKBP11g1qdhN_U0Vf3keM",
   authDomain: "arena-survival-d5565.firebaseapp.com",
   databaseURL: "https://arena-survival-d5565-default-rtdb.firebaseio.com",
@@ -326,6 +322,7 @@
   appId: "1:423425665912:web:ea26e0438aaa9e8d0d768d",
   measurementId: "G-GMZMWKDFGX"
 };
+
     let db = null;
     let myPlayerRef = null;
     let roomPlayersRef = null;
@@ -338,9 +335,6 @@
       console.warn("Firebase初期化待機中:", e);
     }
 
-    /* =========================================================
-       1. サウンド管理
-       ========================================================= */
     class SoundFX {
       constructor() { this.ctx = null; }
       init() {
@@ -380,9 +374,6 @@
     }
     const sound = new SoundFX();
 
-    /* =========================================================
-       2. ワールド設定 & 進化ツリー & 強化データ
-       ========================================================= */
     const WORLD_WIDTH = 100000;
     const WORLD_HEIGHT = 100000;
 
@@ -396,8 +387,8 @@
 
     const EVOLUTIONS = {
       blademaster: [
-        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻撃速度+40%・分身刃射出', damage: 52, attackRate: 160, speed: 6.2, range: 110, isMelee: true, deflects: true },
-        { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+150・常時被ダメージ20%カット', damage: 58, attackRate: 270, speed: 5.0, range: 105, maxHpBonus: 150, isMelee: true, deflects: true }
+        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻撃速度+40%・分身刃射出', damage: 52, attackRate: 160, speed: 6.2, range: 110, isMelee: true, arc: Math.PI * 0.8, deflects: true },
+        { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+150・常時被ダメージ20%カット', damage: 58, attackRate: 270, speed: 5.0, range: 105, maxHpBonus: 150, isMelee: true, arc: Math.PI * 0.75, deflects: true }
       ],
       gunner: [
         { id: 'railgun_master', name: '電磁砲レールガンマスター', desc: '弾丸貫通・超射程・ダメージ特化', damage: 65, attackRate: 360, speed: 4.4, range: 800, bulletSpeed: 24, bulletSize: 9, isMelee: false },
@@ -408,8 +399,8 @@
         { id: 'void_archon', name: '虚空大導師ヴォイドアーコン', desc: '3方向誘導弾・テレポート距離2倍', damage: 42, attackRate: 260, speed: 5.0, range: 580, bulletSpeed: 14, isMelee: false, multiShot: 3, homing: true }
       ],
       alchemist: [
-        { id: 'plague_lord', name: '猛毒王プレイグロード', desc: '致死毒沼が超拡大・継続ダメージ倍加', damage: 30, attackRate: 240, speed: 5.0, range: 500, isMelee: false, isPoison: true, poisonAmp: 2.2 },
-        { id: 'bio_mutant', name: '生体変異体バイオミュータント', desc: '被ダメ時に毒トゲ全方位射出＆自己再生+8', damage: 34, attackRate: 260, speed: 5.2, range: 450, isMelee: false, isPoison: true, regenBonus: 8 }
+        { id: 'plague_lord', name: '猛毒王プレイグロード', desc: '致死毒沼が超拡大・継続ダメージ倍加', damage: 30, attackRate: 240, speed: 5.0, range: 500, bulletSpeed: 15, isMelee: false, isPoison: true, poisonAmp: 2.2 },
+        { id: 'bio_mutant', name: '生体変異体バイオミュータント', desc: '被ダメ時に毒トゲ全方位射出＆自己再生+8', damage: 34, attackRate: 260, speed: 5.2, range: 450, bulletSpeed: 14, isMelee: false, isPoison: true, regenBonus: 8 }
       ],
       guardian: [
         { id: 'titan_colossus', name: '金剛巨神タイタン', desc: 'ノックバック無効・被ダメの40%を周囲に反射', damage: 50, attackRate: 320, speed: 4.3, range: 90, arc: Math.PI * 0.8, maxHpBonus: 220, isMelee: true, reflectArmor: 0.4 },
@@ -417,6 +408,7 @@
       ]
     };
 
+    // ★ 敵バリエーション拡張（スライム、ゴーレムを追加）
     const BOT_VARIANTS = {
       berserker: { typeName: 'バーサーカー', hp: 55, speed: 3.2, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 8, attackRate: 850, cores: 12 },
       sniper: { typeName: 'スナイパー', hp: 40, speed: 2.6, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 6, bulletSpeed: 10, attackRate: 1400, cores: 10 },
@@ -424,9 +416,12 @@
       assassin: { typeName: 'アサシン', hp: 45, speed: 4.2, range: 70, isMelee: true, color: '#c084fc', border: '#f3e8ff', damage: 12, attackRate: 650, cores: 14 },
       bomber: { typeName: 'ボマー', hp: 35, speed: 3.8, range: 40, isMelee: true, color: '#f59e0b', border: '#fef3c7', damage: 25, attackRate: 9999, isSuicide: true, cores: 15 },
       necromancer: { typeName: '死霊術士', hp: 80, speed: 2.2, range: 300, isMelee: false, color: '#6366f1', border: '#c7d2fe', damage: 7, bulletSpeed: 8, attackRate: 2000, isSummoner: true, cores: 25 },
-      elite_boss: { typeName: 'ヴォイド・イーター', hp: 360, speed: 1.7, range: 260, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 15, bulletSpeed: 9, attackRate: 850, isBoss: true, radius: 36, cores: 60 }
+      slime: { typeName: '増殖スライム', hp: 45, speed: 2.8, range: 50, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 7, attackRate: 700, isSplitter: true, cores: 8 },
+      golem: { typeName: 'ドレッドゴーレム', hp: 200, speed: 1.5, range: 90, isMelee: true, color: '#d97706', border: '#fde68a', damage: 20, attackRate: 1100, radius: 30, cores: 35 },
+      elite_boss: { typeName: 'ヴォイド・イーター', hp: 400, speed: 1.7, range: 260, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 16, bulletSpeed: 9, attackRate: 850, isBoss: true, radius: 36, cores: 60 }
     };
 
+    // ★ 強化項目を18種類に拡張
     const UPGRADE_TYPES = [
       { id: 'maxHp', name: '最大HP増強', desc: 'HP+50', maxLv: 15, cost: 1 },
       { id: 'dmg', name: '攻撃力強化', desc: '攻撃・弾丸威力+15%', maxLv: 15, cost: 1 },
@@ -440,6 +435,10 @@
       { id: 'cdr', name: '冷却短縮', desc: 'スキルCDが10%短縮', maxLv: 6, cost: 2 },
       { id: 'stamina', name: 'スタミナ効率', desc: 'ダッシュ消費量-20%', maxLv: 5, cost: 1 },
       { id: 'staminaRegen', name: '心肺機能強化', desc: 'スタミナ回復速度+30%', maxLv: 5, cost: 1 },
+      { id: 'bulletSpeed', name: '加速弾丸加速器', desc: '弾速+15% (遠隔のみ)', maxLv: 5, cost: 1 },
+      { id: 'baseShield', name: '常時シールド生成', desc: 'リスポーン時シールド+50', maxLv: 5, cost: 2 },
+      { id: 'expBoost', name: '学習プロセッサ', desc: '獲得経験値+20%', maxLv: 5, cost: 1 },
+      { id: 'thorns', name: 'トゲ装甲反撃', desc: '近接被ダメの20%を相手に返す', maxLv: 5, cost: 2 },
       { id: 'knockbackRes', name: '耐衝撃ショック', desc: '被ノックバック40%低減', maxLv: 5, cost: 1 },
       { id: 'escapeSpeed', name: '脱出支援ビーコン', desc: '脱出必要時間を0.5秒短縮', maxLv: 4, cost: 3 }
     ];
@@ -451,9 +450,6 @@
       vital: { name: 'ヴァイタル', desc: '最大HP+100 & 速度+10%', color: '#10b981', icon: '♥' }
     };
 
-    /* =========================================================
-       3. プレイヤー状態 & ローカルストレージ管理
-       ========================================================= */
     let isPlaying = false;
 
     const canvas = document.getElementById('gameCanvas');
@@ -479,6 +475,7 @@
       baseClass: 'blademaster',
       classType: 'blademaster',
       evolved: false,
+      customEvo: null,
       x: 50000,
       y: 50000,
       angle: 0,
@@ -501,7 +498,7 @@
       lastAttackTime: 0,
       skillCooldown: 0,
       slashAnimation: 0,
-      upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, knockbackRes: 0, escapeSpeed: 0 },
+      upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, knockbackRes: 0, escapeSpeed: 0 },
       modules: []
     };
 
@@ -520,6 +517,7 @@
           baseClass: myPlayer.baseClass,
           classType: myPlayer.classType,
           evolved: myPlayer.evolved,
+          customEvo: myPlayer.customEvo,
           level: myPlayer.level,
           exp: myPlayer.exp,
           nextExp: myPlayer.nextExp,
@@ -551,6 +549,7 @@
         myPlayer.baseClass = d.baseClass || myPlayer.baseClass;
         myPlayer.classType = d.classType || myPlayer.baseClass;
         myPlayer.evolved = !!d.evolved;
+        myPlayer.customEvo = d.customEvo || null;
         if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
         if (d.modules) myPlayer.modules = [...d.modules];
         return true;
@@ -575,9 +574,6 @@
     let aiBots = [];
     let fieldGimmicks = [];
 
-    /* =========================================================
-       4. Firebase Realtime Database ネットワーク同期
-       ========================================================= */
     let lastSyncSendTime = 0;
 
     function initNetwork(rId) {
@@ -594,10 +590,8 @@
       roomPlayersRef = db.ref(`rooms/${roomCode}/players`);
       myPlayerRef = roomPlayersRef.child(myPlayer.id);
 
-      // 切断時にデータベースから自動削除
       myPlayerRef.onDisconnect().remove();
 
-      // 他プレイヤーの参加・更新を検知
       roomPlayersRef.on('child_added', (snap) => {
         const data = snap.val();
         if (data && data.id !== myPlayer.id) {
@@ -662,7 +656,6 @@
       if (!isPlaying || !myPlayer.isAlive) return;
       const now = performance.now();
 
-      // Firebaseへの送信頻度は秒間10回（100ms周期）に調整してクォータを節約
       if (db && myPlayerRef && now - lastSyncSendTime > 100) {
         lastSyncSendTime = now;
         myPlayerRef.set({
@@ -680,7 +673,6 @@
         });
       }
 
-      // 他プレイヤーの位置を滑らかに補間
       remotePlayers.forEach((rp, id) => {
         if (now - rp.lastSeen > 5000) {
           remotePlayers.delete(id);
@@ -694,18 +686,15 @@
       updateNetUI(remotePlayers.size + 1);
     }
 
-    /* =========================================================
-       5. 拡張ギミック & BOTスポーン（広範囲自動生成・リサイクル）
-       ========================================================= */
+    // ★ ギミック初期化（マグネットトラップ、ワープポータル含む）
     function initFieldGimmicks() {
       fieldGimmicks = [];
-      const types = ['bouncer', 'pulse', 'geyser', 'fountain', 'recharge', 'bush', 'ice', 'storm', 'teleport'];
+      const types = ['bouncer', 'pulse', 'geyser', 'fountain', 'recharge', 'bush', 'ice', 'storm', 'teleport', 'magnet_hazard'];
 
-      // スタート位置周辺（半径12,000px）に150個のギミックを均等・ランダムに散布
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < 180; i++) {
         const type = types[Math.floor(Math.random() * types.length)];
-        const gx = 50000 + (Math.random() - 0.5) * 24000;
-        const gy = 50000 + (Math.random() - 0.5) * 24000;
+        const gx = 50000 + (Math.random() - 0.5) * 26000;
+        const gy = 50000 + (Math.random() - 0.5) * 26000;
         
         let color = '#38bdf8';
         if (type === 'bouncer') color = '#f59e0b';
@@ -715,15 +704,16 @@
         if (type === 'fountain') color = '#34d399';
         if (type === 'teleport') color = '#a855f7';
         if (type === 'storm') color = '#eab308';
+        if (type === 'magnet_hazard') color = '#c084fc';
 
         fieldGimmicks.push({
           id: 'g_' + i,
           type: type,
           x: gx,
           y: gy,
-          targetX: gx + (Math.random() - 0.5) * 2000,
-          targetY: gy + (Math.random() - 0.5) * 2000,
-          radius: type === 'bush' || type === 'ice' ? 70 : (type === 'fountain' ? 65 : 45),
+          targetX: gx + (Math.random() - 0.5) * 3000,
+          targetY: gy + (Math.random() - 0.5) * 3000,
+          radius: type === 'bush' || type === 'ice' ? 70 : (type === 'fountain' ? 65 : (type === 'magnet_hazard' ? 85 : 45)),
           force: 18,
           power: 14,
           dps: 0.6,
@@ -740,8 +730,8 @@
 
     function maintainBots() {
       if (!isPlaying) return;
-      if (aiBots.length < 6) {
-        const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer'];
+      if (aiBots.length < 7) {
+        const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer', 'slime', 'golem'];
         const isElite = Math.random() < 0.12 && !aiBots.some(b => b.variant === 'elite_boss');
         const chosenKey = isElite ? 'elite_boss' : types[Math.floor(Math.random() * types.length)];
         const spec = BOT_VARIANTS[chosenKey];
@@ -782,7 +772,6 @@
         const spec = bot.spec;
         const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
 
-        // ★ 離れすぎたBOTをプレイヤー周辺にワープさせて常に交戦を持続
         if (dist > 1800) {
           const reAngle = Math.random() * Math.PI * 2;
           const reDist = 700 + Math.random() * 300;
@@ -804,7 +793,7 @@
         }
 
         if (bot.variant === 'necromancer') {
-          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 8) {
+          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 9) {
             bot.summonTimer = 240;
             sound.playWarp();
             triggerPopup(bot.x, bot.y, '死霊召喚！', '#818cf8');
@@ -830,6 +819,10 @@
             } else if (g.type === 'pulse') {
               bot.vx += Math.cos(g.angle) * g.power;
               bot.vy += Math.sin(g.angle) * g.power;
+            } else if (g.type === 'magnet_hazard') {
+              const ga = Math.atan2(g.y - bot.y, g.x - bot.x);
+              bot.vx += Math.cos(ga) * 1.5;
+              bot.vy += Math.sin(ga) * 1.5;
             } else if (g.type === 'geyser' && g.active) {
               bot.hp -= g.dps;
             } else if (g.type === 'storm' && g.discharge) {
@@ -911,6 +904,24 @@
           sound.playExplode();
           dropCoresAt(bot.x, bot.y, bot.cores);
 
+          // スライム分裂ギミック
+          if (spec.isSplitter && bot.radius > 16) {
+            for (let s = 0; s < 2; s++) {
+              aiBots.push({
+                id: 'bot_slime_' + Math.random().toString(36).substr(2, 5),
+                name: '小スライム',
+                variant: 'slime',
+                spec: { typeName: '小スライム', hp: 20, speed: 3.2, range: 40, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 4, attackRate: 600, cores: 4 },
+                x: bot.x + (s === 0 ? -15 : 15),
+                y: bot.y + (s === 0 ? -15 : 15),
+                vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                angle: Math.random() * Math.PI * 2,
+                hp: 20, maxHp: 20, radius: 14, speed: 3.2, cores: 4, lastAttack: 0, wanderTimer: 0
+              });
+            }
+            triggerPopup(bot.x, bot.y, 'スライム分裂！', '#06b6d4');
+          }
+
           if (spec.isBoss || Math.random() < 0.3) {
             spawnRandomModule(bot.x, bot.y);
           }
@@ -922,7 +933,10 @@
 
           addKillLog(myPlayer.name, bot.name);
           myPlayer.cores += bot.cores;
-          myPlayer.exp += bot.cores * 5;
+          
+          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
+          myPlayer.exp += Math.round(bot.cores * 5 * expMult);
+
           aiBots.splice(i, 1);
           updateLeaderboard();
         }
@@ -941,9 +955,6 @@
       triggerPopup(x, y - 25, 'モジュール出現!', '#c084fc');
     }
 
-    /* =========================================================
-       6. クラス進化モーダルシステム
-       ========================================================= */
     function checkClassEvolution() {
       if (myPlayer.level >= 10 && !myPlayer.evolved) {
         showEvolutionModal();
@@ -977,19 +988,29 @@
       sound.playEvolution();
     }
 
+    // ★ 修正：元クラスの基本数値をベースに合成し、NaNによる停止を防止
     function applyEvolution(evo) {
       myPlayer.evolved = true;
       myPlayer.classType = evo.id;
-      myPlayer.customEvo = evo;
+
+      const baseCfg = CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
+      myPlayer.customEvo = {
+        ...baseCfg,
+        ...evo,
+        maxHp: baseCfg.maxHp + (evo.maxHpBonus || 0),
+        speed: evo.speed || baseCfg.speed,
+        arc: evo.arc !== undefined ? evo.arc : baseCfg.arc,
+        range: evo.range || baseCfg.range,
+        damage: evo.damage || baseCfg.damage,
+        attackRate: evo.attackRate || baseCfg.attackRate,
+        bulletSpeed: evo.bulletSpeed || baseCfg.bulletSpeed || 15
+      };
 
       triggerPopup(myPlayer.x, myPlayer.y - 45, `覚醒！ ${evo.name}`, '#f59e0b');
       document.getElementById('hudClass').textContent = evo.name.slice(0, 5);
       recalcStats();
     }
 
-    /* =========================================================
-       7. 10秒脱出シーケンス
-       ========================================================= */
     const btnStartEscape = document.getElementById('btnStartEscape');
     const escapeProgressBox = document.getElementById('escapeProgressBox');
     const escapeProgressBar = document.getElementById('escapeProgressBar');
@@ -1045,9 +1066,6 @@
       }
     }
 
-    /* =========================================================
-       8. 強化ツリー UI
-       ========================================================= */
     function renderUpgradeModal() {
       document.getElementById('modalSp').textContent = myPlayer.sp;
       document.getElementById('modalCores').textContent = myPlayer.cores;
@@ -1102,9 +1120,6 @@
       document.getElementById('upgradeModal').classList.add('hidden');
     });
 
-    /* =========================================================
-       9. ランキング
-       ========================================================= */
     function updateLeaderboard() {
       const all = [];
       if (myPlayer.isAlive) {
@@ -1132,15 +1147,12 @@
       });
     }
 
-    /* =========================================================
-       10. 戦闘 & ステータス計算
-       ========================================================= */
     function recalcStats() {
       let cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
       const u = myPlayer.upgrades;
 
-      let extraHp = (u.maxHp * 50) + ((myPlayer.level - 1) * 15) + (cfg.maxHpBonus || 0);
-      let extraShield = 0;
+      let extraHp = (u.maxHp * 50) + ((myPlayer.level - 1) * 15);
+      let extraShield = (u.baseShield || 0) * 50;
 
       myPlayer.modules.forEach(mod => {
         const mult = mod.star || 1;
@@ -1149,7 +1161,7 @@
       });
 
       myPlayer.maxHp = cfg.maxHp + extraHp;
-      myPlayer.shield = extraShield;
+      myPlayer.shield = Math.max(myPlayer.shield, extraShield);
       if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
     }
 
@@ -1225,7 +1237,7 @@
           id: 'sl_' + Math.random().toString(36).substr(2, 6),
           ownerId: myPlayer.id,
           x: myPlayer.x, y: myPlayer.y,
-          angle: myPlayer.angle, arc: cfg.arc, range: cfg.range * extraReach,
+          angle: myPlayer.angle, arc: cfg.arc || (Math.PI * 0.75), range: cfg.range * extraReach,
           damage, life: 8, isCrit
         };
         slashes.push(slashObj);
@@ -1233,6 +1245,7 @@
       } else {
         sound.playShoot();
         const count = cfg.multiShot || 1;
+        const bSpeed = (cfg.bulletSpeed || 15) * (1 + (myPlayer.upgrades.bulletSpeed || 0) * 0.15);
         for (let i = 0; i < count; i++) {
           const spreadAngle = myPlayer.angle + (i - (count - 1) / 2) * 0.2;
           const bullet = {
@@ -1240,8 +1253,8 @@
             ownerId: myPlayer.id,
             x: myPlayer.x + Math.cos(spreadAngle) * (myPlayer.radius + 8),
             y: myPlayer.y + Math.sin(spreadAngle) * (myPlayer.radius + 8),
-            vx: Math.cos(spreadAngle) * cfg.bulletSpeed,
-            vy: Math.sin(spreadAngle) * cfg.bulletSpeed,
+            vx: Math.cos(spreadAngle) * bSpeed,
+            vy: Math.sin(spreadAngle) * bSpeed,
             damage, radius: isCrit ? 8 : (cfg.bulletSize || 6), life: Math.round(70 * extraReach),
             color: isCrit ? '#facc15' : myPlayer.baseClass === 'sorcerer' ? '#c084fc' : '#38bdf8',
             isCrit,
@@ -1282,13 +1295,15 @@
       const armorRed = (myPlayer.upgrades.armor || 0) * 0.05;
       dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
 
+      // 反射＆トゲ装甲反撃
       const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass];
-      if (cfg && cfg.reflectArmor) {
-        const refDmg = Math.round(dmg * cfg.reflectArmor);
+      const reflectPercent = (cfg && cfg.reflectArmor ? cfg.reflectArmor : 0) + (myPlayer.upgrades.thorns || 0) * 0.2;
+      if (reflectPercent > 0) {
+        const refDmg = Math.round(dmg * reflectPercent);
         aiBots.forEach(bot => {
           if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < 140) {
             bot.hp -= refDmg;
-            triggerPopup(bot.x, bot.y, `反射 -${refDmg}`, '#f59e0b');
+            triggerPopup(bot.x, bot.y, `反撃 -${refDmg}`, '#f59e0b');
           }
         });
       }
@@ -1337,9 +1352,6 @@
       setTimeout(() => item.remove(), 3500);
     }
 
-    /* =========================================================
-       11. ジョイスティック & 操作
-       ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
     let joyVector = { x: 0, y: 0 };
@@ -1426,9 +1438,6 @@
       triggerPopup(myPlayer.x, myPlayer.y, '旋風演舞!', '#f43f5e');
     });
 
-    /* =========================================================
-       12. メインループ (更新)
-       ========================================================= */
     let lastFrameTime = performance.now();
 
     function update() {
@@ -1473,6 +1482,10 @@
           } else if (g.type === 'pulse') {
             myPlayer.vx += Math.cos(g.angle) * g.power;
             myPlayer.vy += Math.sin(g.angle) * g.power;
+          } else if (g.type === 'magnet_hazard') {
+            const ang = Math.atan2(g.y - myPlayer.y, g.x - myPlayer.x);
+            myPlayer.vx += Math.cos(ang) * 1.8;
+            myPlayer.vy += Math.sin(ang) * 1.8;
           } else if (g.type === 'geyser' && g.active) {
             takeDamage(g.dps, '毒間欠泉');
           } else if (g.type === 'fountain') {
@@ -1518,7 +1531,8 @@
         const c = dropCores[i];
         if (Math.hypot(c.x - myPlayer.x, c.y - myPlayer.y) < magnetRange) {
           myPlayer.cores += c.val;
-          myPlayer.exp += c.val * 6;
+          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
+          myPlayer.exp += Math.round(c.val * 6 * expMult);
           sound.playTone(1200, 'sine', 0.1, 0.1);
           triggerPopup(c.x, c.y, `+${c.val} コア`, '#facc15');
           dropCores.splice(i, 1);
@@ -1626,9 +1640,6 @@
       ctx.fillRect(barX, barY, barW * ratio, barH);
     }
 
-    /* =========================================================
-       13. 描画ループ
-       ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (!isPlaying) return;
@@ -1653,7 +1664,7 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // ギミック描画（画面内のみ描画して負荷軽減）
+      // ギミック描画
       fieldGimmicks.forEach(gim => {
         if (Math.hypot(gim.x - myPlayer.x, gim.y - myPlayer.y) > viewR) return;
 
@@ -1709,6 +1720,7 @@
         if (gim.type === 'recharge') label = '⚡STATION';
         if (gim.type === 'storm') label = gim.discharge ? '⚡STORM' : '☁CLOUD';
         if (gim.type === 'teleport') label = '✦WARP';
+        if (gim.type === 'magnet_hazard') label = '🧲PULL';
         if (gim.type === 'bush') label = '🍃BUSH';
         if (gim.type === 'ice') label = '❄ICE';
         ctx.fillText(label, gim.x, gim.y + 3);
@@ -1903,9 +1915,6 @@
       miniCtx.fill();
     }
 
-    /* =========================================================
-       14. ロビー & 出撃処理
-       ========================================================= */
     function checkSavePreview() {
       const banner = document.getElementById('saveStatusBanner');
       const detail = document.getElementById('saveStatusDetail');
@@ -1949,8 +1958,9 @@
         myPlayer.cores = 0;
         myPlayer.sp = 0;
         myPlayer.evolved = false;
+        myPlayer.customEvo = null;
         myPlayer.modules = [];
-        myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, knockbackRes: 0, escapeSpeed: 0 };
+        myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, knockbackRes: 0, escapeSpeed: 0 };
       }
 
       purgeSaveData();
@@ -1988,7 +1998,7 @@
       myPlayer.customEvo = null;
       myPlayer.classType = myPlayer.baseClass;
       myPlayer.modules = [];
-      myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, knockbackRes: 0, escapeSpeed: 0 };
+      myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, knockbackRes: 0, escapeSpeed: 0 };
 
       myPlayer.x = 50000 + (Math.random() - 0.5) * 600;
       myPlayer.y = 50000 + (Math.random() - 0.5) * 600;
