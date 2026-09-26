@@ -6,7 +6,10 @@
   <title>ARENA.IO: EVOLUTION & SURVIVAL</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- Firebase App & Realtime Database SDK (compat版) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <style>
     * {
@@ -42,7 +45,7 @@
 
   <canvas id="gameCanvas"></canvas>
 
-  <!-- ゲーム内 HUD (スマホ最適化) -->
+  <!-- ゲーム内 HUD -->
   <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-1.5 sm:p-3 select-none">
     
     <!-- 上段ヘッダー -->
@@ -141,20 +144,17 @@
       <!-- アクションボタン -->
       <div class="flex flex-col items-end gap-2 pointer-events-auto">
         <div class="flex items-end gap-1.5 sm:gap-2.5">
-          <!-- スキル -->
           <button id="btnSkill" class="relative w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="skillIcon" class="fa-solid fa-wind text-sm sm:text-base text-white"></i>
             <span class="text-[6px] sm:text-[7px] font-black text-indigo-100">SKILL</span>
             <div id="skillCooldownCover" class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-[9px] font-bold text-white hidden">0s</div>
           </button>
 
-          <!-- ダッシュ -->
           <button id="btnDash" class="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i class="fa-solid fa-bolt text-sm sm:text-base text-white"></i>
             <span class="text-[6px] sm:text-[7px] font-black text-cyan-100">DASH</span>
           </button>
 
-          <!-- 攻撃 -->
           <button id="btnAttack" class="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="attackIcon" class="fa-solid fa-khanda text-xl sm:text-2xl text-white mb-0.5"></i>
             <span id="attackLabel" class="text-[7px] sm:text-[9px] font-black tracking-wider text-rose-100">ATTACK</span>
@@ -164,13 +164,13 @@
     </div>
   </div>
 
-  <!-- クラス進化モーダル (Lv.10到達時) -->
+  <!-- クラス進化モーダル -->
   <div id="evolutionModal" class="absolute inset-0 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
     <div class="w-full max-w-sm bg-slate-900 border-2 border-amber-400 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 text-center">
       <div class="text-amber-400 font-black text-base flex items-center justify-center gap-1.5">
         <i class="fa-solid fa-crown text-yellow-300"></i> 上位クラス覚醒進化
       </div>
-      <p class="text-[10px] text-slate-300">Lv.10に到達しました！さらなる能力を秘めた進化先を選択してください。</p>
+      <p class="text-[10px] text-slate-300">Lv.10に到達しました！進化先を選択してください。</p>
       <div id="evolutionChoices" class="flex flex-col gap-2"></div>
     </div>
   </div>
@@ -313,6 +313,31 @@
   </div>
 
   <script>
+    /* =========================================================
+       ★ Firebase設定（ご自身のプロジェクト設定値に置き換えてください）
+       ========================================================= */
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    let db = null;
+    let myPlayerRef = null;
+    let roomPlayersRef = null;
+    try {
+      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+      }
+    } catch(e) {
+      console.warn("Firebase初期化待機中:", e);
+    }
+
     /* =========================================================
        1. サウンド管理
        ========================================================= */
@@ -535,7 +560,10 @@
     }
 
     window.addEventListener('beforeunload', () => {
-      if (isPlaying) purgeSaveData();
+      if (isPlaying) {
+        purgeSaveData();
+        if (myPlayerRef) myPlayerRef.remove();
+      }
     });
 
     let remotePlayers = new Map();
@@ -548,99 +576,44 @@
     let fieldGimmicks = [];
 
     /* =========================================================
-       4. P2P通信（PeerJS）
+       4. Firebase Realtime Database ネットワーク同期
        ========================================================= */
-    let peer = null;
-    let isHost = false;
-    let hostConn = null;
-    const peerConnections = new Map();
     let lastSyncSendTime = 0;
 
     function initNetwork(rId) {
       roomCode = rId.trim().toUpperCase() || 'OMNI10';
-      const hostId = `arena_omni_${roomCode.toLowerCase()}_host`;
       const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = `[${roomCode}] 接続中...`;
 
-      peer = new Peer(hostId, {
-        debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-      });
+      if (!db) {
+        logEl.textContent = 'Firebase未設定 (ソロ・BOTモードで動作中)';
+        updateNetUI(1);
+        return;
+      }
 
-      peer.on('open', () => {
-        isHost = true;
-        logEl.textContent = 'ホスト稼働中';
-        updateNetUI(true, 1);
-        setupHostNet();
-      });
+      logEl.textContent = `[${roomCode}] サーバー接続中...`;
+      roomPlayersRef = db.ref(`rooms/${roomCode}/players`);
+      myPlayerRef = roomPlayersRef.child(myPlayer.id);
 
-      peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          peer.destroy();
-          connectClient(hostId);
-        } else {
-          logEl.textContent = `接続状況: ${err.type}`;
+      // 切断時にデータベースから自動削除
+      myPlayerRef.onDisconnect().remove();
+
+      // 他プレイヤーの参加・更新を検知
+      roomPlayersRef.on('child_added', (snap) => {
+        const data = snap.val();
+        if (data && data.id !== myPlayer.id) {
+          remotePlayers.set(data.id, {
+            ...data,
+            targetX: data.x,
+            targetY: data.y,
+            lastSeen: performance.now()
+          });
+          updateLeaderboard();
         }
       });
-    }
 
-    function connectClient(hostId) {
-      const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = 'ルーム合流中...';
-      peer = new Peer(`omni_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
-        debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-      });
-
-      peer.on('open', () => {
-        hostConn = peer.connect(hostId, { reliable: false });
-        setupClientNet();
-      });
-    }
-
-    function setupHostNet() {
-      peer.on('connection', (conn) => {
-        conn.on('open', () => {
-          peerConnections.set(conn.peer, conn);
-          updateNetUI(true, peerConnections.size + 1);
-        });
-        conn.on('data', (d) => {
-          handleNetData(d);
-          peerConnections.forEach((other, pid) => {
-            if (pid !== conn.peer && other.open) other.send(d);
-          });
-        });
-        conn.on('close', () => {
-          peerConnections.delete(conn.peer);
-          remotePlayers.delete(conn.peer);
-          updateNetUI(true, peerConnections.size + 1);
-          updateLeaderboard();
-        });
-      });
-    }
-
-    function setupClientNet() {
-      hostConn.on('open', () => {
-        isHost = false;
-        updateNetUI(false, 2);
-      });
-      hostConn.on('data', handleNetData);
-      hostConn.on('close', () => updateNetUI(false, 1, '切断されました'));
-    }
-
-    function broadcast(payload) {
-      if (isHost) {
-        peerConnections.forEach(c => { if (c.open) c.send(payload); });
-      } else if (hostConn && hostConn.open) {
-        hostConn.send(payload);
-      }
-    }
-
-    function handleNetData(data) {
-      if (!data) return;
-      switch (data.type) {
-        case 'player_sync':
-          if (data.id === myPlayer.id) return;
+      roomPlayersRef.on('child_changed', (snap) => {
+        const data = snap.val();
+        if (data && data.id !== myPlayer.id) {
           const exist = remotePlayers.get(data.id);
           if (exist) {
             exist.targetX = data.x;
@@ -662,40 +635,25 @@
               lastSeen: performance.now()
             });
           }
-          break;
+        }
+      });
 
-        case 'player_escaped':
-        case 'player_leave':
+      roomPlayersRef.on('child_removed', (snap) => {
+        const data = snap.val();
+        if (data && data.id !== myPlayer.id) {
           remotePlayers.delete(data.id);
           updateLeaderboard();
-          break;
+        }
+      });
 
-        case 'attack_slash':
-          if (data.ownerId === myPlayer.id) return;
-          slashes.push(data.slash);
-          sound.playSlash();
-          break;
-
-        case 'attack_bullet':
-          if (data.ownerId === myPlayer.id) return;
-          bullets.push(data.bullet);
-          sound.playShoot();
-          break;
-
-        case 'kill_broadcast':
-          addKillLog(data.killer, data.victim);
-          break;
-      }
+      logEl.textContent = 'オンライン同期中';
+      updateNetUI(remotePlayers.size + 1);
     }
 
-    function updateNetUI(asHost, count, err) {
+    function updateNetUI(count) {
       const dot = document.getElementById('netStatusDot');
       const countEl = document.getElementById('netPlayerCount');
-      if (err) {
-        dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
-      } else {
-        dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse';
-      }
+      dot.className = db ? 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse' : 'w-1.5 h-1.5 rounded-full bg-amber-400';
       countEl.textContent = count;
       document.getElementById('roomCodeBadge').textContent = roomCode;
     }
@@ -703,15 +661,16 @@
     function syncNetworkState() {
       if (!isPlaying || !myPlayer.isAlive) return;
       const now = performance.now();
-      if (now - lastSyncSendTime > 65) {
+
+      // Firebaseへの送信頻度は秒間10回（100ms周期）に調整してクォータを節約
+      if (db && myPlayerRef && now - lastSyncSendTime > 100) {
         lastSyncSendTime = now;
-        broadcast({
-          type: 'player_sync',
+        myPlayerRef.set({
           id: myPlayer.id,
           name: myPlayer.name,
           x: Math.round(myPlayer.x),
           y: Math.round(myPlayer.y),
-          angle: myPlayer.angle,
+          angle: Number(myPlayer.angle.toFixed(2)),
           hp: Math.round(myPlayer.hp),
           maxHp: Math.round(myPlayer.maxHp),
           cores: myPlayer.cores,
@@ -721,41 +680,67 @@
         });
       }
 
+      // 他プレイヤーの位置を滑らかに補間
       remotePlayers.forEach((rp, id) => {
-        if (now - rp.lastSeen > 3500) {
+        if (now - rp.lastSeen > 5000) {
           remotePlayers.delete(id);
           updateLeaderboard();
         } else {
-          rp.x += (rp.targetX - rp.x) * 0.3;
-          rp.y += (rp.targetY - rp.y) * 0.3;
+          rp.x += (rp.targetX - rp.x) * 0.25;
+          rp.y += (rp.targetY - rp.y) * 0.25;
         }
       });
+
+      updateNetUI(remotePlayers.size + 1);
     }
 
     /* =========================================================
-       5. 拡張ギミック & BOTスポーン
+       5. 拡張ギミック & BOTスポーン（広範囲自動生成・リサイクル）
        ========================================================= */
     function initFieldGimmicks() {
-      fieldGimmicks = [
-        { id: 'g_b1', type: 'bouncer', x: 50250, y: 50150, radius: 40, force: 18, color: '#f59e0b' },
-        { id: 'g_b2', type: 'bouncer', x: 49750, y: 49850, radius: 40, force: 18, color: '#f59e0b' },
-        { id: 'g_p1', type: 'pulse', x: 50400, y: 49700, radius: 50, angle: Math.PI / 4, power: 14, color: '#38bdf8' },
-        { id: 'g_mag1', type: 'magnet_hazard', x: 50100, y: 49600, radius: 95, pull: 1.0, color: '#c084fc', timer: 0, pullActive: false },
-        { id: 'g_poi1', type: 'geyser', x: 49800, y: 50400, radius: 60, dps: 0.6, color: '#10b981', active: true, timer: 0 },
-        { id: 'g_heal1', type: 'fountain', x: 50000, y: 50000, radius: 75, healRate: 0.4, color: '#34d399' },
-        { id: 'g_tp1', type: 'teleport', x: 49500, y: 49500, targetX: 50500, targetY: 50500, radius: 36, color: '#a855f7', cooldown: 0 },
-        { id: 'g_tp2', type: 'teleport', x: 50500, y: 50500, targetX: 49500, targetY: 49500, radius: 36, color: '#a855f7', cooldown: 0 },
-        { id: 'g_bush1', type: 'bush', x: 50150, y: 50350, radius: 70, color: '#15803d' },
-        { id: 'g_bush2', type: 'bush', x: 49850, y: 49650, radius: 70, color: '#15803d' },
-        { id: 'g_ice1', type: 'ice', x: 50300, y: 49950, radius: 80, color: '#67e8f9' },
-        { id: 'g_storm1', type: 'storm', x: 49700, y: 50100, radius: 85, color: '#eab308', timer: 0, discharge: false },
-        { id: 'g_station1', type: 'recharge', x: 50350, y: 50250, radius: 45, color: '#38bdf8' }
-      ];
+      fieldGimmicks = [];
+      const types = ['bouncer', 'pulse', 'geyser', 'fountain', 'recharge', 'bush', 'ice', 'storm', 'teleport'];
+
+      // スタート位置周辺（半径12,000px）に150個のギミックを均等・ランダムに散布
+      for (let i = 0; i < 150; i++) {
+        const type = types[Math.floor(Math.random() * types.length)];
+        const gx = 50000 + (Math.random() - 0.5) * 24000;
+        const gy = 50000 + (Math.random() - 0.5) * 24000;
+        
+        let color = '#38bdf8';
+        if (type === 'bouncer') color = '#f59e0b';
+        if (type === 'bush') color = '#15803d';
+        if (type === 'ice') color = '#67e8f9';
+        if (type === 'geyser') color = '#10b981';
+        if (type === 'fountain') color = '#34d399';
+        if (type === 'teleport') color = '#a855f7';
+        if (type === 'storm') color = '#eab308';
+
+        fieldGimmicks.push({
+          id: 'g_' + i,
+          type: type,
+          x: gx,
+          y: gy,
+          targetX: gx + (Math.random() - 0.5) * 2000,
+          targetY: gy + (Math.random() - 0.5) * 2000,
+          radius: type === 'bush' || type === 'ice' ? 70 : (type === 'fountain' ? 65 : 45),
+          force: 18,
+          power: 14,
+          dps: 0.6,
+          healRate: 0.4,
+          color: color,
+          angle: Math.random() * Math.PI * 2,
+          timer: Math.floor(Math.random() * 100),
+          active: true,
+          discharge: false,
+          cooldown: 0
+        });
+      }
     }
 
     function maintainBots() {
       if (!isPlaying) return;
-      if (aiBots.length < 5) {
+      if (aiBots.length < 6) {
         const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer'];
         const isElite = Math.random() < 0.12 && !aiBots.some(b => b.variant === 'elite_boss');
         const chosenKey = isElite ? 'elite_boss' : types[Math.floor(Math.random() * types.length)];
@@ -796,8 +781,19 @@
         const bot = aiBots[i];
         const spec = bot.spec;
         const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
+
+        // ★ 離れすぎたBOTをプレイヤー周辺にワープさせて常に交戦を持続
+        if (dist > 1800) {
+          const reAngle = Math.random() * Math.PI * 2;
+          const reDist = 700 + Math.random() * 300;
+          bot.x = myPlayer.x + Math.cos(reAngle) * reDist;
+          bot.y = myPlayer.y + Math.sin(reAngle) * reDist;
+          bot.vx = 0;
+          bot.vy = 0;
+          continue;
+        }
         
-        const detectRange = myPlayer.inBush ? 100 : (spec.isBoss ? 600 : 450);
+        const detectRange = myPlayer.inBush ? 100 : (spec.isBoss ? 650 : 500);
         const canSeePlayer = myPlayer.isAlive && dist < detectRange;
 
         if (bot.variant === 'assassin') {
@@ -946,7 +942,7 @@
     }
 
     /* =========================================================
-       6. クラス進化モーダルシステム (Lv.10覚醒)
+       6. クラス進化モーダルシステム
        ========================================================= */
     function checkClassEvolution() {
       if (myPlayer.level >= 10 && !myPlayer.evolved) {
@@ -992,7 +988,7 @@
     }
 
     /* =========================================================
-       7. 10秒ノーダメージ脱出シーケンス
+       7. 10秒脱出シーケンス
        ========================================================= */
     const btnStartEscape = document.getElementById('btnStartEscape');
     const escapeProgressBox = document.getElementById('escapeProgressBox');
@@ -1038,7 +1034,7 @@
 
         saveOnSuccessfulEscape();
 
-        broadcast({ type: 'player_escaped', id: myPlayer.id });
+        if (myPlayerRef) myPlayerRef.remove();
         isPlaying = false;
 
         document.getElementById('gameHud').classList.add('hidden');
@@ -1137,7 +1133,7 @@
     }
 
     /* =========================================================
-       10. 戦闘 & ステータス計算 & モジュール合成
+       10. 戦闘 & ステータス計算
        ========================================================= */
     function recalcStats() {
       let cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
@@ -1233,8 +1229,7 @@
           damage, life: 8, isCrit
         };
         slashes.push(slashObj);
-        broadcast({ type: 'attack_slash', ownerId: myPlayer.id, slash: slashObj });
-        checkMeleeHits(slashObj, cfg.deflects);
+        checkMeleeHits(slashObj);
       } else {
         sound.playShoot();
         const count = cfg.multiShot || 1;
@@ -1253,12 +1248,11 @@
             isFreeze: cfg.isFreeze
           };
           bullets.push(bullet);
-          broadcast({ type: 'attack_bullet', ownerId: myPlayer.id, bullet });
         }
       }
     }
 
-    function checkMeleeHits(sl, canDeflect) {
+    function checkMeleeHits(sl) {
       aiBots.forEach(bot => {
         const dist = Math.hypot(bot.x - sl.x, bot.y - sl.y);
         const ang = Math.atan2(bot.y - sl.y, bot.x - sl.x);
@@ -1312,12 +1306,10 @@
         sound.playExplode();
         purgeSaveData();
 
-        const lostEl = document.getElementById('lostCoresText');
-        if (lostEl) lostEl.textContent = `-${myPlayer.cores}`;
+        if (myPlayerRef) myPlayerRef.remove();
 
         document.getElementById('deathModal').classList.remove('hidden');
         addKillLog(attacker, myPlayer.name);
-        broadcast({ type: 'kill_broadcast', killer: attacker, victim: myPlayer.name });
       }
     }
 
@@ -1346,7 +1338,7 @@
     }
 
     /* =========================================================
-       11. ジョイスティック & アクション操作
+       11. ジョイスティック & 操作
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -1430,12 +1422,12 @@
         x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 130, damage: 70, life: 12, isCrit: true
       };
       slashes.push(spin);
-      checkMeleeHits(spin, true);
+      checkMeleeHits(spin);
       triggerPopup(myPlayer.x, myPlayer.y, '旋風演舞!', '#f43f5e');
     });
 
     /* =========================================================
-       12. メインループ (更新 & 描画)
+       12. メインループ (更新)
        ========================================================= */
     let lastFrameTime = performance.now();
 
@@ -1544,7 +1536,7 @@
         }
       }
 
-      // ソウルモジュール回収・合成
+      // ソウルモジュール回収
       for (let i = dropModules.length - 1; i >= 0; i--) {
         const m = dropModules[i];
         if (Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 18) {
@@ -1661,8 +1653,10 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // ギミック描画
+      // ギミック描画（画面内のみ描画して負荷軽減）
       fieldGimmicks.forEach(gim => {
+        if (Math.hypot(gim.x - myPlayer.x, gim.y - myPlayer.y) > viewR) return;
+
         ctx.save();
         ctx.beginPath();
         ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
@@ -1710,7 +1704,6 @@
         ctx.textAlign = 'center';
         let label = '★BOUNCE';
         if (gim.type === 'pulse') label = '➔PULSE';
-        if (gim.type === 'magnet_hazard') label = '✦PULL';
         if (gim.type === 'geyser') label = gim.active ? '⚠POISON' : '💤GEYSER';
         if (gim.type === 'fountain') label = '♥HEAL';
         if (gim.type === 'recharge') label = '⚡STATION';
@@ -1778,7 +1771,7 @@
         }
       });
 
-      // リモートプレイヤー
+      // リモートプレイヤー描画
       remotePlayers.forEach(rp => {
         if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
           ctx.save();
@@ -1825,7 +1818,7 @@
         ctx.restore();
       });
 
-      // プレイヤー描画
+      // 自プレイヤー
       if (myPlayer.isAlive) {
         ctx.save();
         ctx.globalAlpha = myPlayer.inBush ? 0.5 : 1.0;
@@ -1899,7 +1892,7 @@
       const sy = miniCanvas.height / WORLD_HEIGHT;
 
       miniCtx.fillStyle = '#a855f7';
-      fieldGimmicks.forEach(g => miniCtx.fillRect(g.x * sx - 1, g.y * sy - 1, 2, 2));
+      fieldGimmicks.forEach(g => miniCtx.fillRect(g.x * sx - 1, g.y * sy - 1, 1.5, 1.5));
 
       miniCtx.fillStyle = '#f43f5e';
       aiBots.forEach(b => miniCtx.fillRect(b.x * sx - 1, b.y * sy - 1, 2, 2));
