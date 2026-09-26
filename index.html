@@ -2,1569 +2,1660 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>リアルタイム ゲーム＆ポイントシステム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>キングダム・バベル (Kingdom Babel) - ダンジョン強奪アクション</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Rajdhani:wght@600;700;900&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #0d0e12;
-      --card-bg: #161822;
-      --card-border: #26293b;
-      --text: #f1f5f9;
-      --text-muted: #8e99b0;
-      --primary: #e11d48;
-      --primary-hover: #f43f5e;
-      --secondary: #272a3c;
-      --gm-color: #ef4444;
-      --accent: #f59e0b;
-      --success: #10b981;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      padding: 12px;
-      max-width: 560px;
-      margin: 0 auto;
-      padding-bottom: 90px;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      background-color: #030712;
     }
-
-    h1 { font-size: 1.2rem; text-align: center; margin-bottom: 12px; color: var(--primary); letter-spacing: 1px; }
-    h2 { font-size: 0.95rem; margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-    h2.gm-title { border-bottom-color: var(--gm-color); color: var(--gm-color); }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 14px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      margin-bottom: 14px;
+    .font-eng { font-family: 'Rajdhani', sans-serif; }
+    .font-title { font-family: 'Cinzel', serif; }
+    .hud-glass {
+      background: rgba(10, 15, 29, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
-
-    .announce-box {
-      background: rgba(225, 29, 72, 0.15);
-      border: 1px solid var(--primary);
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 12px;
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .press-effect:active {
+      transform: scale(0.94);
+      filter: brightness(1.2);
     }
-
-    .hidden { display: none !important; }
-
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 560px;
-      background: #11131c;
-      border-top: 2px solid var(--card-border);
-      display: flex;
-      justify-content: space-around;
-      padding: 12px 0;
-      z-index: 1000;
+    .action-btn-touch {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .nav-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 8px;
-      border-radius: 8px;
+    canvas {
+      image-rendering: pixelated;
     }
-    .nav-btn.active { color: var(--primary); background-color: #1f2233; }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 8px;
-      background-color: #090a0e;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button.secondary { background-color: var(--secondary); color: var(--text); }
-    button.small { padding: 5px 10px; font-size: 0.8rem; width: auto; }
-    button.danger { background-color: #dc2626; }
-
-    .item-box {
-      border: 1px solid var(--card-border);
-      background: #0d0e14;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-    .notification-item {
-      border-left: 3px solid var(--primary);
-      background: #141622;
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-    .notification-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-
-    .chat-box {
-      height: 180px;
-      overflow-y: auto;
-      background: #090a0e;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 8px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-    }
-    .chat-msg { margin-bottom: 6px; word-break: break-all; }
-    .chat-user { font-weight: bold; color: var(--accent); }
-    .chat-gm { font-weight: bold; color: var(--gm-color); }
-    .chat-time { font-size: 0.7rem; color: var(--text-muted); margin-left: 4px; }
   </style>
 </head>
-<body>
+<body class="text-slate-100 min-h-screen flex flex-col items-center justify-start overflow-hidden">
 
-  <h1>REALTIME GAME SYSTEM</h1>
+  <!-- トーストメッセージ通知 -->
+  <div id="toast-container" class="fixed top-3 z-50 flex flex-col gap-2 w-11/12 max-w-sm pointer-events-none transition-all"></div>
 
-  <!-- ログイン画面 -->
-  <div id="auth-section" class="card">
-    <h2>ログイン / 新規登録</h2>
-    <input type="text" id="username-input" placeholder="名前（プレイヤー名）">
-    <input type="password" id="password-input" placeholder="パスワード">
-    <button id="login-btn">ログイン / アカウント作成</button>
-  </div>
+  <div id="app-wrapper" class="w-full max-w-md h-screen flex flex-col relative overflow-hidden bg-slate-950 shadow-2xl border-x border-slate-800">
 
-  <!-- ログイン中ヘッダー -->
-  <div id="user-info" class="card hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>PLAYER: <strong id="my-name" style="color:var(--primary);"></strong> <span id="gm-badge" style="color:var(--gm-color); font-weight:bold;"></span></div>
-      <div>PT: <strong id="my-points" style="color:var(--accent);">0</strong> pt</div>
-      <button id="logout-btn" class="secondary small">ログアウト</button>
-    </div>
-    <div id="status-badges" style="font-size: 0.8rem; margin-top: 4px;" class="hidden">
-      <span id="stealth-badge" class="hidden" style="color: #a855f7; margin-right:8px;">★ ステルス</span>
-      <span id="coupon-badge" class="hidden" style="color: #10b981; margin-right:8px;">★ クーポン (次回半額)</span>
-      <span id="lock-badge" class="hidden" style="color: #ef4444; margin-right:8px;">★ アイテム使用不可</span>
-      <span id="cool-badge" class="hidden" style="color: #f59e0b; margin-right:8px;">★ クールタイム中</span>
-      <span id="camera-badge" class="hidden" style="color: #3b82f6;">★ カメラ起動中</span>
-    </div>
-  </div>
-
-  <!-- アプリメインコンテンツ -->
-  <div id="app-content" class="hidden">
-
-    <!-- 全体アナウンスボード (常時表示・赤色ヘッダー) -->
-    <div id="game-announce-card" class="announce-box">
-      <div id="announce-body" style="font-size:0.9rem; white-space: pre-wrap;">現在アナウンスはありません</div>
-    </div>
-
-    <!-- 1. ダッシュボード タブ -->
-    <div id="tab-dashboard">
-      <div id="pending-requests" class="card">
-        <h2>承認待ちリクエスト（取引・対戦）</h2>
-        <div id="pending-container"><div style="color:var(--text-muted); font-size:0.85rem;">到着した申請はありません</div></div>
-      </div>
-
-      <div class="card">
-        <h2>所持アイテム ＆ アクション</h2>
-        <div id="inventory-list"></div>
-      </div>
-
-      <!-- 取引機能 -->
-      <div class="card">
-        <h2>参加者との取引（合意制 / 換金）</h2>
-        <select id="trade-mode">
-          <option value="pt">ポイントを送信する</option>
-          <option value="item">アイテムを売る (換金)</option>
-        </select>
-        <select id="trade-target"><option value="">相手を選択</option></select>
-        <div id="trade-pt-inputs">
-          <input type="number" id="trade-pt-amount" placeholder="送信ポイント数" min="1">
+    <!-- 常時HUDヘッダー（資源・ワールドステータス） -->
+    <header id="main-hud" class="hud-glass border-b border-amber-500/20 px-3.5 py-2 flex items-center justify-between z-30 transition-all">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-slate-950 font-black shadow-md">
+          <i class="fa-solid fa-dungeon text-sm"></i>
         </div>
-        <div id="trade-item-inputs" class="hidden">
-          <select id="trade-item-select"><option value="">出品アイテムを選択</option></select>
-          <input type="number" id="trade-item-price" placeholder="販売希望価格(pt)" min="1">
-        </div>
-        <button id="send-trade-req-btn">取引申請を送信</button>
-      </div>
-
-      <!-- 全体チャット機能 -->
-      <div class="card">
-        <h2>全体チャット</h2>
-        <div id="chat-box" class="chat-box"></div>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="chat-input" placeholder="メッセージを入力..." style="margin-bottom:0;">
-          <button id="chat-send-btn" class="small">送信</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. 個別チャット タブ -->
-    <div id="tab-dm" class="hidden">
-      <div class="card">
-        <h2>個別チャット (DM)</h2>
-        <select id="dm-target-select"><option value="">相手を選択してください</option></select>
-        <div id="dm-chat-box" class="chat-box"></div>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="dm-input" placeholder="メッセージを入力..." style="margin-bottom:0;">
-          <button id="dm-send-btn" class="small">送信</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. ショップ タブ -->
-    <div id="tab-shop" class="hidden">
-      <div class="card">
-        <h2>ショップ（入荷アイテム一覧）</h2>
-        <div id="shop-inventory-list"></div>
-      </div>
-      <div class="card">
-        <h2>ショップ購入履歴</h2>
-        <div id="shop-camera-status" style="font-size:0.75rem; color:var(--accent); margin-bottom:6px;"></div>
-        <div id="shop-history-list" style="max-height:180px; overflow-y:auto;"></div>
-      </div>
-    </div>
-
-    <!-- 4. 通知・履歴 タブ -->
-    <div id="tab-notifications" class="hidden">
-      <div class="card">
-        <h2>自分へのお知らせ・アクティビティ通知</h2>
-        <div id="user-notifications-list"></div>
-      </div>
-    </div>
-
-    <!-- 5. 順位（ランキング） タブ -->
-    <div id="tab-ranking" class="hidden">
-      <div class="card">
-        <h2>公開された順位の記録</h2>
-        <div id="ranking-snapshots-container"></div>
-      </div>
-    </div>
-
-    <!-- 6. GM管理 タブ -->
-    <div id="tab-gm" class="hidden">
-
-      <div class="card">
-        <h2 class="gm-title">【GM】ゲームアナウンス管理</h2>
-        <textarea id="gm-announce-desc" placeholder="自由なアナウンス文章を入力（【進行状況】なども込みで記入できます）..." rows="4"></textarea>
-        <button id="gm-send-announce-btn" style="background-color:var(--gm-color);">全体アナウンスを更新＆通知</button>
-      </div>
-
-      <div class="card">
-        <h2 class="gm-title">【GM】全員のアクティビティ全能ログ (購入＆使用)</h2>
-        <div id="gm-activity-logs" style="max-height:250px; overflow-y:auto; font-size:0.8rem; background:#090a0e; padding:8px; border-radius:6px;"></div>
-      </div>
-
-      <div class="card">
-        <h2 class="gm-title">【GM】参加者確認 ＆ 削除</h2>
-        <div id="gm-user-list-container" style="max-height:180px; overflow-y:auto; margin-bottom:8px;"></div>
-      </div>
-
-      <div class="card">
-        <h2 class="gm-title">【GM】ポイント増減</h2>
-        <select id="gm-point-target"><option value="">対象プレイヤーを選択</option></select>
-        <input type="number" id="gm-point-amount" placeholder="変更ポイント数 (例: 100 または -50)">
-        <div style="display:flex; gap:8px;">
-          <button id="gm-point-add-btn">ポイント付与 (+)</button>
-          <button id="gm-point-sub-btn" class="danger">ポイント没収 (-)</button>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span id="hud-player-name" class="font-bold text-xs text-slate-200 truncate max-w-[90px]">騎士</span>
+            <span class="text-[10px] text-amber-400 font-eng font-bold flex items-center gap-0.5">
+              <i class="fa-solid fa-trophy text-[9px]"></i>
+              <span id="hud-trophy">100</span>
+            </span>
+          </div>
+          <div class="text-[9px] text-slate-400 font-mono" id="hud-online-status">オンライン同期中</div>
         </div>
       </div>
 
-      <div class="card">
-        <h2 class="gm-title">【GM】アイテム付与 ＆ 没収</h2>
-        <div style="font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:var(--accent);">■ アイテムを直接あげる</div>
-        <select id="gm-item-give-target"><option value="">対象プレイヤーを選択</option></select>
-        <select id="gm-item-give-select"></select>
-        <input type="number" id="gm-item-give-power" placeholder="威力設定 (アタック等の威力)">
-        <button id="gm-item-give-btn" style="margin-bottom:12px;">アイテムを付与する</button>
-
-        <div style="font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:var(--gm-color);">■ クールタイムリセット</div>
-        <button id="gm-reset-all-cooldowns-btn" style="background-color:var(--secondary); margin-bottom:12px;">全員のクールタイムを解除</button>
+      <!-- 資源メーター -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-amber-950/50 border border-amber-500/30 px-2 py-1 rounded-lg">
+          <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+          <span id="hud-gold" class="font-eng text-xs font-black text-amber-300">0</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-indigo-950/50 border border-indigo-500/30 px-2 py-1 rounded-lg">
+          <i class="fa-solid fa-gem text-indigo-400 text-xs"></i>
+          <span id="hud-mana" class="font-eng text-xs font-black text-indigo-300">0</span>
+        </div>
+        <button id="btn-sound-toggle" class="p-2 rounded-lg bg-slate-800 text-slate-400 press-effect">
+          <i id="sound-icon" class="fa-solid fa-volume-high text-xs"></i>
+        </button>
       </div>
+    </header>
 
-      <div class="card">
-        <h2 class="gm-title">【GM】順位公開コントロール</h2>
-        <button id="gm-publish-ranking-btn" style="background-color:var(--accent); color:#000; margin-bottom:8px;">現在の順位を記録して公開通知</button>
-        <button id="gm-undo-ranking-btn" class="danger">直前に公開した順位を取り消す（削除）</button>
-      </div>
-
-      <div class="card">
-        <h2 class="gm-title">【GM】ショップ入荷・削除管理</h2>
-        <select id="gm-shop-item-select"></select>
-        <input type="number" id="gm-shop-price" placeholder="販売価格(pt)">
-        <input type="number" id="gm-shop-power" placeholder="攻撃系の場合: 奪えるポイント数(威力)">
-        <button id="gm-add-shop-btn" style="margin-bottom:12px;">ショップに入荷</button>
-
-        <div style="font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:var(--accent);">■ 出品中の商品を削除</div>
-        <div id="gm-shop-delete-list" style="max-height:150px; overflow-y:auto;"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ナビゲーションバー -->
-  <nav id="nav-bar" class="nav-bar hidden">
-    <button class="nav-btn active" onclick="switchTab('dashboard')">ホーム</button>
-    <button class="nav-btn" onclick="switchTab('dm')">個別DM</button>
-    <button class="nav-btn" onclick="switchTab('shop')">ショップ</button>
-    <button class="nav-btn" onclick="switchTab('notifications')">通知</button>
-    <button class="nav-btn" onclick="switchTab('ranking')">順位</button>
-    <button id="nav-gm-btn" class="nav-btn hidden" onclick="switchTab('gm')" style="color:var(--gm-color);">GM管理</button>
-  </nav>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, push, set, update, remove, onValue }
-      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-  apiKey: "AIzaSyDKpHMR2OG551uoQkq4Pf7Tg6sZTSjQ4Tk",
-  authDomain: "chipmanager-aaac0.firebaseapp.com",
-  databaseURL: "https://chipmanager-aaac0-default-rtdb.firebaseio.com",
-  projectId: "chipmanager-aaac0",
-  storageBucket: "chipmanager-aaac0.firebasestorage.app",
-  messagingSenderId: "516021744933",
-  appId: "1:516021744933:web:fa4595b5eccd5cc3c256cc",
-  measurementId: "G-63RWB0FDZK"
-};
-
-    const GM_NAME = "GM";
-
-    const ITEM_MASTER = {
-      "attack_custom": { name: "アタック", type: "attack", defaultPower: 50, getDesc: (p) => `指定相手から最大 ${p ?? 50} pt 奪う（奪取成功でクールタイム発生）` },
-      "attack_drill": { name: "ドリルアタック", type: "attack_drill", defaultPower: 50, getDesc: (p) => `シールド・バリアを無視して最大 ${p ?? 50} pt 奪う（奪取成功でクールタイム発生）` },
-      "all_attack": { name: "一網打尽", type: "all_attack", defaultPower: 10, getDesc: (p) => `自分以外の参加者全員から各 ${p ?? 10} pt ずつ奪う（1pt以上奪取でクールタイム発生）` },
-      "stealth": { name: "ステルス", type: "buff", getDesc: () => "次に使用する攻撃アイテムの発動者を「誰か」と隠蔽する" },
-      "thief": { name: "泥棒", type: "thief", getDesc: () => "1/2の確率で指定した相手から所持アイテムを1つランダムで奪う" },
-      "shield": { name: "シールド", type: "defense_single", getDesc: () => "指定対象1人からの攻撃を1回防いで消費される" },
-      "barrier": { name: "バリア", type: "defense_global", getDesc: () => "誰からの攻撃でも1回防いだ時点で消費される" },
-      "fake_item": { name: "偽装キット", type: "fake", getDesc: () => "自分の持ちアイテム1つを自由な名前と効果説明（空欄可）に偽装する" },
-      "item_lock": { name: "アイテムロック", type: "curse", getDesc: () => "選んだ一人を0時までアイテム使用不能にする" },
-      "mirror": { name: "ミラー", type: "defense_reflect_single", getDesc: () => "指定対象1人からの攻撃を1回反射して消費される" },
-      "cool_resetter": { name: "クールリセッター", type: "utility", getDesc: () => "ポイント奪取成功後のクールタイムを即時解除する" },
-      "power_booster": { name: "パワーブースター", type: "passive", getDesc: () => "持っているだけで奪う系の奪う量が永久に5%増加（消費なし）" },
-      "coupon": { name: "クーポン", type: "buff_shop", getDesc: () => "使用後、次回ショップでアイテムを買うまで値段が半額になる" },
-      "shop_camera": { name: "ショップカメラ", type: "camera", getDesc: () => "使用後1日間（24時間）、全プレイヤーのショップ購入履歴が閲覧可能になる" },
+    <section id="view-base" class="flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar gap-3.5 z-20 pb-20">
       
-      // --- 新規追加アイテム ---
-      "fastball": { name: "豪速球", type: "fastball", getDesc: () => "任意の参加者のランダムなアイテム1つを破壊する" },
-      "top_scope": { name: "トップスコープ", type: "top_scope", getDesc: () => "1位のポイント数のみが分かる（使っても消えない）" },
-      "random_scope": { name: "ランダムスコープ", type: "random_scope", getDesc: () => "ランダムな参加者1人の順位とポイント数が分かる" },
-      "item_sensor": { name: "アイテムセンサー", type: "item_sensor", getDesc: () => "指定した対象が持っているランダムなアイテム1つの名前と効果が分かる" }
-    };
+      <!-- オフライン放置収支ポップ通知 -->
+      <div id="offline-income-banner" class="hidden bg-gradient-to-r from-amber-600/30 via-slate-900 to-indigo-600/30 border border-amber-500/40 rounded-2xl p-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2.5 bg-amber-500/20 rounded-xl text-amber-400 text-lg">
+            <i class="fa-solid fa-hourglass-half"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider">留守中の金鉱・魔力炉収益</div>
+            <div class="text-xs font-extrabold text-white flex gap-2 font-eng">
+              <span id="offline-gold-text">+0 🪙</span>
+              <span id="offline-mana-text">+0 🔮</span>
+            </div>
+          </div>
+        </div>
+        <button id="btn-claim-offline" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow press-effect">
+          回収
+        </button>
+      </div>
+
+      <!-- シールドと防衛状態 -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-400 font-bold">防衛結界ステータス</div>
+            <div id="shield-time-left" class="text-xs font-eng font-bold text-rose-400">結界解除中 (強奪リスクあり)</div>
+          </div>
+        </div>
+        <span class="text-[10px] bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg font-mono font-bold" id="defense-score-badge">罠 6基</span>
+      </div>
+
+      <!-- マイダンジョンのプレビューキャンバス -->
+      <div class="relative w-full aspect-[16/9] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-xl flex items-center justify-center">
+        <canvas id="base-preview-canvas" class="w-full h-full block"></canvas>
+        <div class="absolute bottom-2 right-2 flex gap-1.5">
+          <button id="btn-open-editor" class="px-3 py-1.5 bg-slate-900/90 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow press-effect backdrop-blur">
+            <i class="fa-solid fa-pen-ruler text-amber-400"></i>
+            ダンジョン罠改築
+          </button>
+        </div>
+      </div>
+
+      <!-- メインアクション大ボタン -->
+      <div class="grid grid-cols-2 gap-3">
+        <button id="btn-go-raid-list" class="py-3.5 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-black rounded-2xl shadow-xl shadow-rose-950/50 border border-rose-400/40 flex flex-col items-center justify-center gap-1 press-effect">
+          <div class="flex items-center gap-1.5 text-sm">
+            <i class="fa-solid fa-skull"></i>
+            <span>ダンジョン強奪！</span>
+          </div>
+          <span class="text-[10px] text-rose-100/80 font-normal">身内を急襲し宝箱を略奪</span>
+        </button>
+
+        <button id="btn-test-play-dungeon" class="py-3.5 bg-slate-900 border border-slate-700 text-slate-200 font-black rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 press-effect">
+          <div class="flex items-center gap-1.5 text-sm">
+            <i class="fa-solid fa-gamepad text-emerald-400"></i>
+            <span>防衛テストプレイ</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-normal">自作罠の難易度を自ら検証</span>
+        </button>
+      </div>
+
+      <!-- 直近の被害・リベンジログ -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+            被害・防衛ログ (リベンジ可能)
+          </span>
+          <span class="text-[10px] text-slate-500 font-mono">最新2件</span>
+        </div>
+        <div id="base-recent-logs-list" class="space-y-2 text-xs">
+          <div class="text-slate-500 text-center py-2 text-[11px]">現在被害はありません。平穏です。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-raid-list" class="hidden flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar gap-3 z-20 pb-20">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-crosshairs text-rose-500"></i>
+            身内ターゲット選択
+          </h2>
+          <p class="text-[10px] text-slate-400">相手のダンジョンに潜入し、最奥の宝箱を奪え！</p>
+        </div>
+        <button id="btn-refresh-targets" class="p-2 bg-slate-800 rounded-xl text-slate-300 press-effect">
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+        </button>
+      </div>
+
+      <!-- 標的カードコンテナ -->
+      <div id="targets-container" class="space-y-2.5"></div>
+    </section>
+
+    <section id="view-battle" class="hidden absolute inset-0 z-40 bg-slate-950 flex flex-col overflow-hidden select-none">
+      
+      <!-- バトル上部HUD -->
+      <div class="absolute top-2 left-2 right-2 z-10 flex items-center justify-between pointer-events-none">
+        <!-- プレイヤーHP -->
+        <div class="hud-glass px-2.5 py-1.5 rounded-xl border border-slate-700/80 pointer-events-auto flex items-center gap-2">
+          <div class="w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xs font-bold">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+          <div class="w-20">
+            <div class="flex justify-between text-[9px] font-bold text-slate-300 mb-0.5">
+              <span>HP</span>
+              <span id="battle-hp-text">100/100</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div id="battle-hp-bar" class="bg-rose-500 h-full w-full transition-all duration-75"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 宝箱攻略状態 & 制限時間 -->
+        <div class="hud-glass px-3 py-1.5 rounded-xl border border-amber-500/40 pointer-events-auto flex items-center gap-3">
+          <div class="text-right">
+            <span class="text-[8px] text-slate-400 block font-bold">略奪ゴールド</span>
+            <span id="battle-looted-gold" class="text-xs font-eng font-black text-amber-300">+0 🪙</span>
+          </div>
+          <div class="h-5 w-px bg-slate-700"></div>
+          <div class="text-center">
+            <span class="text-[8px] text-slate-400 block font-bold">制限時間</span>
+            <span id="battle-timer" class="text-xs font-eng font-black text-white">40s</span>
+          </div>
+        </div>
+
+        <!-- 撤退ボタン -->
+        <button id="btn-battle-retreat" class="hud-glass p-2 rounded-xl border border-rose-500/40 text-rose-300 pointer-events-auto press-effect">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+        </button>
+      </div>
+
+      <!-- 2D横スクロールアクションキャンバス -->
+      <canvas id="battle-canvas" class="w-full h-full flex-1 touch-none"></canvas>
+
+      <!-- スマホ用バーチャルコントロール (下部配置) -->
+      <div class="absolute bottom-3 left-3 right-3 z-20 flex items-end justify-between pointer-events-none">
+        
+        <!-- 左手：左右移動ボタン (押しっぱなし対応) -->
+        <div class="flex items-center gap-2 pointer-events-auto">
+          <button id="btn-touch-left" class="action-btn-touch w-16 h-16 rounded-2xl bg-slate-900/80 border-2 border-slate-700/80 shadow-2xl flex items-center justify-center text-slate-200 text-xl backdrop-blur active:bg-indigo-600 active:border-indigo-400">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button id="btn-touch-right" class="action-btn-touch w-16 h-16 rounded-2xl bg-slate-900/80 border-2 border-slate-700/80 shadow-2xl flex items-center justify-center text-slate-200 text-xl backdrop-blur active:bg-indigo-600 active:border-indigo-400">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- 右手：アクションボタン群 (ダッシュ、攻撃、ジャンプ) -->
+        <div class="flex items-center gap-2.5 pointer-events-auto">
+          <!-- ダッシュボタン -->
+          <button id="btn-touch-dash" class="action-btn-touch w-13 h-13 p-3 rounded-full bg-slate-900/80 border-2 border-indigo-400/60 shadow-xl flex flex-col items-center justify-center text-indigo-300 backdrop-blur active:scale-90 active:bg-indigo-500 active:text-white">
+            <i class="fa-solid fa-wind text-sm"></i>
+            <span class="text-[7px] font-bold mt-0.5">ダッシュ</span>
+          </button>
+
+          <!-- 斬撃アタック -->
+          <button id="btn-touch-attack" class="action-btn-touch w-14 h-14 rounded-full bg-gradient-to-br from-rose-500 to-amber-600 border-2 border-amber-300 shadow-xl flex flex-col items-center justify-center text-white active:scale-90">
+            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+            <span class="text-[8px] font-black mt-0.5">斬撃</span>
+          </button>
+
+          <!-- ジャンプ (大ボタン) -->
+          <button id="btn-touch-jump" class="action-btn-touch w-16 h-16 rounded-2xl bg-indigo-600 border-2 border-indigo-300 shadow-2xl shadow-indigo-900/70 flex flex-col items-center justify-center text-white active:scale-90 active:bg-indigo-500">
+            <i class="fa-solid fa-arrow-up text-lg"></i>
+            <span class="text-[9px] font-black tracking-wider">跳躍</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-editor" class="hidden flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar gap-3 z-20 pb-20">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-cubes-stacked text-amber-400"></i>
+            ダンジョン防衛エディタ
+          </h2>
+          <p class="text-[10px] text-slate-400">マスをタップして足場・罠・モンスターを配置</p>
+        </div>
+        <button id="btn-save-defense" class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg press-effect flex items-center gap-1">
+          <i class="fa-solid fa-check"></i>
+          保存
+        </button>
+      </div>
+
+      <!-- エディタキャンバス -->
+      <div class="w-full aspect-[16/9] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden relative shadow-2xl">
+        <canvas id="editor-canvas" class="w-full h-full block cursor-pointer"></canvas>
+      </div>
+
+      <!-- 配置パレット -->
+      <div class="space-y-1.5">
+        <div class="text-[10px] font-bold text-slate-400">配置アイテムを選択:</div>
+        <div id="editor-palette" class="grid grid-cols-4 gap-2"></div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
+        <p class="text-slate-200 font-bold flex items-center gap-1">
+          <i class="fa-solid fa-lightbulb text-amber-400"></i> ダンジョン作成のコツ:
+        </p>
+        <p>• 最奥の「宝箱」を守るように回転ノコギリやトゲを配置しよう！</p>
+        <p>• 壁や足場を巧みに組むと、侵入者のジャンプを封じ込めることができます。</p>
+      </div>
+    </section>
+
+    <section id="view-ranking" class="hidden flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar gap-3 z-20 pb-20">
+      <div>
+        <h2 class="text-sm font-black text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-trophy text-amber-400"></i>
+          身内同盟トロフィーランキング
+        </h2>
+        <p class="text-[10px] text-slate-400">強奪と防衛成功でトロフィーを奪い合え！</p>
+      </div>
+
+      <!-- ランキングリスト -->
+      <div id="ranking-list" class="space-y-2"></div>
+
+      <!-- 簡易身内チャット/煽りスタンプ -->
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl space-y-2 mt-1">
+        <span class="text-xs font-bold text-slate-300 flex items-center gap-1">
+          <i class="fa-solid fa-comment-dots text-indigo-400"></i> 身内挑発メッセージ
+        </span>
+        <div class="flex gap-2">
+          <input type="text" id="input-taunt" maxlength="35" placeholder="例: 宝箱の金貨、美味しく頂きましたw" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-bold" />
+          <button id="btn-send-taunt" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl press-effect">
+            送信
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-upgrade" class="hidden flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar gap-3 z-20 pb-20">
+      <div>
+        <h2 class="text-sm font-black text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-up text-amber-400"></i>
+          武具・魔力炉アップグレード
+        </h2>
+        <p class="text-[10px] text-slate-400">資源を使って自身のステータスや金鉱を強化</p>
+      </div>
+
+      <div id="upgrade-cards-list" class="space-y-2.5"></div>
+    </section>
+
+    <nav id="bottom-nav" class="hud-glass border-t border-slate-800 px-3 py-2 flex items-center justify-around fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+      <button data-target="view-base" class="nav-btn flex flex-col items-center gap-1 text-amber-400 press-effect">
+        <i class="fa-solid fa-dungeon text-sm"></i>
+        <span class="text-[9px] font-bold">マイ拠点</span>
+      </button>
+      <button data-target="view-raid-list" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-white press-effect">
+        <i class="fa-solid fa-crosshairs text-sm"></i>
+        <span class="text-[9px] font-bold">強奪</span>
+      </button>
+      <button data-target="view-ranking" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-white press-effect">
+        <i class="fa-solid fa-ranking-star text-sm"></i>
+        <span class="text-[9px] font-bold">番付</span>
+      </button>
+      <button data-target="view-upgrade" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-white press-effect">
+        <i class="fa-solid fa-circle-up text-sm"></i>
+        <span class="text-[9px] font-bold">育成</span>
+      </button>
+    </nav>
+
+    <div id="modal-battle-result" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5">
+        <div id="res-icon" class="text-5xl">👑</div>
+        <h3 id="res-title" class="text-xl font-black text-amber-400 font-title">宝箱強奪成功！</h3>
+        <p id="res-desc" class="text-xs text-slate-300 leading-relaxed"></p>
+
+        <div class="w-full bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-1.5">
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-slate-400">強奪したゴールド:</span>
+            <span id="res-gold" class="text-amber-400 font-eng text-sm">+0 🪙</span>
+          </div>
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-slate-400">トロフィー増減:</span>
+            <span id="res-trophy" class="text-amber-300 font-eng text-sm">+0 🏆</span>
+          </div>
+        </div>
+
+        <button id="btn-close-battle-modal" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg press-effect">
+          自拠点へ帰還
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInAnonymously, 
+      signInWithCustomToken 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      updateDoc, 
+      collection,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* ========================================================
+       Web Audio API - 効果音シンセサイザー
+    ======================================================== */
+    class RetroAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      jump() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.13);
+      }
+      slash() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.11);
+      }
+      hit() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(30, this.ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.16);
+      }
+      coin() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        [987.77, 1318.51].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          gain.gain.setValueAtTime(0.2, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.22);
+        });
+      }
+      fanfare() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.1);
+          gain.gain.setValueAtTime(0.22, now + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.32);
+        });
+      }
+    }
+    const audio = new RetroAudio();
+
+    /* ========================================================
+       2. 定数 & ダンジョン定義
+    ======================================================== */
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'babel-raid-game';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+      ? JSON.parse(__firebase_config) 
+      : {
+          apiKey: "AIzaSyDummyKeyForMockEnvironment123456",
+          authDomain: "mock-project.firebaseapp.com",
+          projectId: "mock-project",
+          storageBucket: "mock-project.appspot.com",
+          messagingSenderId: "1234567890",
+          appId: "1:1234567890:web:mockid123456"
+        };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    let currentUserName = localStorage.getItem("rtdb_user_name");
-    let currentDMTarget = "";
+    // 2Dプラットフォーマーのグリッド定義 (16x9グリッド)
+    const GRID_COLS = 16;
+    const GRID_ROWS = 9;
 
-    if (currentUserName) handleLoginSuccess(currentUserName);
+    // トラップ・設備マスター
+    const TRAP_TYPES = {
+      block: { id: 'block', name: '堅牢な足場', icon: '🧱', color: '#334155', isSolid: true },
+      spikes: { id: 'spikes', name: '針山トラップ', icon: '⚡', color: '#f43f5e', damage: 35, isHazard: true },
+      saw: { id: 'saw', name: '回転ノコギリ', icon: '⚙️', color: '#fb923c', damage: 45, isSaw: true },
+      turret: { id: 'turret', name: '火炎タレット', icon: '🏹', color: '#eab308', damage: 20, fireRate: 1400 },
+      slime: { id: 'slime', name: '巡回スライム', icon: '👾', color: '#22c55e', damage: 25, isMonster: true, hp: 50 },
+      chest: { id: 'chest', name: '財宝チェスト', icon: '🏆', color: '#eab308', isChest: true }
+    };
 
-    window.switchTab = function(tabName) {
-      ['dashboard', 'dm', 'shop', 'notifications', 'ranking', 'gm'].forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
+    const UPGRADES = [
+      { id: 'sword_mastery', name: '破天の刃 (攻撃力強化)', icon: 'fa-wand-magic-sparkles', cost: 160, res: 'gold', val: 6 },
+      { id: 'armor_vitality', name: '魔鋼の鎧 (最大HP上昇)', icon: 'fa-shield-heart', cost: 200, res: 'gold', val: 25 },
+      { id: 'gold_mine', name: '地下金鉱 (放置生産量UP)', icon: 'fa-coins', cost: 180, res: 'mana', val: 2 },
+      { id: 'trap_durability', name: '防衛罠の魔力強化', icon: 'fa-dungeon', cost: 240, res: 'mana', val: 10 }
+    ];
+
+    /* ========================================================
+       3. 状態管理
+    ======================================================== */
+    let currentUser = null;
+    let myData = null;
+    let allWorldPlayers = {};
+    let selectedPaletteTrap = 'block';
+    let customEditorDungeon = [];
+
+    // トースト通知
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `p-3 rounded-2xl shadow-2xl border text-xs font-bold pointer-events-auto transform transition-all duration-300 translate-y-[-10px] opacity-0 flex items-center gap-2 ${
+        isError ? 'bg-rose-950/95 border-rose-600 text-rose-200' : 'bg-slate-900/95 border-amber-500/50 text-amber-200'
+      }`;
+      toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-triangle-exclamation' : 'fa-bell'}"></i><span>${msg}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-[-10px]', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // デフォルトのダンジョン初期レイアウト生成
+    function createDefaultDungeon() {
+      const layout = [];
+      // 外枠の床と壁
+      for (let c = 0; c < GRID_COLS; c++) {
+        layout.push({ type: 'block', c, r: GRID_ROWS - 1 });
+      }
+      // 足場・罠・宝箱の初期配置
+      layout.push({ type: 'block', c: 4, r: 6 });
+      layout.push({ type: 'spikes', c: 5, r: GRID_ROWS - 2 });
+      layout.push({ type: 'block', c: 7, r: 5 });
+      layout.push({ type: 'saw', c: 9, r: 4 });
+      layout.push({ type: 'slime', c: 10, r: GRID_ROWS - 2, hp: 50 });
+      layout.push({ type: 'block', c: 12, r: 4 });
+      layout.push({ type: 'block', c: 13, r: 4 });
+      layout.push({ type: 'chest', c: 13, r: 3 });
+      return layout;
+    }
+
+    /* ========================================================
+       4. Firebase 認証・リアルタイムリスナー
+    ======================================================== */
+    async function initAuthAndData() {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          currentUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          currentUser = cred.user;
+        }
+      } catch (e) {
+        let storedId = localStorage.getItem('babel_p_id');
+        if (!storedId) {
+          storedId = 'babel_' + Math.random().toString(36).substring(2, 8);
+          localStorage.setItem('babel_p_id', storedId);
+        }
+        currentUser = { uid: storedId };
+      }
+
+      await syncPlayerData();
+      await syncWorldPlayers();
+    }
+
+    async function syncPlayerData() {
+      const pRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${currentUser.uid}`);
+      const snap = await getDoc(pRef);
+
+      if (!snap.exists()) {
+        const titles = ['黒狼の戦鬼', '金獅子の覇者', '影縫いの忍', '紅蓮の魔導師', '迅雷の跳躍者', '幻惑の怪盗'];
+        const name = titles[Math.floor(Math.random() * titles.length)] + ` #${Math.floor(10 + Math.random()*90)}`;
+        const initial = {
+          id: currentUser.uid,
+          name: name,
+          gold: 600,
+          mana: 350,
+          trophies: 120,
+          shieldUntil: 0,
+          lastLoginTime: Date.now(),
+          upgrades: { sword_mastery: 1, armor_vitality: 1, gold_mine: 1, trap_durability: 1 },
+          dungeon: createDefaultDungeon(),
+          logs: []
+        };
+        await setDoc(pRef, initial);
+        myData = initial;
+      } else {
+        myData = snap.data();
+        calculateIdleIncome();
+      }
+
+      onSnapshot(pRef, (docSnap) => {
+        if (docSnap.exists()) {
+          myData = docSnap.data();
+          updateHUD();
+          drawBasePreview();
+          renderLogs();
+        }
+      });
+    }
+
+    async function syncWorldPlayers() {
+      const col = collection(db, 'artifacts', appId, 'public', 'data');
+      onSnapshot(col, (snapshot) => {
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data && data.id && data.name) {
+            allWorldPlayers[data.id] = data;
+          }
+        });
+        renderTargetList();
+        renderRanking();
+      });
+    }
+
+    // 放置収益計算
+    function calculateIdleIncome() {
+      if (!myData) return;
+      const now = Date.now();
+      const last = myData.lastLoginTime || now;
+      const mins = Math.min(1440, Math.floor((now - last) / (1000 * 60)));
+      const mineLv = myData.upgrades?.gold_mine || 1;
+
+      if (mins >= 1) {
+        const goldGain = mins * (4 + mineLv * 2);
+        const manaGain = mins * 3;
+
+        document.getElementById('offline-gold-text').textContent = `+${goldGain} 🪙`;
+        document.getElementById('offline-mana-text').textContent = `+${manaGain} 🔮`;
+        document.getElementById('offline-income-banner').classList.remove('hidden');
+
+        document.getElementById('btn-claim-offline').onclick = async () => {
+          audio.coin();
+          document.getElementById('offline-income-banner').classList.add('hidden');
+          const pRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${currentUser.uid}`);
+          await updateDoc(pRef, {
+            gold: (myData.gold || 0) + goldGain,
+            mana: (myData.mana || 0) + manaGain,
+            lastLoginTime: Date.now()
+          });
+          showToast(`金鉱から ${goldGain}ゴールド と ${manaGain}マナ を回収！`);
+        };
+      }
+    }
+
+    /* ========================================================
+       STREAMING_CHUNK:HUD and UI Renderer Functions
+    ======================================================== */
+    function updateHUD() {
+      if (!myData) return;
+      document.getElementById('hud-player-name').textContent = myData.name;
+      document.getElementById('hud-trophy').textContent = myData.trophies || 0;
+      document.getElementById('hud-gold').textContent = (myData.gold || 0).toLocaleString();
+      document.getElementById('hud-mana').textContent = (myData.mana || 0).toLocaleString();
+
+      const shieldTime = (myData.shieldUntil || 0) - Date.now();
+      const sEl = document.getElementById('shield-time-left');
+      if (shieldTime > 0) {
+        const m = Math.ceil(shieldTime / 60000);
+        sEl.textContent = `結界発動中 (残 ${m}分)`;
+        sEl.className = 'text-xs font-eng font-bold text-emerald-400';
+      } else {
+        sEl.textContent = '結界解除中 (いつでも強奪されます)';
+        sEl.className = 'text-xs font-eng font-bold text-rose-400';
+      }
+
+      const traps = (myData.dungeon || []).filter(i => i.type !== 'block' && i.type !== 'chest').length;
+      document.getElementById('defense-score-badge').textContent = `罠 ${traps}基`;
+    }
+
+    // マイ拠点のプレビューミニマップ描画
+    function drawBasePreview() {
+      const cv = document.getElementById('base-preview-canvas');
+      const ctx = cv.getContext('2d');
+      cv.width = cv.parentElement.clientWidth;
+      cv.height = cv.parentElement.clientHeight;
+
+      ctx.fillStyle = '#060a14';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+
+      const cellW = cv.width / GRID_COLS;
+      const cellH = cv.height / GRID_ROWS;
+
+      const dung = myData?.dungeon || [];
+      dung.forEach(item => {
+        const t = TRAP_TYPES[item.type];
+        if (!t) return;
+        const x = item.c * cellW;
+        const y = item.r * cellH;
+
+        if (t.isSolid) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(x, y, cellW, cellH);
+          ctx.strokeStyle = '#334155';
+          ctx.strokeRect(x, y, cellW, cellH);
+        } else {
+          ctx.font = `${Math.floor(cellH * 0.7)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(t.icon, x + cellW / 2, y + cellH / 2);
+        }
+      });
+    }
+
+    // 直近の被害・リベンジログ表示
+    function renderLogs() {
+      const container = document.getElementById('base-recent-logs-list');
+      const logs = myData?.logs || [];
+      if (logs.length === 0) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-2 text-[11px]">現在被害はありません。平穏です。</div>';
+        return;
+      }
+      container.innerHTML = '';
+      logs.slice(0, 2).forEach(lg => {
+        const isLoss = lg.stolenGold > 0;
+        const item = document.createElement('div');
+        item.className = `p-2.5 rounded-xl border flex items-center justify-between ${
+          isLoss ? 'bg-rose-950/30 border-rose-900/50 text-rose-200' : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-200'
+        }`;
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <i class="fa-solid ${isLoss ? 'fa-skull-crossbones text-rose-400' : 'fa-shield text-emerald-400'}"></i>
+            <div class="truncate">
+              <span class="font-bold block truncate">${lg.attackerName} が潜入！</span>
+              <span class="text-[9px] text-slate-400 font-mono">${new Date(lg.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-eng font-bold text-xs ${isLoss ? 'text-rose-400' : 'text-emerald-400'}">
+              ${isLoss ? `-${lg.stolenGold}🪙` : '防衛成功'}
+            </span>
+            <button class="btn-revenge-action px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-black press-effect" data-id="${lg.attackerId}">
+              報復
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.querySelectorAll('.btn-revenge-action').forEach(b => {
+        b.onclick = () => {
+          const tid = b.getAttribute('data-id');
+          if (allWorldPlayers[tid]) {
+            startPlatformerRaid(allWorldPlayers[tid]);
+          } else {
+            showToast('対象のプレイヤーが見つかりません', true);
+          }
+        };
+      });
+    }
+
+    // 標的リスト
+    function renderTargetList() {
+      const container = document.getElementById('targets-container');
+      container.innerHTML = '';
+      const list = Object.values(allWorldPlayers).filter(p => p.id !== currentUser.uid);
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 text-center space-y-2">
+            <div class="text-3xl">🏕️</div>
+            <p class="text-xs text-slate-400">現在身内プレイヤーがまだいません。</p>
+            <p class="text-[10px] text-slate-500">別端末やタブで参加すると即時表示されます！</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach(t => {
+        const isShield = (t.shieldUntil || 0) > Date.now();
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-lg';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 truncate">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-lg">
+              🏰
+            </div>
+            <div class="truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs text-white truncate">${t.name}</span>
+                ${isShield ? '<span class="text-[8px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-400/30">結界発動中</span>' : ''}
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-400 font-eng">
+                <span class="text-amber-400">🪙 略奪可能: ${Math.floor((t.gold || 0) * 0.4)}</span>
+                <span class="text-slate-600">•</span>
+                <span>🏆 ${t.trophies || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-attack-p px-3.5 py-2 rounded-xl font-black text-xs press-effect flex items-center gap-1 ${
+            isShield ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg'
+          }" data-id="${t.id}" ${isShield ? 'disabled' : ''}>
+            <i class="fa-solid fa-skull text-[10px]"></i>
+            <span>強奪</span>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+
+      document.querySelectorAll('.btn-attack-p').forEach(btn => {
+        btn.onclick = () => {
+          const tid = btn.getAttribute('data-id');
+          if (allWorldPlayers[tid]) startPlatformerRaid(allWorldPlayers[tid]);
+        };
+      });
+    }
+
+    // ランキング
+    function renderRanking() {
+      const container = document.getElementById('ranking-list');
+      container.innerHTML = '';
+      const sorted = Object.values(allWorldPlayers).sort((a, b) => (b.trophies || 0) - (a.trophies || 0));
+
+      sorted.forEach((p, i) => {
+        const isMe = p.id === currentUser.uid;
+        const row = document.createElement('div');
+        row.className = `p-3 rounded-2xl border flex items-center justify-between ${
+          isMe ? 'bg-amber-950/30 border-amber-500/50' : 'bg-slate-900 border-slate-800'
+        }`;
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="font-eng font-black text-sm w-5 text-center text-amber-400">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span>
+            <div>
+              <span class="font-bold text-xs text-white block">${p.name} ${isMe ? '(自分)' : ''}</span>
+              <span class="text-[10px] text-slate-400 font-eng">金貨 ${p.gold?.toLocaleString() || 0} 🪙</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-amber-300 font-eng font-black text-sm">
+            <i class="fa-solid fa-trophy text-xs"></i>
+            <span>${p.trophies || 0}</span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // アップグレード
+    function renderUpgradeView() {
+      const container = document.getElementById('upgrade-cards-list');
+      container.innerHTML = '';
+      if (!myData) return;
+
+      UPGRADES.forEach(u => {
+        const lv = myData.upgrades?.[u.id] || 1;
+        const cost = u.cost * lv;
+        const canBuy = (myData[u.res] || 0) >= cost;
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 shadow-lg';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 text-lg">
+              <i class="fa-solid ${u.icon}"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-black text-xs text-white">${u.name}</span>
+                <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-1 py-0.5 rounded font-mono">Lv.${lv}</span>
+              </div>
+              <span class="text-[10px] text-slate-400">効果量: +${lv * u.val}</span>
+            </div>
+          </div>
+
+          <button class="btn-do-upgrade px-3 py-1.5 rounded-xl font-black text-xs press-effect flex items-center gap-1 ${
+            canBuy ? 'bg-amber-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+          }" data-uid="${u.id}" ${canBuy ? '' : 'disabled'}>
+            <span>${cost}</span>
+            <span>${u.res === 'gold' ? '🪙' : '🔮'}</span>
+            <span>強化</span>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+
+      document.querySelectorAll('.btn-do-upgrade').forEach(btn => {
+        btn.onclick = async () => {
+          const uid = btn.getAttribute('data-uid');
+          const targetU = UPGRADES.find(u => u.id === uid);
+          const lv = myData.upgrades?.[targetU.id] || 1;
+          const cost = targetU.cost * lv;
+
+          if ((myData[targetU.res] || 0) >= cost) {
+            audio.coin();
+            const pRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${currentUser.uid}`);
+            await updateDoc(pRef, {
+              [targetU.res]: (myData[targetU.res] || 0) - cost,
+              [`upgrades.${targetU.id}`]: lv + 1
+            });
+            showToast(`${targetU.name} を強化しました！`);
+            renderUpgradeView();
+          }
+        };
+      });
+    }
+
+    /* ========================================================
+       STREAMING_CHUNK:Dungeon Editor Logic (Touch / Grid Setup)
+    ======================================================== */
+    function initEditor() {
+      customEditorDungeon = JSON.parse(JSON.stringify(myData?.dungeon || createDefaultDungeon()));
+
+      const palette = document.getElementById('editor-palette');
+      palette.innerHTML = '';
+      Object.values(TRAP_TYPES).forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = `p-2 rounded-xl border flex flex-col items-center gap-1 transition ${
+          item.id === selectedPaletteTrap ? 'bg-amber-500/20 border-amber-400 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'
+        }`;
+        btn.innerHTML = `
+          <span class="text-xl">${item.icon}</span>
+          <span class="text-[9px] font-bold truncate max-w-full">${item.name}</span>
+        `;
+        btn.onclick = () => {
+          selectedPaletteTrap = item.id;
+          Array.from(palette.children).forEach(c => c.className = 'p-2 rounded-xl border flex flex-col items-center gap-1 bg-slate-900 border-slate-800 text-slate-400');
+          btn.className = 'p-2 rounded-xl border flex flex-col items-center gap-1 bg-amber-500/20 border-amber-400 text-white';
+          audio.slash();
+        };
+        palette.appendChild(btn);
+      });
+
+      renderEditorCanvas();
+    }
+
+    function renderEditorCanvas() {
+      const cv = document.getElementById('editor-canvas');
+      const ctx = cv.getContext('2d');
+      const rect = cv.getBoundingClientRect();
+      cv.width = rect.width;
+      cv.height = rect.height;
+
+      const cellW = cv.width / GRID_COLS;
+      const cellH = cv.height / GRID_ROWS;
+
+      ctx.fillStyle = '#0a0f1d';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+
+      // グリッド線
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let c = 0; c <= GRID_COLS; c++) {
+        ctx.beginPath();
+        ctx.moveTo(c * cellW, 0);
+        ctx.lineTo(c * cellW, cv.height);
+        ctx.stroke();
+      }
+      for (let r = 0; r <= GRID_ROWS; r++) {
+        ctx.beginPath();
+        ctx.moveTo(0, r * cellH);
+        ctx.lineTo(cv.width, r * cellH);
+        ctx.stroke();
+      }
+
+      // 配置アイテム
+      customEditorDungeon.forEach(item => {
+        const t = TRAP_TYPES[item.type];
+        if (!t) return;
+        const x = item.c * cellW;
+        const y = item.r * cellH;
+
+        if (t.isSolid) {
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(x, y, cellW, cellH);
+          ctx.strokeStyle = '#475569';
+          ctx.strokeRect(x, y, cellW, cellH);
+        } else {
+          ctx.font = `${Math.floor(cellH * 0.7)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(t.icon, x + cellW / 2, y + cellH / 2);
+        }
+      });
+    }
+
+    // エディタタップ処理
+    document.getElementById('editor-canvas').onclick = (e) => {
+      const cv = document.getElementById('editor-canvas');
+      const rect = cv.getBoundingClientRect();
+      const col = Math.floor((e.clientX - rect.left) / (cv.width / GRID_COLS));
+      const row = Math.floor((e.clientY - rect.top) / (cv.height / GRID_ROWS));
+
+      if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return;
+
+      const idx = customEditorDungeon.findIndex(i => i.c === col && i.r === row);
+
+      if (idx >= 0) {
+        // 既存のアイテムを削除
+        if (customEditorDungeon[idx].type === 'chest') {
+          showToast('宝箱は必ず1つ配置する必要があります', true);
+          return;
+        }
+        customEditorDungeon.splice(idx, 1);
+        audio.hit();
+      } else {
+        // 新規配置（宝箱は1つのみ）
+        if (selectedPaletteTrap === 'chest') {
+          customEditorDungeon = customEditorDungeon.filter(i => i.type !== 'chest');
+        }
+        customEditorDungeon.push({
+          type: selectedPaletteTrap,
+          c: col,
+          r: row,
+          hp: 50
+        });
+        audio.slash();
+      }
+      renderEditorCanvas();
+    };
+
+    // ダンジョン保存
+    document.getElementById('btn-save-defense').onclick = async () => {
+      if (!customEditorDungeon.some(i => i.type === 'chest')) {
+        showToast('最奥に宝箱を1つ配置してください！', true);
+        return;
+      }
+      const pRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${currentUser.uid}`);
+      await updateDoc(pRef, { dungeon: customEditorDungeon });
+      audio.coin();
+      showToast('ダンジョンの防衛罠を保存しました！');
+      switchScreen('view-base');
+    };
+
+    /* ========================================================
+       STREAMING_CHUNK:2D Platformer Action Game Engine (King of Thieves Style)
+    ======================================================== */
+    let gameLoopId = null;
+    let battleState = null;
+    let isTestPlay = false;
+
+    // タッチ入力状態
+    const inputState = {
+      left: false,
+      right: false,
+      jump: false,
+      dash: false,
+      attack: false
+    };
+
+    function startPlatformerRaid(targetPlayer, isTest = false) {
+      isTestPlay = isTest;
+      const cv = document.getElementById('battle-canvas');
+      cv.width = cv.parentElement.clientWidth;
+      cv.height = cv.parentElement.clientHeight;
+
+      const cellW = cv.width / GRID_COLS;
+      const cellH = cv.height / GRID_ROWS;
+
+      const atkLv = myData?.upgrades?.sword_mastery || 1;
+      const hpLv = myData?.upgrades?.armor_vitality || 1;
+
+      // ゲームインスタンス初期化
+      battleState = {
+        target: targetPlayer,
+        timeLimit: 40,
+        timerInterval: null,
+        cellW,
+        cellH,
+        player: {
+          x: cellW * 1.5,
+          y: cellH * (GRID_ROWS - 2),
+          vx: 0,
+          vy: 0,
+          width: cellW * 0.7,
+          height: cellH * 0.85,
+          isGrounded: false,
+          hp: 100 + hpLv * 25,
+          maxHp: 100 + hpLv * 25,
+          atk: 25 + atkLv * 6,
+          facing: 1, // 1: 右, -1: 左
+          dashCooldown: 0,
+          isDashing: false,
+          attackTimer: 0
+        },
+        entities: (targetPlayer.dungeon || []).map(item => {
+          return {
+            ...item,
+            x: item.c * cellW,
+            y: item.r * cellH,
+            initialX: item.c * cellW,
+            dir: 1,
+            hp: item.hp || 50,
+            maxHp: item.hp || 50,
+            angle: 0,
+            lastFire: 0
+          };
+        }),
+        projectiles: [],
+        particles: [],
+        lootedGold: 0,
+        cleared: false
+      };
+
+      // タイマー開始
+      battleState.timerInterval = setInterval(() => {
+        if (!battleState) return;
+        battleState.timeLimit--;
+        document.getElementById('battle-timer').textContent = `${battleState.timeLimit}s`;
+        if (battleState.timeLimit <= 0) {
+          finishRaid(false, 'タイムアップ！ダンジョン攻略失敗');
+        }
+      }, 1000);
+
+      document.getElementById('view-battle').classList.remove('hidden');
+      document.getElementById('main-hud').classList.add('hidden');
+      document.getElementById('bottom-nav').classList.add('hidden');
+
+      updateBattleHUD();
+      runGameLoop();
+    }
+
+    function runGameLoop() {
+      if (!battleState) return;
+      updateGamePhysics();
+      renderGameFrame();
+      gameLoopId = requestAnimationFrame(runGameLoop);
+    }
+
+    function updateGamePhysics() {
+      const p = battleState.player;
+      const cellW = battleState.cellW;
+      const cellH = battleState.cellH;
+
+      // 1. 水平移動
+      const speed = p.isDashing ? 7.5 : 4.0;
+      if (inputState.left) {
+        p.vx = -speed;
+        p.facing = -1;
+      } else if (inputState.right) {
+        p.vx = speed;
+        p.facing = 1;
+      } else {
+        p.vx *= 0.5;
+      }
+
+      // ダッシュ判定
+      if (inputState.dash && p.dashCooldown === 0) {
+        p.isDashing = true;
+        p.dashCooldown = 35;
+        p.vx = p.facing * 9.0;
+        audio.slash();
+        spawnParticles(p.x + p.width/2, p.y + p.height/2, '#818cf8', 8);
+      }
+      if (p.dashCooldown > 0) p.dashCooldown--;
+      if (p.dashCooldown < 25) p.isDashing = false;
+
+      // 2. 重力 & ジャンプ
+      p.vy += 0.45; // 重力
+      if (p.vy > 9) p.vy = 9;
+
+      if (inputState.jump && p.isGrounded) {
+        p.vy = -10.5; // ジャンプ初速
+        p.isGrounded = false;
+        audio.jump();
+      }
+
+      // 3. 衝突判定（足場ブロック）
+      const nextX = p.x + p.vx;
+      const nextY = p.y + p.vy;
+
+      p.isGrounded = false;
+
+      battleState.entities.forEach(ent => {
+        if (ent.type !== 'block') return;
+
+        // 横判定
+        if (nextX < ent.x + cellW && nextX + p.width > ent.x &&
+            p.y < ent.y + cellH && p.y + p.height > ent.y) {
+          p.vx = 0;
+        }
+
+        // 縦判定
+        if (p.x < ent.x + cellW && p.x + p.width > ent.x &&
+            nextY < ent.y + cellH && nextY + p.height > ent.y) {
+          if (p.vy > 0) { // 着地
+            p.y = ent.y - p.height;
+            p.vy = 0;
+            p.isGrounded = true;
+          } else if (p.vy < 0) { // 天井衝突
+            p.y = ent.y + cellH;
+            p.vy = 0;
+          }
+        }
+      });
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // 画面境界制限
+      const cv = document.getElementById('battle-canvas');
+      p.x = Math.max(0, Math.min(cv.width - p.width, p.x));
+      if (p.y > cv.height) {
+        // 奈落落下
+        damageHero(999, '奈落に落下した！');
+      }
+
+      // 4. 攻撃処理
+      if (inputState.attack && p.attackTimer === 0) {
+        p.attackTimer = 18;
+        audio.slash();
+        const slashHitbox = {
+          x: p.facing === 1 ? p.x + p.width : p.x - cellW * 0.8,
+          y: p.y - 10,
+          w: cellW * 0.9,
+          h: p.height + 20
+        };
+
+        battleState.entities.forEach(ent => {
+          if (ent.hp <= 0) return;
+          if (slashHitbox.x < ent.x + cellW && slashHitbox.x + slashHitbox.w > ent.x &&
+              slashHitbox.y < ent.y + cellH && slashHitbox.y + slashHitbox.h > ent.y) {
+            ent.hp -= p.atk;
+            spawnParticles(ent.x + cellW/2, ent.y + cellH/2, '#f59e0b', 8);
+            audio.hit();
+          }
+        });
+      }
+      if (p.attackTimer > 0) p.attackTimer--;
+
+      // 5. 罠・モンスター・宝箱の挙動
+      const now = Date.now();
+      battleState.entities.forEach(ent => {
+        // 回転ノコギリ
+        if (ent.type === 'saw') {
+          ent.angle = (ent.angle || 0) + 0.15;
+          const dist = Math.hypot((p.x + p.width/2) - (ent.x + cellW/2), (p.y + p.height/2) - (ent.y + cellH/2));
+          if (dist < cellW * 0.45 && !p.isDashing) {
+            damageHero(TRAP_TYPES.saw.damage, '回転ノコギリに接触！');
+          }
+        }
+
+        // 針山
+        if (ent.type === 'spikes') {
+          if (p.x < ent.x + cellW && p.x + p.width > ent.x &&
+              p.y + p.height > ent.y + cellH * 0.3 && p.y < ent.y + cellH && !p.isDashing) {
+            damageHero(TRAP_TYPES.spikes.damage, '毒トゲに刺さった！');
+          }
+        }
+
+        // 巡回スライム
+        if (ent.type === 'slime' && ent.hp > 0) {
+          ent.x += ent.dir * 1.5;
+          if (Math.abs(ent.x - ent.initialX) > cellW * 1.6) {
+            ent.dir *= -1;
+          }
+          const dist = Math.hypot((p.x + p.width/2) - (ent.x + cellW/2), (p.y + p.height/2) - (ent.y + cellH/2));
+          if (dist < cellW * 0.5 && !p.isDashing) {
+            damageHero(TRAP_TYPES.slime.damage, '巡回モンスターの攻撃！');
+          }
+        }
+
+        // 火炎タレット
+        if (ent.type === 'turret') {
+          if (now - ent.lastFire > 1800) {
+            ent.lastFire = now;
+            const targetX = p.x + p.width/2;
+            const targetY = p.y + p.height/2;
+            const angle = Math.atan2(targetY - (ent.y + cellH/2), targetX - (ent.x + cellW/2));
+            battleState.projectiles.push({
+              x: ent.x + cellW/2,
+              y: ent.y + cellH/2,
+              vx: Math.cos(angle) * 4.2,
+              vy: Math.sin(angle) * 4.2,
+              radius: 5
+            });
+          }
+        }
+
+        // 宝箱到達
+        if (ent.type === 'chest' && !battleState.cleared) {
+          const dist = Math.hypot((p.x + p.width/2) - (ent.x + cellW/2), (p.y + p.height/2) - (ent.y + cellH/2));
+          if (dist < cellW * 0.6) {
+            battleState.cleared = true;
+            battleState.lootedGold = isTestPlay ? 0 : Math.floor((battleState.target.gold || 0) * 0.4) + 120;
+            audio.fanfare();
+            spawnParticles(ent.x + cellW/2, ent.y + cellH/2, '#fbbf24', 30);
+            setTimeout(() => finishRaid(true, '最奥の宝箱を強奪！ダンジョン制覇！'), 600);
+          }
+        }
+      });
+
+      // 6. 弾丸処理
+      for (let i = battleState.projectiles.length - 1; i >= 0; i--) {
+        const pr = battleState.projectiles[i];
+        pr.x += pr.vx;
+        pr.y += pr.vy;
+
+        const dist = Math.hypot((p.x + p.width/2) - pr.x, (p.y + p.height/2) - pr.y);
+        if (dist < p.width/2 + pr.radius) {
+          if (!p.isDashing) {
+            damageHero(20, 'タレットの火炎弾が直撃！');
+          }
+          battleState.projectiles.splice(i, 1);
+          continue;
+        }
+
+        if (pr.x < 0 || pr.x > cv.width || pr.y < 0 || pr.y > cv.height) {
+          battleState.projectiles.splice(i, 1);
+        }
+      }
+
+      // 7. パーティクル
+      for (let i = battleState.particles.length - 1; i >= 0; i--) {
+        const pt = battleState.particles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life--;
+        if (pt.life <= 0) battleState.particles.splice(i, 1);
+      }
+    }
+
+    function renderGameFrame() {
+      const cv = document.getElementById('battle-canvas');
+      const ctx = cv.getContext('2d');
+      const cellW = battleState.cellW;
+      const cellH = battleState.cellH;
+
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+
+      // 背景グリッドと装飾
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1;
+      for (let c = 0; c < GRID_COLS; c++) {
+        for (let r = 0; r < GRID_ROWS; r++) {
+          ctx.strokeRect(c * cellW, r * cellH, cellW, cellH);
+        }
+      }
+
+      // 設備・罠・モンスター描画
+      battleState.entities.forEach(ent => {
+        const t = TRAP_TYPES[ent.type];
+        if (!t) return;
+
+        if (t.isSolid) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(ent.x, ent.y, cellW, cellH);
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(ent.x, ent.y, cellW, cellH);
+        } else if (ent.type === 'saw') {
+          // 回転ノコギリ
+          ctx.save();
+          ctx.translate(ent.x + cellW/2, ent.y + cellH/2);
+          ctx.rotate(ent.angle);
+          ctx.font = `${Math.floor(cellH * 0.8)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚙️', 0, 0);
+          ctx.restore();
+        } else if (ent.type === 'slime') {
+          if (ent.hp > 0) {
+            ctx.font = `${Math.floor(cellH * 0.7)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👾', ent.x + cellW/2, ent.y + cellH/2);
+          }
+        } else {
+          ctx.font = `${Math.floor(cellH * 0.75)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(t.icon, ent.x + cellW/2, ent.y + cellH/2);
+        }
+      });
+
+      // 弾丸描画
+      ctx.fillStyle = '#f87171';
+      battleState.projectiles.forEach(pr => {
+        ctx.beginPath();
+        ctx.arc(pr.x, pr.y, pr.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // プレイヤー描画
+      const p = battleState.player;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+
+      // ダッシュ残像
+      if (p.isDashing) {
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.4)';
+        ctx.fillRect(-p.facing * 10, 0, p.width, p.height);
+      }
+
+      // 本体
+      ctx.fillStyle = '#6366f1';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, p.width, p.height, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#c7d2fe';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 目線 (向き表現)
+      ctx.fillStyle = '#ffffff';
+      const eyeOffset = p.facing === 1 ? p.width * 0.55 : p.width * 0.15;
+      ctx.fillRect(eyeOffset, p.height * 0.2, 5, 5);
+
+      // 斬撃エフェクト
+      if (p.attackTimer > 0) {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        if (p.facing === 1) {
+          ctx.arc(p.width, p.height / 2, p.width * 0.9, -Math.PI / 3, Math.PI / 3);
+        } else {
+          ctx.arc(0, p.height / 2, p.width * 0.9, Math.PI * 2 / 3, Math.PI * 4 / 3);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // パーティクル描画
+      battleState.particles.forEach(pt => {
+        ctx.fillStyle = pt.color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function damageHero(dmg, reason) {
+      if (!battleState || battleState.cleared) return;
+      battleState.player.hp -= dmg;
+      audio.hit();
+      if (navigator.vibrate) navigator.vibrate(50);
+      updateBattleHUD();
+
+      if (battleState.player.hp <= 0) {
+        finishRaid(false, reason);
+      }
+    }
+
+    function spawnParticles(x, y, color, count = 10) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 1.5 + Math.random() * 3.5;
+        battleState.particles.push({
+          x, y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          color,
+          size: 2 + Math.random() * 2.5,
+          life: 14 + Math.random() * 8
+        });
+      }
+    }
+
+    function updateBattleHUD() {
+      if (!battleState) return;
+      const p = battleState.player;
+      const pct = Math.max(0, (p.hp / p.maxHp) * 100);
+      document.getElementById('battle-hp-bar').style.width = `${pct}%`;
+      document.getElementById('battle-hp-text').textContent = `${Math.ceil(Math.max(0, p.hp))}/${p.maxHp}`;
+      document.getElementById('battle-looted-gold').textContent = `+${battleState.lootedGold} 🪙`;
+    }
+
+    async function finishRaid(isWin, desc) {
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      if (battleState?.timerInterval) clearInterval(battleState.timerInterval);
+
+      const looted = battleState.lootedGold;
+      const target = battleState.target;
+
+      if (!isTestPlay && target) {
+        const myRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${currentUser.uid}`);
+        const tRef = doc(db, 'artifacts', appId, 'public', 'data', `p_${target.id}`);
+
+        const trophyChange = isWin ? 30 : -15;
+
+        // 自分の更新
+        await updateDoc(myRef, {
+          gold: (myData.gold || 0) + looted,
+          trophies: Math.max(0, (myData.trophies || 0) + trophyChange)
+        });
+
+        // 相手の更新（ゴールド減少、シールド、防衛ログ）
+        const tSnap = await getDoc(tRef);
+        if (tSnap.exists()) {
+          const tData = tSnap.data();
+          const newLogs = [
+            {
+              attackerId: currentUser.uid,
+              attackerName: myData.name,
+              stolenGold: looted,
+              isWin: isWin,
+              time: Date.now()
+            },
+            ...(tData.logs || [])
+          ].slice(0, 10);
+
+          await updateDoc(tRef, {
+            gold: Math.max(0, (tData.gold || 0) - looted),
+            trophies: Math.max(0, (tData.trophies || 0) - (isWin ? 20 : 0)),
+            shieldUntil: isWin ? Date.now() + (30 * 60 * 1000) : tData.shieldUntil,
+            logs: newLogs
+          });
+        }
+      }
+
+      // 結果モーダル表示
+      document.getElementById('res-icon').textContent = isWin ? '👑' : '💀';
+      document.getElementById('res-title').textContent = isWin ? '宝箱強奪成功！' : '作戦失敗…';
+      document.getElementById('res-title').className = `text-xl font-black font-title ${isWin ? 'text-amber-400' : 'text-rose-500'}`;
+      document.getElementById('res-desc').textContent = isTestPlay ? '【テストプレイ終了】' : desc;
+      document.getElementById('res-gold').textContent = `+${looted} 🪙`;
+      document.getElementById('res-trophy').textContent = isTestPlay ? '±0 🏆' : (isWin ? '+30 🏆' : '-15 🏆');
+      document.getElementById('modal-battle-result').classList.remove('hidden');
+
+      battleState = null;
+    }
+
+    /* ========================================================
+       STREAMING_CHUNK:Virtual Controls Binding and Event Handlers
+    ======================================================== */
+    function bindTouchAction(elId, key) {
+      const el = document.getElementById(elId);
+      const start = (e) => { e.preventDefault(); inputState[key] = true; };
+      const end = (e) => { e.preventDefault(); inputState[key] = false; };
+      el.addEventListener('touchstart', start, { passive: false });
+      el.addEventListener('touchend', end, { passive: false });
+      el.addEventListener('mousedown', start);
+      el.addEventListener('mouseup', end);
+      el.addEventListener('mouseleave', end);
+    }
+
+    bindTouchAction('btn-touch-left', 'left');
+    bindTouchAction('btn-touch-right', 'right');
+    bindTouchAction('btn-touch-jump', 'jump');
+    bindTouchAction('btn-touch-dash', 'dash');
+    bindTouchAction('btn-touch-attack', 'attack');
+
+    // キーボード操作対応 (PCデバッグ用)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') inputState.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') inputState.right = true;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') inputState.jump = true;
+      if (e.key === 'Shift') inputState.dash = true;
+      if (e.key === 'j' || e.key === 'z') inputState.attack = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') inputState.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') inputState.right = false;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') inputState.jump = false;
+      if (e.key === 'Shift') inputState.dash = false;
+      if (e.key === 'j' || e.key === 'z') inputState.attack = false;
+    });
+
+    document.getElementById('btn-battle-retreat').onclick = () => {
+      finishRaid(false, '戦況不利と判断し撤退');
+    };
+
+    document.getElementById('btn-close-battle-modal').onclick = () => {
+      document.getElementById('modal-battle-result').classList.add('hidden');
+      document.getElementById('view-battle').classList.add('hidden');
+      document.getElementById('main-hud').classList.remove('hidden');
+      document.getElementById('bottom-nav').classList.remove('hidden');
+      switchScreen('view-base');
+    };
+
+    // テストプレイボタン
+    document.getElementById('btn-test-play-dungeon').onclick = () => {
+      startPlatformerRaid(myData, true);
+    };
+
+    /* ========================================================
+       STREAMING_CHUNK:Navigation and Global Listeners
+    ======================================================== */
+    function switchScreen(viewId) {
+      const views = ['view-base', 'view-raid-list', 'view-editor', 'view-ranking', 'view-upgrade'];
+      views.forEach(id => {
+        const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
 
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      if (window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-target') === viewId) {
+          btn.className = 'nav-btn flex flex-col items-center gap-1 text-amber-400 press-effect';
+        } else {
+          btn.className = 'nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-white press-effect';
+        }
+      });
+
+      if (viewId === 'view-editor') initEditor();
+      if (viewId === 'view-upgrade') renderUpgradeView();
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.onclick = () => switchScreen(btn.getAttribute('data-target'));
+    });
+
+    document.getElementById('btn-go-raid-list').onclick = () => switchScreen('view-raid-list');
+    document.getElementById('btn-open-editor').onclick = () => switchScreen('view-editor');
+
+    // 煽りメッセージ送信
+    document.getElementById('btn-send-taunt').onclick = () => {
+      const input = document.getElementById('input-taunt');
+      const val = input.value.trim();
+      if (!val) return;
+      audio.slash();
+      showToast(`煽りメッセージ「${val}」を身内同盟に送信しました！`);
+      input.value = '';
     };
 
-    document.getElementById("login-btn").addEventListener("click", async () => {
-      const name = document.getElementById("username-input").value.trim();
-      const password = document.getElementById("password-input").value.trim();
-      if (!name || !password) return alert("名前とパスワードを入力してください");
-
-      const userRef = ref(db, 'users/' + name);
-      const snapshot = await get(userRef);
-      if (snapshot.exists()) {
-        if (snapshot.val().password === password) handleLoginSuccess(name);
-        else alert("パスワードが違います");
-      } else {
-        await set(userRef, { name, password, points: 0, items: {}, stealthActive: false, coolTime: false, activeDefenses: [] });
-        handleLoginSuccess(name);
-      }
-    });
-
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.removeItem("rtdb_user_name");
-      location.reload();
-    });
-
-    function handleLoginSuccess(name) {
-      localStorage.setItem("rtdb_user_name", name);
-      currentUserName = name;
-
-      document.getElementById("auth-section").classList.add("hidden");
-      document.getElementById("user-info").classList.remove("hidden");
-      document.getElementById("app-content").classList.remove("hidden");
-      document.getElementById("nav-bar").classList.remove("hidden");
-      document.getElementById("my-name").textContent = name;
-
-      if (name === GM_NAME) {
-        document.getElementById("gm-badge").textContent = "(GM)";
-        document.getElementById("nav-gm-btn").classList.remove("hidden");
-        initGMUI();
-      }
-
-      initCommonListeners();
-      checkDateReset();
-    }
-
-    function initGMUI() {
-      const shopSelect = document.getElementById("gm-shop-item-select");
-      const giveSelect = document.getElementById("gm-item-give-select");
-      shopSelect.innerHTML = "";
-      giveSelect.innerHTML = "";
-
-      Object.keys(ITEM_MASTER).forEach(k => {
-        const opt1 = document.createElement("option"); opt1.value = k; opt1.textContent = ITEM_MASTER[k].name;
-        shopSelect.appendChild(opt1);
-        const opt2 = document.createElement("option"); opt2.value = k; opt2.textContent = ITEM_MASTER[k].name;
-        giveSelect.appendChild(opt2);
-      });
-    }
-
-    async function sendNotification(targetUser, title, body) {
-      const notifRef = push(ref(db, `notifications/${targetUser}`));
-      const now = new Date();
-      const timeStr = `${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}時${now.getMinutes()}分`;
-      await set(notifRef, { title, body, time: timeStr });
-    }
-
-    async function logGMActivity(actor, actionType, details) {
-      const logRef = push(ref(db, 'gm_activity_logs'));
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-      await set(logRef, {
-        actor,
-        actionType,
-        details,
-        time: timeStr,
-        timestamp: Date.now()
-      });
-    }
-
-    function escapeHTML(str) {
-      return String(str).replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-      });
-    }
-
-    function getItemDisplayNameAndDesc(type, power, customName, customDesc) {
-      const master = ITEM_MASTER[type] || { name: type, getDesc: () => "効果なし" };
-      let name = customName || master.name;
-      if (!customName && power !== undefined && power !== null && power !== "") {
-        name += ` (威力:${power}pt)`;
-      }
-      let desc = "";
-      if (customDesc !== undefined && customDesc !== null) {
-        desc = customDesc;
-      } else {
-        desc = master.getDesc(power);
-      }
-      return { name, desc };
-    }
-
-    async function checkDateReset() {
-      const todayStr = new Date().toDateString();
-      const lastReset = localStorage.getItem("last_lock_reset_date");
-      if (lastReset !== todayStr) {
-        const userRef = ref(db, 'users/' + currentUserName);
-        const snap = await get(userRef);
-        if (snap.exists()) {
-          const u = snap.val();
-          if (u.itemLocked && (u.points || 0) >= 0) {
-            await update(userRef, { itemLocked: false });
-          }
-        }
-        localStorage.setItem("last_lock_reset_date", todayStr);
-      }
-    }
-
-    function initCommonListeners() {
-      // アナウンスのリアルタイム監視
-      onValue(ref(db, 'game_announcements'), (snapshot) => {
-        const data = snapshot.val();
-        const bodyEl = document.getElementById("announce-body");
-
-        if (!data || !data.desc) {
-          bodyEl.textContent = "現在アナウンスはありません";
-          return;
-        }
-        bodyEl.textContent = data.desc;
-      });
-
-      // GM全能ログ
-      if (currentUserName === GM_NAME) {
-        onValue(ref(db, 'gm_activity_logs'), (snapshot) => {
-          const container = document.getElementById("gm-activity-logs");
-          container.innerHTML = "";
-          const data = snapshot.val();
-          if (!data) {
-            container.innerHTML = '<div style="color:var(--text-muted);">アクティビティ履歴はありません</div>';
-            return;
-          }
-          const logs = Object.values(data).reverse();
-          logs.forEach(l => {
-            const div = document.createElement("div");
-            div.style.padding = "3px 0";
-            div.style.borderBottom = "1px solid #1a1d2d";
-            div.innerHTML = `<span style="color:var(--text-muted);">${l.time}</span> <strong style="color:var(--accent);">${escapeHTML(l.actor)}</strong>: [${l.actionType}] ${escapeHTML(l.details)}`;
-            container.appendChild(div);
-          });
-        });
-      }
-
-      onValue(ref(db, `notifications/${currentUserName}`), (snapshot) => {
-        const container = document.getElementById("user-notifications-list");
-        container.innerHTML = "";
-        const data = snapshot.val();
-        if (!data) {
-          container.innerHTML = '<div style="color:var(--text-muted);">お知らせはありません</div>';
-          return;
-        }
-        const notifs = Object.values(data).reverse();
-        notifs.forEach(n => {
-          const div = document.createElement("div");
-          div.className = "notification-item";
-          div.innerHTML = `<strong>${escapeHTML(n.title)}</strong><br>${escapeHTML(n.body)}<div class="notification-time">${n.time}</div>`;
-          container.appendChild(div);
-        });
-      });
-
-      onValue(ref(db, 'users/' + currentUserName), (snapshot) => {
-        const u = snapshot.val();
-        if (!u) return;
-        const currentPoints = u.points || 0;
-        document.getElementById("my-points").textContent = currentPoints;
-        
-        const badgesContainer = document.getElementById("status-badges");
-        let hasBadge = false;
-
-        if (u.stealthActive) {
-          document.getElementById("stealth-badge").classList.remove("hidden");
-          hasBadge = true;
-        } else {
-          document.getElementById("stealth-badge").classList.add("hidden");
-        }
-
-        if (u.couponActive) {
-          document.getElementById("coupon-badge").classList.remove("hidden");
-          hasBadge = true;
-        } else {
-          document.getElementById("coupon-badge").classList.add("hidden");
-        }
-
-        const isLocked = u.itemLocked || currentPoints < 0;
-        if (isLocked) {
-          document.getElementById("lock-badge").classList.remove("hidden");
-          hasBadge = true;
-        } else {
-          document.getElementById("lock-badge").classList.add("hidden");
-        }
-
-        if (u.coolTime) {
-          document.getElementById("cool-badge").classList.remove("hidden");
-          hasBadge = true;
-        } else {
-          document.getElementById("cool-badge").classList.add("hidden");
-        }
-
-        const now = Date.now();
-        const cameraActive = u.cameraExpires && u.cameraExpires > now;
-        if (cameraActive) {
-          document.getElementById("camera-badge").classList.remove("hidden");
-          hasBadge = true;
-        } else {
-          document.getElementById("camera-badge").classList.add("hidden");
-        }
-
-        if (hasBadge) badgesContainer.classList.remove("hidden");
-        else badgesContainer.classList.add("hidden");
-
-        renderInventory(u.items || {}, isLocked, u.coolTime || false);
-        renderTradeItemSelect(u.items || {});
-      });
-
-      onValue(ref(db, 'users'), (snapshot) => {
-        const data = snapshot.val();
-        const tradeSelect = document.getElementById("trade-target");
-        const dmSelect = document.getElementById("dm-target-select");
-        const gmPointSelect = document.getElementById("gm-point-target");
-        const gmGiveSelect = document.getElementById("gm-item-give-target");
-        const gmUserContainer = document.getElementById("gm-user-list-container");
-
-        tradeSelect.innerHTML = '<option value="">相手を選択</option>';
-        dmSelect.innerHTML = '<option value="">相手を選択してください</option>';
-        if (gmPointSelect) gmPointSelect.innerHTML = '<option value="">対象プレイヤーを選択</option>';
-        if (gmGiveSelect) gmGiveSelect.innerHTML = '<option value="">対象プレイヤーを選択</option>';
-        if (gmUserContainer) gmUserContainer.innerHTML = "";
-
-        if (!data) return;
-
-        Object.keys(data).forEach(uName => {
-          if (uName !== currentUserName && uName !== GM_NAME) {
-            const opt1 = document.createElement("option"); opt1.value = uName; opt1.textContent = uName;
-            tradeSelect.appendChild(opt1);
-            const opt4 = document.createElement("option"); opt4.value = uName; opt4.textContent = uName;
-            dmSelect.appendChild(opt4);
-          }
-
-          if (uName !== GM_NAME) {
-            if (gmPointSelect) {
-              const opt = document.createElement("option"); opt.value = uName; opt.textContent = uName;
-              gmPointSelect.appendChild(opt);
-            }
-            if (gmGiveSelect) {
-              const opt = document.createElement("option"); opt.value = uName; opt.textContent = uName;
-              gmGiveSelect.appendChild(opt);
-            }
-
-            if (gmUserContainer && currentUserName === GM_NAME) {
-              const u = data[uName];
-              const itemsStr = Object.keys(u.items || {}).map(k => {
-                const it = u.items[k];
-                const info = getItemDisplayNameAndDesc(it.type, it.power, it.fakeName, it.fakeDesc);
-                return info.name;
-              }).join(", ") || "なし";
-
-              const div = document.createElement("div");
-              div.className = "item-box";
-              div.style.padding = "6px 10px";
-              div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div><strong>${escapeHTML(uName)}</strong> (${u.points || 0} pt)</div>
-                  <button class="small danger" onclick="gmDeleteUser('${uName}')">参加者削除</button>
-                </div>
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">所持: ${escapeHTML(itemsStr)}</div>
-              `;
-              gmUserContainer.appendChild(div);
-            }
-          }
-        });
-
-        if (currentDMTarget) dmSelect.value = currentDMTarget;
-      });
-
-      onValue(ref(db, `requests/${currentUserName}`), (snapshot) => {
-        const container = document.getElementById("pending-container");
-        container.innerHTML = "";
-        const data = snapshot.val();
-        if (!data) {
-          container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">到着した申請はありません</div>';
-          return;
-        }
-
-        Object.keys(data).forEach(reqId => {
-          const req = data[reqId];
-          const div = document.createElement("div");
-          div.className = "item-box";
-          
-          const detail = req.tradeMode === "pt" ? `${req.amount} pt の譲渡` : `アイテム『${escapeHTML(req.itemName)}』の購入 (${req.price} pt)`;
-          div.innerHTML = `
-            <div><strong>[取引] ${escapeHTML(req.from)} からの提案</strong></div>
-            <div style="font-size:0.8rem;">${detail}</div>
-            <div style="display:flex; gap:6px; margin-top:6px;">
-              <button class="small" onclick="acceptTradeReq('${reqId}')">承認する</button>
-              <button class="small secondary" onclick="rejectReq('${reqId}')">拒絶</button>
-            </div>
-          `;
-          container.appendChild(div);
-        });
-      });
-
-      onValue(ref(db, 'chat'), (snapshot) => {
-        const box = document.getElementById("chat-box");
-        box.innerHTML = "";
-        const data = snapshot.val();
-        if (!data) return;
-
-        Object.values(data).forEach(msg => {
-          const div = document.createElement("div");
-          div.className = "chat-msg";
-          const userClass = msg.sender === GM_NAME ? "chat-gm" : "chat-user";
-          div.innerHTML = `<span class="${userClass}">${escapeHTML(msg.sender)}</span>: ${escapeHTML(msg.text)} <span class="chat-time">${msg.time}</span>`;
-          box.appendChild(div);
-        });
-        box.scrollTop = box.scrollHeight;
-      });
-
-      listenShop();
-      listenShopLogs();
-    }
-
-    function renderInventory(items, isLocked, isCool) {
-      const container = document.getElementById("inventory-list");
-      container.innerHTML = "";
-
-      const keys = Object.keys(items);
-      if (keys.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">所持アイテムはありません</div>';
-        return;
-      }
-
-      keys.forEach(itemKey => {
-        const item = items[itemKey];
-        const info = getItemDisplayNameAndDesc(item.type, item.power, item.fakeName, item.fakeDesc);
-        const masterType = ITEM_MASTER[item.type]?.type;
-
-        const div = document.createElement("div");
-        div.className = "item-box";
-
-        let html = `<div style="display:flex; justify-content:space-between; align-items:center;">
-          <div><strong>${escapeHTML(info.name)}</strong></div>`;
-
-        if (isLocked) {
-          html += `<span style="color:var(--gm-color); font-size:0.75rem;">使用不可</span>`;
-        } else if (isCool && ["attack", "attack_drill", "all_attack"].includes(masterType)) {
-          html += `<span style="color:var(--accent); font-size:0.75rem;">クールタイム中</span>`;
-        } else {
-          html += `<button class="small" onclick="useItem('${itemKey}')">使用</button>`;
-        }
-
-        html += `</div>`;
-        if (info.desc) {
-          html += `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">${escapeHTML(info.desc)}</div>`;
-        }
-        div.innerHTML = html;
-        container.appendChild(div);
-      });
-    }
-
-    function renderTradeItemSelect(items) {
-      const select = document.getElementById("trade-item-select");
-      select.innerHTML = '<option value="">出品アイテムを選択</option>';
-      Object.keys(items).forEach(k => {
-        const item = items[k];
-        const info = getItemDisplayNameAndDesc(item.type, item.power, item.fakeName, item.fakeDesc);
-        const opt = document.createElement("option");
-        opt.value = k;
-        opt.textContent = info.name;
-        select.appendChild(opt);
-      });
-    }
-
-    function listenShop() {
-      onValue(ref(db, 'shop'), (snapshot) => {
-        const container = document.getElementById("shop-inventory-list");
-        const gmDeleteContainer = document.getElementById("gm-shop-delete-list");
-
-        container.innerHTML = "";
-        if (gmDeleteContainer) gmDeleteContainer.innerHTML = "";
-
-        const data = snapshot.val();
-        if (!data) {
-          container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">ショップに入荷中のアイテムはありません</div>';
-          return;
-        }
-
-        Object.keys(data).forEach(shopId => {
-          const item = data[shopId];
-          const info = getItemDisplayNameAndDesc(item.type, item.power);
-
-          const div = document.createElement("div");
-          div.className = "item-box";
-          div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${escapeHTML(info.name)}</strong> <span style="color:var(--accent);">${item.price} pt</span></div>
-              <button class="small" onclick="buyShopItem('${shopId}', ${item.price}, '${item.type}', ${item.power || 'null'})">購入</button>
-            </div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">${escapeHTML(info.desc)}</div>
-          `;
-          container.appendChild(div);
-
-          if (gmDeleteContainer && currentUserName === GM_NAME) {
-            const delDiv = document.createElement("div");
-            delDiv.style.display = "flex";
-            delDiv.style.justifyContent = "space-between";
-            delDiv.style.alignItems = "center";
-            delDiv.style.padding = "4px 0";
-            delDiv.style.borderBottom = "1px solid #1a1d2d";
-            delDiv.innerHTML = `
-              <span>${escapeHTML(info.name)} (${item.price}pt)</span>
-              <button class="small danger" onclick="gmDeleteShopItem('${shopId}')">入荷削除</button>
-            `;
-            gmDeleteContainer.appendChild(delDiv);
-          }
-        });
-      });
-    }
-
-    function listenShopLogs() {
-      onValue(ref(db, 'shop_logs'), async (snapshot) => {
-        const container = document.getElementById("shop-history-list");
-        const statusEl = document.getElementById("shop-camera-status");
-        container.innerHTML = "";
-
-        const userSnap = await get(ref(db, 'users/' + currentUserName));
-        const u = userSnap.val();
-        const now = Date.now();
-        const isCameraActive = (currentUserName === GM_NAME) || (u && u.cameraExpires && u.cameraExpires > now);
-
-        if (statusEl) {
-          if (currentUserName === GM_NAME) statusEl.textContent = "★ GM権限により常時閲覧可能です";
-          else if (isCameraActive) statusEl.textContent = "★ カメラ効果適用中: 履歴を閲覧できます";
-          else statusEl.textContent = "※ ショップカメラ使用中のみ閲覧できます";
-        }
-
-        const data = snapshot.val();
-        if (!data) {
-          container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">購入履歴はありません</div>';
-          return;
-        }
-
-        const logs = Object.values(data).reverse();
-        logs.forEach(l => {
-          const div = document.createElement("div");
-          div.style.fontSize = "0.8rem";
-          div.style.padding = "4px 0";
-          div.style.borderBottom = "1px solid #1a1d2d";
-          
-          const buyerText = isCameraActive ? `<strong style="color:var(--accent);">${escapeHTML(l.buyer)}</strong>` : "誰か";
-          div.innerHTML = `${l.time} - ${buyerText} が 『${escapeHTML(l.itemName)}』 を購入 (${l.price}pt)`;
-          container.appendChild(div);
-        });
-      });
-    }
-
-    // --- アイテム使用ロジック ---
-    window.useItem = async function(itemKey) {
-      const userRef = ref(db, 'users/' + currentUserName);
-      const userSnap = await get(userRef);
-      if (!userSnap.exists()) return;
-      const u = userSnap.val();
-      const item = u.items ? u.items[itemKey] : null;
-      if (!item) return alert("指定アイテムが存在しません");
-
-      if (u.itemLocked || (u.points || 0) < 0) return alert("アイテム使用不可状態です");
-
-      const master = ITEM_MASTER[item.type];
-      const mType = master ? master.type : item.type;
-
-      if (["attack", "attack_drill", "all_attack"].includes(mType) && u.coolTime) {
-        return alert("クールタイム中のため攻撃アイテムは使用できません");
-      }
-
-      const usersSnap = await get(ref(db, 'users'));
-      const allUsers = usersSnap.val() || {};
-      const otherUserNames = Object.keys(allUsers).filter(n => n !== currentUserName && n !== GM_NAME);
-
-      // 1. 泥棒
-      if (mType === "thief") {
-        if (otherUserNames.length === 0) return alert("対象となる他のプレイヤーがいません");
-        const target = prompt("泥棒の対象プレイヤー名を入力してください:\n" + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        const targetItems = allUsers[target].items || {};
-        const targetItemKeys = Object.keys(targetItems);
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        // 1/2の確率で成功
-        const success = Math.random() < 0.5;
-        if (success && targetItemKeys.length > 0) {
-          const stolenKey = targetItemKeys[Math.floor(Math.random() * targetItemKeys.length)];
-          const stolenItem = targetItems[stolenKey];
-
-          await remove(ref(db, `users/${target}/items/${stolenKey}`));
-          await push(ref(db, `users/${currentUserName}/items`), stolenItem);
-
-          const info = getItemDisplayNameAndDesc(stolenItem.type, stolenItem.power, stolenItem.fakeName, stolenItem.fakeDesc);
-          alert(`【泥棒成功！】 ${target} から『${info.name}』を奪いました！`);
-          await sendNotification(target, "泥棒被害", `あなたの所持アイテム『${info.name}』が誰かに奪われました！`);
-          await logGMActivity(currentUserName, "アイテム使用(泥棒-成功)", `対象: ${target}, 奪取アイテム: ${info.name}`);
-        } else {
-          alert(`【泥棒失敗】 アイテムの奪取に失敗したか、相手がアイテムを持っていませんでした。`);
-          await logGMActivity(currentUserName, "アイテム使用(泥棒-失敗)", `対象: ${target}`);
-        }
-        return;
-      }
-
-      // 2. 豪速球（新アイテム）
-      if (mType === "fastball") {
-        if (otherUserNames.length === 0) return alert("対象となる他のプレイヤーがいません");
-        const target = prompt("破壊する対象プレイヤー名を入力してください:\n" + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        const targetItems = allUsers[target].items || {};
-        const targetItemKeys = Object.keys(targetItems);
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        if (targetItemKeys.length > 0) {
-          const destroyKey = targetItemKeys[Math.floor(Math.random() * targetItemKeys.length)];
-          const destroyedItem = targetItems[destroyKey];
-          const info = getItemDisplayNameAndDesc(destroyedItem.type, destroyedItem.power, destroyedItem.fakeName, destroyedItem.fakeDesc);
-
-          await remove(ref(db, `users/${target}/items/${destroyKey}`));
-
-          alert(`【豪速球発動！】 ${target} の『${info.name}』を破壊しました！`);
-          await sendNotification(target, "豪速球被害", `あなたの所持アイテム『${info.name}』が豪速球によって破壊されました！`);
-          await logGMActivity(currentUserName, "アイテム使用(豪速球)", `対象: ${target}, 破壊: ${info.name}`);
-        } else {
-          alert(`${target} はアイテムを持っていませんでした。（豪速球は消費されました）`);
-          await logGMActivity(currentUserName, "アイテム使用(豪速球-空振り)", `対象: ${target}`);
-        }
-        return;
-      }
-
-      // 3. トップスコープ（新アイテム）
-      if (mType === "top_scope") {
-        let maxPt = -Infinity;
-        Object.keys(allUsers).forEach(uName => {
-          if (uName !== GM_NAME) {
-            const pt = allUsers[uName].points || 0;
-            if (pt > maxPt) maxPt = pt;
-          }
-        });
-        if (maxPt === -Infinity) maxPt = 0;
-
-        alert(`【トップスコープ】 現在1位のポイント数: ${maxPt} pt\n(※このアイテムは消費されません)`);
-        await logGMActivity(currentUserName, "アイテム使用(トップスコープ)", `結果: 1位 ${maxPt} pt`);
-        return; // 消費しない
-      }
-
-      // 4. ランダムスコープ（新アイテム）
-      if (mType === "random_scope") {
-        const players = Object.keys(allUsers).filter(n => n !== GM_NAME);
-        if (players.length === 0) return alert("プレイヤーが存在しません");
-
-        // 順位算出
-        const sorted = players.map(n => ({ name: n, pt: allUsers[n].points || 0 })).sort((a,b) => b.pt - a.pt);
-        const picked = sorted[Math.floor(Math.random() * sorted.length)];
-        const rank = sorted.findIndex(p => p.name === picked.name) + 1;
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        alert(`【ランダムスコープ】 プレイヤー: ${picked.name} / 順位: ${rank}位 / ポイント: ${picked.pt} pt`);
-        await logGMActivity(currentUserName, "アイテム使用(ランダムスコープ)", `対象: ${picked.name}, 順位: ${rank}位, pt: ${picked.pt}`);
-        return;
-      }
-
-      // 5. アイテムセンサー（新アイテム）
-      if (mType === "item_sensor") {
-        if (otherUserNames.length === 0) return alert("対象となる他のプレイヤーがいません");
-        const target = prompt("アイテムを調査する対象プレイヤー名を入力してください:\n" + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        const targetItems = allUsers[target].items || {};
-        const targetItemKeys = Object.keys(targetItems);
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        if (targetItemKeys.length > 0) {
-          const pickedKey = targetItemKeys[Math.floor(Math.random() * targetItemKeys.length)];
-          const pickedItem = targetItems[pickedKey];
-          const info = getItemDisplayNameAndDesc(pickedItem.type, pickedItem.power, pickedItem.fakeName, pickedItem.fakeDesc);
-
-          alert(`【アイテムセンサー】 ${target} の所持アイテム解析完了！\n名前: ${info.name}\n効果: ${info.desc || "効果詳細なし"}`);
-          await logGMActivity(currentUserName, "アイテム使用(アイテムセンサー)", `対象: ${target}, 解析アイテム: ${info.name}`);
-        } else {
-          alert(`【アイテムセンサー】 ${target} はアイテムを1つも持っていません。`);
-          await logGMActivity(currentUserName, "アイテム使用(アイテムセンサー)", `対象: ${target}, 所持アイテムなし`);
-        }
-        return;
-      }
-
-      // 6. 偽装キット（ID選択不要化・説明空欄可）
-      if (mType === "fake_item") {
-        const myItemKeys = Object.keys(u.items || {}).filter(k => k !== itemKey);
-        if (myItemKeys.length === 0) return alert("偽装できる他の所持アイテムがありません");
-
-        // 選択用ダイアログ表示
-        let menuText = "偽装したいアイテムの番号を入力してください:\n";
-        myItemKeys.forEach((k, idx) => {
-          const info = getItemDisplayNameAndDesc(u.items[k].type, u.items[k].power, u.items[k].fakeName, u.items[k].fakeDesc);
-          menuText += `${idx + 1}. ${info.name}\n`;
-        });
-
-        const selectedIdxStr = prompt(menuText);
-        const selectedIdx = parseInt(selectedIdxStr, 10) - 1;
-        if (isNaN(selectedIdx) || selectedIdx < 0 || selectedIdx >= myItemKeys.length) {
-          return alert("無効な番号が選択されました");
-        }
-
-        const targetItemKey = myItemKeys[selectedIdx];
-        const newName = prompt("新しいアイテム名を入力してください:");
-        if (!newName) return alert("名前は必須です");
-        const newDesc = prompt("新しい効果説明を入力してください（空欄にすると説明なしになります）:") || "";
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        await update(ref(db, `users/${currentUserName}/items/${targetItemKey}`), {
-          fakeName: newName,
-          fakeDesc: newDesc
-        });
-
-        alert("アイテムの偽装が完了しました！");
-        await logGMActivity(currentUserName, "アイテム使用(偽装キット)", `偽装後の名前: ${newName}`);
-        return;
-      }
-
-      // 7. アタック・ドリルアタック
-      if (mType === "attack" || mType === "attack_drill") {
-        if (otherUserNames.length === 0) return alert("攻撃対象となる他のプレイヤーがいません");
-        const target = prompt("攻撃対象のプレイヤー名を入力してください:\n" + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        const targetUser = allUsers[target];
-        let power = item.power || master.defaultPower || 50;
-
-        // パワーブースターパッシブ
-        let boosterCount = 0;
-        Object.values(u.items || {}).forEach(it => {
-          if (it.type === "power_booster") boosterCount++;
-        });
-        if (boosterCount > 0) {
-          power = Math.floor(power * (1 + 0.05 * boosterCount));
-        }
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        const senderDisplayName = u.stealthActive ? "誰か" : currentUserName;
-        if (u.stealthActive) await update(userRef, { stealthActive: false });
-
-        // 防御チェック（ドリルアタックは無視）
-        if (mType === "attack") {
-          const defenses = targetUser.activeDefenses || [];
-          const mirrorIdx = defenses.findIndex(d => d.type === "mirror" && d.from === currentUserName);
-          if (mirrorIdx !== -1) {
-            defenses.splice(mirrorIdx, 1);
-            await update(ref(db, `users/${target}`), { activeDefenses: defenses });
-            const reflectAmount = Math.min(u.points || 0, power);
-            await update(userRef, { points: (u.points || 0) - reflectAmount, coolTime: true });
-            await update(ref(db, `users/${target}`), { points: (targetUser.points || 0) + reflectAmount });
-            alert(`【ミラー反射！】 ${target} のミラーにより攻撃が反射され、${reflectAmount} pt 奪われました！`);
-            await sendNotification(target, "ミラー発動", `${senderDisplayName} からの攻撃を反射し ${reflectAmount} pt 奪いました！`);
-            await logGMActivity(currentUserName, "攻撃被反射", `対象: ${target}, ダメージ: ${reflectAmount}`);
-            return;
-          }
-
-          const shieldIdx = defenses.findIndex(d => d.type === "shield" && d.from === currentUserName);
-          if (shieldIdx !== -1) {
-            defenses.splice(shieldIdx, 1);
-            await update(ref(db, `users/${target}`), { activeDefenses: defenses });
-            alert(`【防がれました】 ${target} のシールドにより攻撃が防がれました。`);
-            await sendNotification(target, "シールド発動", `${senderDisplayName} からの攻撃を防ぎました。`);
-            await logGMActivity(currentUserName, "攻撃失敗(シールド)", `対象: ${target}`);
-            return;
-          }
-
-          const barrierIdx = defenses.findIndex(d => d.type === "barrier");
-          if (barrierIdx !== -1) {
-            defenses.splice(barrierIdx, 1);
-            await update(ref(db, `users/${target}`), { activeDefenses: defenses });
-            alert(`【防がれました】 ${target} のバリアにより攻撃が防がれました。`);
-            await sendNotification(target, "バリア発動", `${senderDisplayName} からの攻撃を防ぎました。`);
-            await logGMActivity(currentUserName, "攻撃失敗(バリア)", `対象: ${target}`);
-            return;
-          }
-        }
-
-        const stealAmount = Math.min(targetUser.points || 0, power);
-        if (stealAmount > 0) {
-          await update(userRef, { points: (u.points || 0) + stealAmount, coolTime: true });
-          await update(ref(db, `users/${target}`), { points: (targetUser.points || 0) - stealAmount });
-          alert(`【攻撃成功！】 ${target} から ${stealAmount} pt 奪いました！(クールタイム発生)`);
-          await sendNotification(target, "攻撃被害", `${senderDisplayName} に ${stealAmount} pt 奪われました！`);
-          await logGMActivity(currentUserName, `攻撃成功(${mType})`, `対象: ${target}, 奪取pt: ${stealAmount}`);
-        } else {
-          alert(`${target} のポイントが0以下のため、ポイントを奪えませんでした。`);
-          await logGMActivity(currentUserName, `攻撃不発(${mType})`, `対象: ${target}`);
-        }
-        return;
-      }
-
-      // 8. 一網打尽
-      if (mType === "all_attack") {
-        let power = item.power || master.defaultPower || 10;
-        let boosterCount = 0;
-        Object.values(u.items || {}).forEach(it => {
-          if (it.type === "power_booster") boosterCount++;
-        });
-        if (boosterCount > 0) power = Math.floor(power * (1 + 0.05 * boosterCount));
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-
-        const senderDisplayName = u.stealthActive ? "誰か" : currentUserName;
-        if (u.stealthActive) await update(userRef, { stealthActive: false });
-
-        let totalStolen = 0;
-        for (const target of otherUserNames) {
-          const tUser = allUsers[target];
-          const steal = Math.min(tUser.points || 0, power);
-          if (steal > 0) {
-            totalStolen += steal;
-            await update(ref(db, `users/${target}`), { points: (tUser.points || 0) - steal });
-            await sendNotification(target, "一網打尽の被害", `${senderDisplayName} の一網打尽により ${steal} pt 奪われました！`);
-          }
-        }
-
-        if (totalStolen > 0) {
-          await update(userRef, { points: (u.points || 0) + totalStolen, coolTime: true });
-          alert(`【一網打尽成功！】 全員から合計 ${totalStolen} pt 奪いました！(クールタイム発生)`);
-        } else {
-          alert("全員のポイントが0以下だったため、ポイントを奪えませんでした。");
-        }
-        await logGMActivity(currentUserName, "アイテム使用(一網打尽)", `合計奪取: ${totalStolen}pt`);
-        return;
-      }
-
-      // 9. バフ・防御・呪い・その他ユーティリティ
-      if (mType === "stealth") {
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        await update(userRef, { stealthActive: true });
-        alert("ステルスを発動しました。次の攻撃の送信者が「誰か」になります。");
-        await logGMActivity(currentUserName, "アイテム使用(ステルス)", "発動");
-        return;
-      }
-
-      if (mType === "coupon") {
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        await update(userRef, { couponActive: true });
-        alert("クーポンを発動しました！次回ショップでの購入が半額になります。");
-        await logGMActivity(currentUserName, "アイテム使用(クーポン)", "発動");
-        return;
-      }
-
-      if (mType === "cool_resetter") {
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        await update(userRef, { coolTime: false });
-        alert("クールタイムを解除しました！");
-        await logGMActivity(currentUserName, "アイテム使用(クールリセッター)", "解除成功");
-        return;
-      }
-
-      if (mType === "shop_camera") {
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        const expires = Date.now() + 24 * 60 * 60 * 1000;
-        await update(userRef, { cameraExpires: expires });
-        alert("ショップカメラを起動しました！24時間ショップの購入履歴を閲覧できます。");
-        await logGMActivity(currentUserName, "アイテム使用(ショップカメラ)", "起動");
-        return;
-      }
-
-      if (mType === "shield" || mType === "mirror") {
-        if (otherUserNames.length === 0) return alert("指定対象となるプレイヤーがいません");
-        const target = prompt(`${master.name} を展開する指定対象プレイヤー名を入力してください:\n` + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        const defenses = u.activeDefenses || [];
-        defenses.push({ type: mType, from: target });
-        await update(userRef, { activeDefenses: defenses });
-
-        alert(`${target} からの攻撃に対する ${master.name} をセットしました。`);
-        await logGMActivity(currentUserName, `アイテム使用(${master.name})`, `対象指定: ${target}`);
-        return;
-      }
-
-      if (mType === "barrier") {
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        const defenses = u.activeDefenses || [];
-        defenses.push({ type: "barrier" });
-        await update(userRef, { activeDefenses: defenses });
-
-        alert("バリアをセットしました（全攻撃対象1回ガード）。");
-        await logGMActivity(currentUserName, "アイテム使用(バリア)", "セット");
-        return;
-      }
-
-      if (mType === "item_lock") {
-        if (otherUserNames.length === 0) return alert("対象となるプレイヤーがいません");
-        const target = prompt("アイテムロックをかける対象プレイヤー名を入力してください:\n" + otherUserNames.join(", "));
-        if (!target || !allUsers[target]) return alert("無効なプレイヤー名です");
-
-        await remove(ref(db, `users/${currentUserName}/items/${itemKey}`));
-        await update(ref(db, `users/${target}`), { itemLocked: true });
-
-        alert(`${target} のアイテム使用を本日終了まで封印しました！`);
-        await sendNotification(target, "アイテムロック被害", "本日0時までアイテム使用が不可になりました！");
-        await logGMActivity(currentUserName, "アイテム使用(アイテムロック)", `対象: ${target}`);
-        return;
-      }
+    // サウンド切り替え
+    document.getElementById('btn-sound-toggle').onclick = () => {
+      audio.enabled = !audio.enabled;
+      document.getElementById('sound-icon').className = audio.enabled 
+        ? 'fa-solid fa-volume-high text-xs' 
+        : 'fa-solid fa-volume-xmark text-xs text-rose-400';
     };
 
-    // --- 取引・DM・ショップ購入等のイベント登録 ---
-    document.getElementById("trade-mode").addEventListener("change", (e) => {
-      if (e.target.value === "pt") {
-        document.getElementById("trade-pt-inputs").classList.remove("hidden");
-        document.getElementById("trade-item-inputs").classList.add("hidden");
-      } else {
-        document.getElementById("trade-pt-inputs").classList.add("hidden");
-        document.getElementById("trade-item-inputs").classList.remove("hidden");
-      }
+    // 起動
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initAuthAndData();
     });
-
-    document.getElementById("send-trade-req-btn").addEventListener("click", async () => {
-      const mode = document.getElementById("trade-mode").value;
-      const target = document.getElementById("trade-target").value;
-      if (!target) return alert("取引相手を選択してください");
-
-      if (mode === "pt") {
-        const amount = parseInt(document.getElementById("trade-pt-amount").value, 10);
-        if (isNaN(amount) || amount <= 0) return alert("正しいポイント数を入力してください");
-
-        const uSnap = await get(ref(db, 'users/' + currentUserName));
-        if ((uSnap.val().points || 0) < amount) return alert("ポイントが足りません");
-
-        const reqRef = push(ref(db, `requests/${target}`));
-        await set(reqRef, { from: currentUserName, tradeMode: "pt", amount });
-        alert("ポイント送金申請を送信しました");
-      } else {
-        const itemKey = document.getElementById("trade-item-select").value;
-        const price = parseInt(document.getElementById("trade-item-price").value, 10);
-        if (!itemKey || isNaN(price) || price <= 0) return alert("出品アイテムと販売価格を正しく入力してください");
-
-        const uSnap = await get(ref(db, 'users/' + currentUserName));
-        const item = uSnap.val().items ? uSnap.val().items[itemKey] : null;
-        if (!item) return alert("選択したアイテムを持っていません");
-
-        const info = getItemDisplayNameAndDesc(item.type, item.power, item.fakeName, item.fakeDesc);
-        const reqRef = push(ref(db, `requests/${target}`));
-        await set(reqRef, {
-          from: currentUserName,
-          tradeMode: "item",
-          itemData: item,
-          itemKey,
-          itemName: info.name,
-          price
-        });
-        alert("アイテム出品申請を送信しました");
-      }
-    });
-
-    window.acceptTradeReq = async function(reqId) {
-      const reqRef = ref(db, `requests/${currentUserName}/${reqId}`);
-      const reqSnap = await get(reqRef);
-      if (!reqSnap.exists()) return;
-      const req = reqSnap.val();
-
-      const myRef = ref(db, 'users/' + currentUserName);
-      const fromRef = ref(db, 'users/' + req.from);
-
-      const mySnap = await get(myRef);
-      const fromSnap = await get(fromRef);
-      if (!mySnap.exists() || !fromSnap.exists()) return;
-
-      const myUser = mySnap.val();
-      const fromUser = fromSnap.val();
-
-      if (req.tradeMode === "pt") {
-        if ((fromUser.points || 0) < req.amount) {
-          alert("相手のポイントが不足しているため取引できませんでした");
-          await remove(reqRef);
-          return;
-        }
-        await update(fromRef, { points: (fromUser.points || 0) - req.amount });
-        await update(myRef, { points: (myUser.points || 0) + req.amount });
-
-        await sendNotification(req.from, "取引成立", `${currentUserName} が ${req.amount} pt の譲渡を承認しました`);
-        alert("ポイントを受け取りました！");
-      } else {
-        if ((myUser.points || 0) < req.price) {
-          alert("自分のポイントが足りないため購入できません");
-          return;
-        }
-        const sellerItemRef = ref(db, `users/${req.from}/items/${req.itemKey}`);
-        const sellerItemSnap = await get(sellerItemRef);
-        if (!sellerItemSnap.exists()) {
-          alert("出品されたアイテムが既に存在しません");
-          await remove(reqRef);
-          return;
-        }
-
-        await update(myRef, { points: (myUser.points || 0) - req.price });
-        await update(fromRef, { points: (fromUser.points || 0) + req.price });
-
-        await remove(sellerItemRef);
-        await push(ref(db, `users/${currentUserName}/items`), req.itemData);
-
-        await sendNotification(req.from, "取引成立", `${currentUserName} がアイテム『${req.itemName}』を ${req.price} pt で購入しました`);
-        alert(`アイテム『${req.itemName}』を購入しました！`);
-      }
-
-      await remove(reqRef);
-      await logGMActivity(currentUserName, "取引承認", `送信元: ${req.from}`);
-    };
-
-    window.rejectReq = async function(reqId) {
-      await remove(ref(db, `requests/${currentUserName}/${reqId}`));
-      alert("申請を拒絶しました");
-    };
-
-    // ショップ購入
-    window.buyShopItem = async function(shopId, basePrice, type, power) {
-      const userRef = ref(db, 'users/' + currentUserName);
-      const snap = await get(userRef);
-      if (!snap.exists()) return;
-      const u = snap.val();
-
-      let finalPrice = basePrice;
-      const isCoupon = u.couponActive || false;
-      if (isCoupon) finalPrice = Math.floor(basePrice / 2);
-
-      if ((u.points || 0) < finalPrice) return alert("ポイントが足りません");
-
-      await update(userRef, { points: (u.points || 0) - finalPrice });
-      if (isCoupon) await update(userRef, { couponActive: false });
-
-      const newItem = { type };
-      if (power !== null && power !== undefined) newItem.power = power;
-      await push(ref(db, `users/${currentUserName}/items`), newItem);
-
-      const info = getItemDisplayNameAndDesc(type, power);
-      const logRef = push(ref(db, 'shop_logs'));
-      const now = new Date();
-      const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-      await set(logRef, {
-        buyer: currentUserName,
-        itemName: info.name,
-        price: finalPrice,
-        time: timeStr
-      });
-
-      alert(`アイテム『${info.name}』を ${finalPrice} pt で購入しました！`);
-      await logGMActivity(currentUserName, "ショップ購入", `アイテム: ${info.name}, 価格: ${finalPrice}pt`);
-    };
-
-    // 全体チャット
-    document.getElementById("chat-send-btn").addEventListener("click", async () => {
-      const input = document.getElementById("chat-input");
-      const text = input.value.trim();
-      if (!text) return;
-
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-      await push(ref(db, 'chat'), {
-        sender: currentUserName,
-        text,
-        time: timeStr
-      });
-      input.value = "";
-    });
-
-    // 個別DM
-    document.getElementById("dm-target-select").addEventListener("change", (e) => {
-      currentDMTarget = e.target.value;
-      listenDM();
-    });
-
-    function listenDM() {
-      const box = document.getElementById("dm-chat-box");
-      box.innerHTML = "";
-      if (!currentDMTarget) return;
-
-      onValue(ref(db, 'direct_messages'), (snapshot) => {
-        box.innerHTML = "";
-        const data = snapshot.val();
-        if (!data) return;
-
-        Object.values(data).forEach(msg => {
-          if ((msg.sender === currentUserName && msg.receiver === currentDMTarget) ||
-              (msg.sender === currentDMTarget && msg.receiver === currentUserName)) {
-            const div = document.createElement("div");
-            div.className = "chat-msg";
-            div.innerHTML = `<span class="chat-user">${escapeHTML(msg.sender)}</span>: ${escapeHTML(msg.text)} <span class="chat-time">${msg.time}</span>`;
-            box.appendChild(div);
-          }
-        });
-        box.scrollTop = box.scrollHeight;
-      });
-    }
-
-    document.getElementById("dm-send-btn").addEventListener("click", async () => {
-      if (!currentDMTarget) return alert("宛先を選択してください");
-      const input = document.getElementById("dm-input");
-      const text = input.value.trim();
-      if (!text) return;
-
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-      await push(ref(db, 'direct_messages'), {
-        sender: currentUserName,
-        receiver: currentDMTarget,
-        text,
-        time: timeStr
-      });
-      input.value = "";
-    });
-
-    // 順位記録閲覧
-    onValue(ref(db, 'ranking_snapshots'), (snapshot) => {
-      const container = document.getElementById("ranking-snapshots-container");
-      container.innerHTML = "";
-      const data = snapshot.val();
-      if (!data) {
-        container.innerHTML = '<div style="color:var(--text-muted);">公開された順位記録はありません</div>';
-        return;
-      }
-
-      const snapshots = Object.values(data).reverse();
-      snapshots.forEach(s => {
-        const div = document.createElement("div");
-        div.className = "item-box";
-        let html = `<strong>【順位発表】 ${escapeHTML(s.time)}</strong><ol style="margin-left:20px; margin-top:6px; font-size:0.85rem;">`;
-        s.list.forEach(rank => {
-          html += `<li><strong>${escapeHTML(rank.name)}</strong>: ${rank.points} pt</li>`;
-        });
-        html += `</ol>`;
-        div.innerHTML = html;
-        container.appendChild(div);
-      });
-    });
-
-    // --- GM 操作系 ---
-    if (document.getElementById("gm-send-announce-btn")) {
-      document.getElementById("gm-send-announce-btn").addEventListener("click", async () => {
-        const desc = document.getElementById("gm-announce-desc").value.trim();
-        await set(ref(db, 'game_announcements'), { desc });
-
-        const usersSnap = await get(ref(db, 'users'));
-        if (usersSnap.exists()) {
-          Object.keys(usersSnap.val()).forEach(uName => {
-            if (uName !== GM_NAME) {
-              sendNotification(uName, "全体アナウンス更新", "全体アナウンスが更新されました。");
-            }
-          });
-        }
-        alert("アナウンスを更新しました");
-      });
-
-      document.getElementById("gm-point-add-btn").addEventListener("click", () => handleGMPointChange(true));
-      document.getElementById("gm-point-sub-btn").addEventListener("click", () => handleGMPointChange(false));
-
-      async function handleGMPointChange(isAdd) {
-        const target = document.getElementById("gm-point-target").value;
-        const amount = parseInt(document.getElementById("gm-point-amount").value, 10);
-        if (!target || isNaN(amount)) return alert("対象と正しいポイント数を入力してください");
-
-        const targetRef = ref(db, 'users/' + target);
-        const snap = await get(targetRef);
-        if (!snap.exists()) return;
-        const currentPt = snap.val().points || 0;
-        const newPt = isAdd ? currentPt + amount : currentPt - amount;
-
-        await update(targetRef, { points: newPt });
-        alert(`${target} のポイントを ${newPt} pt に更新しました`);
-        await sendNotification(target, "GMポイント変動", `GMによりポイントが ${isAdd ? '+' : '-'}${amount} pt 変更されました (現在: ${newPt} pt)`);
-        await logGMActivity("GM", "ポイント変更", `対象: ${target}, 変動: ${isAdd ? '+' : '-'}${amount}, 結果: ${newPt}pt`);
-      }
-
-      document.getElementById("gm-item-give-btn").addEventListener("click", async () => {
-        const target = document.getElementById("gm-item-give-target").value;
-        const type = document.getElementById("gm-item-give-select").value;
-        const powerVal = document.getElementById("gm-item-give-power").value;
-        if (!target || !type) return alert("対象とアイテムを選択してください");
-
-        const newItem = { type };
-        if (powerVal !== "") newItem.power = parseInt(powerVal, 10);
-
-        await push(ref(db, `users/${target}/items`), newItem);
-        const info = getItemDisplayNameAndDesc(type, newItem.power);
-        alert(`${target} に『${info.name}』を付与しました`);
-        await sendNotification(target, "GMアイテム付与", `GMからアイテム『${info.name}』が付与されました`);
-        await logGMActivity("GM", "アイテム付与", `対象: ${target}, アイテム: ${info.name}`);
-      });
-
-      document.getElementById("gm-reset-all-cooldowns-btn").addEventListener("click", async () => {
-        const snap = await get(ref(db, 'users'));
-        if (!snap.exists()) return;
-        const users = snap.val();
-        for (const uName of Object.keys(users)) {
-          await update(ref(db, `users/${uName}`), { coolTime: false });
-        }
-        alert("全員のクールタイムを解除しました");
-        await logGMActivity("GM", "全員クールタイム解除", "完了");
-      });
-
-      document.getElementById("gm-publish-ranking-btn").addEventListener("click", async () => {
-        const snap = await get(ref(db, 'users'));
-        if (!snap.exists()) return;
-        const users = snap.val();
-        const list = Object.keys(users)
-          .filter(n => n !== GM_NAME)
-          .map(n => ({ name: n, points: users[n].points || 0 }))
-          .sort((a, b) => b.points - a.points);
-
-        const now = new Date();
-        const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-        const snapshotRef = push(ref(db, 'ranking_snapshots'));
-        await set(snapshotRef, { time: timeStr, list, timestamp: Date.now() });
-
-        Object.keys(users).forEach(uName => {
-          if (uName !== GM_NAME) sendNotification(uName, "順位公開", "現在の最新順位が公開されました。「順位」タブをご確認ください。");
-        });
-        alert("順位を公開・記録しました");
-        await logGMActivity("GM", "順位公開", `公開件数: ${list.length}名`);
-      });
-
-      document.getElementById("gm-undo-ranking-btn").addEventListener("click", async () => {
-        const snap = await get(ref(db, 'ranking_snapshots'));
-        if (!snap.exists()) return alert("削除できる順位記録がありません");
-
-        const data = snap.val();
-        const keys = Object.keys(data);
-        const lastKey = keys[keys.length - 1];
-
-        await remove(ref(db, `ranking_snapshots/${lastKey}`));
-        alert("直前に公開した順位記録を削除しました");
-        await logGMActivity("GM", "順位公開取消", `削除Key: ${lastKey}`);
-      });
-
-      document.getElementById("gm-add-shop-btn").addEventListener("click", async () => {
-        const type = document.getElementById("gm-shop-item-select").value;
-        const price = parseInt(document.getElementById("gm-shop-price").value, 10);
-        const powerVal = document.getElementById("gm-shop-power").value;
-
-        if (!type || isNaN(price) || price <= 0) return alert("アイテムと正しい販売価格を入力してください");
-
-        const itemData = { type, price };
-        if (powerVal !== "") itemData.power = parseInt(powerVal, 10);
-
-        await push(ref(db, 'shop'), itemData);
-        alert("ショップに入荷しました");
-        await logGMActivity("GM", "ショップ入荷", `アイテム: ${type}, 価格: ${price}pt`);
-      });
-
-      window.gmDeleteShopItem = async function(shopId) {
-        await remove(ref(db, `shop/${shopId}`));
-        alert("ショップからアイテムを削除しました");
-        await logGMActivity("GM", "ショップ入荷削除", `ID: ${shopId}`);
-      };
-
-      window.gmDeleteUser = async function(uName) {
-        if (!confirm(`本当に参加者 ${uName} を削除しますか？`)) return;
-        await remove(ref(db, `users/${uName}`));
-        alert(`参加者 ${uName} を削除しました`);
-        await logGMActivity("GM", "参加者削除", `対象: ${uName}`);
-      };
-    }
   </script>
 </body>
 </html>
