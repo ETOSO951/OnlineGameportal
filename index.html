@@ -55,7 +55,7 @@
     
     <!-- 上段ヘッダー -->
     <div class="flex justify-between items-start w-full">
-      <!-- 左上: プレイヤー情報・資材 & ソウルモジュール -->
+      <!-- 左上: プレイヤー情報・資材 & モジュール -->
       <div class="flex flex-col gap-1 w-44 sm:w-60 pointer-events-auto">
         <div class="flex items-center gap-1.5">
           <span id="hudName" class="font-black text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[85px] text-amber-300">勇者</span>
@@ -76,9 +76,9 @@
             <i class="fa-solid fa-gem text-amber-400 text-xs"></i>
             <span id="hudCores" class="font-black">0</span>
           </div>
-          <div class="flex items-center gap-1 text-teal-300" title="防衛建築スクラップ">
+          <div class="flex items-center gap-1 text-teal-300" title="防衛建築スクラップ (希少)">
             <i class="fa-solid fa-cubes-stacked text-teal-400 text-xs"></i>
-            <span id="hudScrap" class="font-black">150</span>
+            <span id="hudScrap" class="font-black">60</span>
           </div>
           <button id="btnOpenUpgrade" class="flex items-center gap-1 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 hover:bg-emerald-900 px-1.5 py-0.5 rounded-lg border border-emerald-600 transition">
             <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
@@ -86,7 +86,7 @@
           </button>
         </div>
 
-        <!-- ソウルモジュールスロット（外部強化要素） -->
+        <!-- ソウルモジュールスロット -->
         <div class="bg-slate-900/80 backdrop-blur px-2 py-1 rounded-xl border border-slate-800 flex items-center justify-between">
           <span class="text-[8px] font-bold text-slate-400">モジュール:</span>
           <div class="flex gap-1" id="hudModuleSlots">
@@ -102,12 +102,16 @@
         </div>
       </div>
 
-      <!-- 中央上部 -->
+      <!-- 中央上部: 通信状況 & 同期インジケータ -->
       <div class="flex flex-col items-center gap-1">
         <div class="bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700 shadow flex items-center gap-2 text-[10px] pointer-events-auto">
           <div class="flex items-center gap-1">
-            <span id="netStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span id="netStatusText" class="font-bold text-emerald-300 font-mono">同期中</span>
+            <span id="netStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span id="netStatusText" class="font-bold text-emerald-300 font-mono">接続中</span>
+          </div>
+          <span class="text-slate-600">|</span>
+          <div class="text-slate-300 font-mono text-[9px]">
+            <i class="fa-solid fa-users text-cyan-400 mr-0.5"></i><span id="netPlayerCount" class="font-bold text-white">1</span>
           </div>
           <span class="text-slate-600">|</span>
           <button id="btnSleepLogout" class="text-[9px] bg-indigo-900/80 hover:bg-indigo-800 px-2 py-0.5 rounded-md border border-indigo-400 text-cyan-200 font-bold active:scale-95 transition">
@@ -126,7 +130,7 @@
 
         <div class="bg-slate-900/90 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[8px] shadow w-32 sm:w-36 overflow-hidden">
           <div class="font-bold border-b border-slate-800 pb-0.5 text-slate-400 flex items-center justify-between text-[8px]">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>ランキング</span>
+            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>順位</span>
             <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono font-bold text-[7px]">ROOM</span>
           </div>
           <ol id="leaderboardList" class="mt-0.5 space-y-0.5 text-slate-200"></ol>
@@ -148,38 +152,33 @@
         </div>
       </div>
 
-      <!-- 中央下: 拡張された要塞防衛建築ドック -->
+      <!-- 中央下: 建築ドック -->
       <div class="flex flex-col items-center gap-1.5 pointer-events-auto mb-1">
         <div id="buildDock" class="hidden flex gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 shadow-2xl transition-all">
-          <!-- 鋼鉄の壁 -->
-          <button id="buildWall" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="25" title="敵の弾丸や近接を遮断する鋼鉄壁">
+          <button id="buildWall" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="25" title="鋼鉄壁">
             <i class="fa-solid fa-shield text-slate-300 text-sm"></i>
             <span class="font-bold text-slate-200">鋼鉄壁</span>
             <span class="text-[7px] text-teal-300 font-mono">25材</span>
           </button>
-          <!-- スパイク罠 -->
-          <button id="buildSpike" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="20" title="踏んだ敵に継続大ダメージ">
+          <button id="buildSpike" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="20" title="針罠">
             <i class="fa-solid fa-burst text-rose-400 text-sm"></i>
             <span class="font-bold text-slate-200">針罠</span>
             <span class="text-[7px] text-teal-300 font-mono">20材</span>
           </button>
-          <!-- 減速トラップ -->
-          <button id="buildSlow" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="20" title="敵を粘着させて移動速度を低下">
+          <button id="buildSlow" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="20" title="粘着網">
             <i class="fa-solid fa-spider text-amber-400 text-sm"></i>
             <span class="font-bold text-slate-200">粘着網</span>
             <span class="text-[7px] text-teal-300 font-mono">20材</span>
           </button>
-          <!-- タレット -->
-          <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="45">
+          <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="50">
             <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
             <span class="font-bold text-slate-200">タレット</span>
-            <span class="text-[7px] text-teal-300 font-mono">45材</span>
+            <span class="text-[7px] text-teal-300 font-mono">50材</span>
           </button>
-          <!-- 障壁パイロン -->
-          <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="65">
+          <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="75">
             <i class="fa-solid fa-atom text-indigo-400 text-sm"></i>
             <span class="font-bold text-slate-200">障壁</span>
-            <span class="text-[7px] text-teal-300 font-mono">65材</span>
+            <span class="text-[7px] text-teal-300 font-mono">75材</span>
           </button>
         </div>
 
@@ -212,7 +211,7 @@
     </div>
   </div>
 
-  <!-- 強化ツリーモーダル -->
+  <!-- 強化モーダル -->
   <div id="upgradeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
     <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[88vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -245,7 +244,7 @@
         <h1 class="text-xl sm:text-2xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
           ARENA.IO OMNIVERSE
         </h1>
-        <p class="text-[11px] text-slate-400">屈強要塞構築・全ロストハードコアサバイバル</p>
+        <p class="text-[11px] text-slate-400">リアルタイム同期・過酷サバイバル要塞戦</p>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -326,7 +325,7 @@
     </div>
   </div>
 
-  <!-- ハードコア全ロスト・リスポーンモーダル -->
+  <!-- 全ロスト・リスポーンモーダル -->
   <div id="deathModal" class="absolute inset-0 bg-red-950/85 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
     <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
       <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
@@ -381,11 +380,13 @@
       playExplode() { this.playTone(80, 'square', 0.25, 0.2); }
       playScrap() { this.playTone(900, 'sine', 0.06, 0.1); }
       playEquip() { this.playTone(1100, 'sine', 0.18, 0.15); }
+      playBounce() { this.playTone(480, 'sine', 0.15, 0.15); }
+      playPulse() { this.playTone(220, 'sawtooth', 0.25, 0.15); }
     }
     const sound = new SoundFX();
 
     /* =========================================================
-       2. ワールド設定 & モジュール強化要素
+       2. ワールド設定 & 減量された資材定数
        ========================================================= */
     const WORLD_WIDTH = 100000;
     const WORLD_HEIGHT = 100000;
@@ -398,31 +399,29 @@
       { id: 'gate_sw', x: 20000, y: 80000, targetX: 50000, targetY: 50000, name: '南西ゲート', color: '#a855f7' }
     ];
 
+    // 初期資材を削減 (60〜100材)
     const CLASS_CONFIGS = {
-      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 220, speed: 5.5, attackRate: 250, range: 100, arc: Math.PI * 0.75, damage: 45, deflects: true, initScrap: 150 },
-      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 200, speed: 4.6, attackRate: 230, range: 650, damage: 32, bulletSpeed: 17, bulletSize: 7, initScrap: 150 },
-      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 170, speed: 4.8, attackRate: 280, range: 550, damage: 28, bulletSpeed: 13, homing: true, initScrap: 150 },
-      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 180, speed: 4.9, attackRate: 300, range: 480, damage: 20, isPoison: true, initScrap: 180 },
-      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 350, speed: 4.2, attackRate: 360, range: 80, arc: Math.PI * 0.6, damage: 38, reflectArmor: 0.25, initScrap: 240 }
+      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 220, speed: 5.5, attackRate: 250, range: 100, arc: Math.PI * 0.75, damage: 45, deflects: true, initScrap: 60 },
+      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 200, speed: 4.6, attackRate: 230, range: 650, damage: 32, bulletSpeed: 17, bulletSize: 7, initScrap: 60 },
+      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 170, speed: 4.8, attackRate: 280, range: 550, damage: 28, bulletSpeed: 13, homing: true, initScrap: 60 },
+      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 180, speed: 4.9, attackRate: 300, range: 480, damage: 20, isPoison: true, initScrap: 75 },
+      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 350, speed: 4.2, attackRate: 360, range: 80, arc: Math.PI * 0.6, damage: 38, reflectArmor: 0.25, initScrap: 100 }
     };
 
-    // 弱体化・調整済みボット
     const BOT_VARIANTS = {
       berserker: { typeName: '小型バーサーカー', hp: 55, speed: 3.2, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 8, attackRate: 850 },
       sniper: { typeName: '偵察スナイパー', hp: 40, speed: 2.6, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 6, bulletSpeed: 10, attackRate: 1400 },
       tank: { typeName: '旧式ドローン', hp: 90, speed: 1.8, range: 160, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 5, bulletSpeed: 7, attackRate: 1600 }
     };
 
-    // 拡張要塞建築物テンプレート
     const STRUCTURE_TEMPLATES = {
       wall: { name: '鋼鉄壁', cost: 25, hp: 500, radius: 28, type: 'wall', color: '#94a3b8' },
       spike: { name: '針罠', cost: 20, hp: 120, radius: 24, type: 'spike', dps: 2.5, color: '#fb7185' },
       slow: { name: '粘着網', cost: 20, hp: 120, radius: 30, type: 'slow', slowRate: 0.45, color: '#f59e0b' },
-      turret: { name: '自動タレット', cost: 45, hp: 280, radius: 24, range: 420, type: 'turret', color: '#06b6d4' },
-      pylon: { name: '防護障壁', cost: 65, hp: 450, radius: 32, domeRadius: 220, type: 'pylon', color: '#818cf8' }
+      turret: { name: '自動タレット', cost: 50, hp: 280, radius: 24, range: 420, type: 'turret', color: '#06b6d4' },
+      pylon: { name: '防護障壁', cost: 75, hp: 450, radius: 32, domeRadius: 220, type: 'pylon', color: '#818cf8' }
     };
 
-    // 強化ツリー（死亡時にリセット）
     const UPGRADE_TYPES = [
       { id: 'maxHp', name: '最大HP増強', desc: 'HP+50', maxLv: 15, cost: 1 },
       { id: 'dmg', name: '攻撃力強化', desc: '攻撃・弾丸威力+15%', maxLv: 15, cost: 1 },
@@ -437,7 +436,6 @@
       { id: 'buildRate', name: '要塞工学', desc: '防衛建築HP+30%', maxLv: 8, cost: 1 }
     ];
 
-    // 【新規】外部強化システム「ソウルモジュール」
     const MODULE_DEFINITIONS = {
       crimson: { name: 'クリムゾン', desc: '攻撃力+25%', color: '#ef4444', icon: '⚔' },
       aqua: { name: 'アクア', desc: '常時シールド+80', color: '#06b6d4', icon: '🛡' },
@@ -446,7 +444,7 @@
     };
 
     /* =========================================================
-       3. プレイヤー状態
+       3. プレイヤー状態 & 初期化
        ========================================================= */
     let isPlaying = false;
 
@@ -481,7 +479,7 @@
       shield: 0,
       stamina: 100,
       cores: 0,
-      scrap: 150,
+      scrap: 60,
       sp: 0,
       level: 1,
       exp: 0,
@@ -493,30 +491,264 @@
       skillCooldown: 0,
       slashAnimation: 0,
       upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, buildRate: 0 },
-      modules: [] // 装着スロット (最大3つ)
+      modules: []
     };
 
+    let remotePlayers = new Map();
     let sleeperPlayers = [];
     let defenseStructures = [];
     let scrapNodes = [];
     let bullets = [];
     let slashes = [];
     let dropCores = [];
-    let dropModules = []; // 地面にドロップしたモジュールオーブ
+    let dropModules = [];
     let popups = [];
     let aiBots = [];
+    let fieldGimmicks = [];
 
     /* =========================================================
-       4. 資材ノード & ドロップ & ボット
+       4. P2P通信・同期の最適化 (PeerJS / WebRTC)
        ========================================================= */
+    let peer = null;
+    let isHost = false;
+    let hostConn = null;
+    const peerConnections = new Map();
+    let lastSyncSendTime = 0;
+
+    function initNetwork(rId) {
+      roomCode = rId.trim().toUpperCase() || 'OMNI10';
+      const hostId = `arena_omni_${roomCode.toLowerCase()}_host`;
+      const logEl = document.getElementById('lobbyNetLog');
+      logEl.textContent = `合言葉 [${roomCode}] サーバー接続試行中...`;
+
+      // Peer初期化
+      peer = new Peer(hostId, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
+
+      peer.on('open', () => {
+        isHost = true;
+        logEl.textContent = 'ホストとしてワールド生成完了！';
+        updateNetUI(true, 1);
+        setupHostNet();
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+          // すでにホストが存在する場合はクライアントとして接続
+          peer.destroy();
+          connectClient(hostId);
+        } else {
+          logEl.textContent = `接続エラー: ${err.type}`;
+        }
+      });
+    }
+
+    function connectClient(hostId) {
+      const logEl = document.getElementById('lobbyNetLog');
+      logEl.textContent = 'ワールドに合流中...';
+      peer = new Peer(`omni_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
+
+      peer.on('open', () => {
+        hostConn = peer.connect(hostId, { reliable: false });
+        setupClientNet();
+      });
+    }
+
+    function setupHostNet() {
+      peer.on('connection', (conn) => {
+        conn.on('open', () => {
+          peerConnections.set(conn.peer, conn);
+          updateNetUI(true, peerConnections.size + 1);
+
+          // 新規参加者へ全ワールドステートを一括送信
+          conn.send({
+            type: 'init_world_full',
+            defenseStructures,
+            sleeperPlayers
+          });
+        });
+
+        conn.on('data', (d) => {
+          handleNetData(d);
+          // ホスト経由で全クライアントへリレー中継
+          peerConnections.forEach((other, pid) => {
+            if (pid !== conn.peer && other.open) other.send(d);
+          });
+        });
+
+        conn.on('close', () => {
+          peerConnections.delete(conn.peer);
+          remotePlayers.delete(conn.peer);
+          updateNetUI(true, peerConnections.size + 1);
+          updateLeaderboard();
+        });
+      });
+    }
+
+    function setupClientNet() {
+      hostConn.on('open', () => {
+        isHost = false;
+        updateNetUI(false, 2);
+      });
+      hostConn.on('data', handleNetData);
+      hostConn.on('close', () => updateNetUI(false, 1, '切断されました'));
+    }
+
+    function broadcast(payload) {
+      if (isHost) {
+        peerConnections.forEach(c => { if (c.open) c.send(payload); });
+      } else if (hostConn && hostConn.open) {
+        hostConn.send(payload);
+      }
+    }
+
+    function handleNetData(data) {
+      if (!data) return;
+      switch (data.type) {
+        case 'player_sync':
+          if (data.id === myPlayer.id) return;
+          const exist = remotePlayers.get(data.id);
+          if (exist) {
+            // スムーズ補間用ターゲット更新
+            exist.targetX = data.x;
+            exist.targetY = data.y;
+            exist.angle = data.angle;
+            exist.hp = data.hp;
+            exist.maxHp = data.maxHp;
+            exist.cores = data.cores;
+            exist.name = data.name;
+            exist.classType = data.classType;
+            exist.lastSeen = performance.now();
+          } else {
+            remotePlayers.set(data.id, {
+              ...data,
+              targetX: data.x,
+              targetY: data.y,
+              lastSeen: performance.now()
+            });
+          }
+          break;
+
+        case 'attack_slash':
+          if (data.ownerId === myPlayer.id) return;
+          slashes.push(data.slash);
+          sound.playSlash();
+          break;
+
+        case 'attack_bullet':
+          if (data.ownerId === myPlayer.id) return;
+          bullets.push(data.bullet);
+          sound.playShoot();
+          break;
+
+        case 'build_structure':
+          if (!defenseStructures.some(s => s.id === data.structure.id)) {
+            defenseStructures.push(data.structure);
+            sound.playBuild();
+          }
+          break;
+
+        case 'init_world_full':
+          defenseStructures = data.defenseStructures || [];
+          sleeperPlayers = data.sleeperPlayers || [];
+          break;
+
+        case 'kill_broadcast':
+          addKillLog(data.killer, data.victim);
+          break;
+      }
+    }
+
+    function updateNetUI(asHost, count, err) {
+      const dot = document.getElementById('netStatusDot');
+      const text = document.getElementById('netStatusText');
+      const countEl = document.getElementById('netPlayerCount');
+      if (err) {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        text.textContent = err;
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        text.textContent = asHost ? '👑 HOST' : '🟢 CLIENT';
+      }
+      countEl.textContent = count;
+      document.getElementById('roomCodeBadge').textContent = roomCode;
+    }
+
+    // 毎秒約15回、他プレイヤーへステートをブロードキャスト
+    function syncNetworkState() {
+      if (!isPlaying || !myPlayer.isAlive) return;
+      const now = performance.now();
+      if (now - lastSyncSendTime > 65) {
+        lastSyncSendTime = now;
+        broadcast({
+          type: 'player_sync',
+          id: myPlayer.id,
+          name: myPlayer.name,
+          classType: myPlayer.classType,
+          x: Math.round(myPlayer.x),
+          y: Math.round(myPlayer.y),
+          angle: myPlayer.angle,
+          hp: Math.round(myPlayer.hp),
+          maxHp: Math.round(myPlayer.maxHp),
+          cores: myPlayer.cores
+        });
+      }
+
+      // 切断したリモートプレイヤーのタイムアウト削除 (4秒)
+      remotePlayers.forEach((rp, id) => {
+        if (now - rp.lastSeen > 4000) {
+          remotePlayers.delete(id);
+          updateLeaderboard();
+        } else {
+          // 線形補間(Lerp)で位置飛びを吸収
+          rp.x += (rp.targetX - rp.x) * 0.3;
+          rp.y += (rp.targetY - rp.y) * 0.3;
+        }
+      });
+    }
+
+    /* =========================================================
+       5. ギミック拡張 & 少量化された資材ノード
+       ========================================================= */
+    function initFieldGimmicks() {
+      fieldGimmicks = [
+        // バウンサー（反発板）
+        { id: 'g_b1', type: 'bouncer', x: 50250, y: 50150, radius: 42, force: 20, color: '#f59e0b' },
+        { id: 'g_b2', type: 'bouncer', x: 49750, y: 49850, radius: 42, force: 20, color: '#f59e0b' },
+        // 加速パルス
+        { id: 'g_p1', type: 'pulse', x: 50400, y: 49700, radius: 55, angle: Math.PI / 4, power: 14, color: '#38bdf8' },
+        { id: 'g_p2', type: 'pulse', x: 49600, y: 50300, radius: 55, angle: -Math.PI / 3, power: 14, color: '#38bdf8' },
+        // 【新規】磁場パルサー（一定周期で周囲のオブジェクトを引き寄せる）
+        { id: 'g_mag1', type: 'magnet_hazard', x: 50100, y: 49600, radius: 110, pull: 4.5, color: '#c084fc', pulseTimer: 0 },
+        // 【新規】ポイズンガイザー（定期的に毒ガスを噴出する間欠泉）
+        { id: 'g_poi1', type: 'geyser', x: 49800, y: 50400, radius: 65, dps: 0.8, color: '#10b981', active: true, timer: 0 }
+      ];
+    }
+
     function maintainScrapNodes() {
-      if (scrapNodes.length < 55) {
+      // 資材ノードを減量（最大25個、1ノードあたり8〜16材）
+      if (scrapNodes.length < 25) {
         scrapNodes.push({
           id: 'sc_' + Math.random().toString(36).substr(2, 6),
-          x: myPlayer.x + (Math.random() - 0.5) * 2600,
-          y: myPlayer.y + (Math.random() - 0.5) * 2600,
-          radius: 14,
-          amount: Math.floor(Math.random() * 25) + 25 // 25〜50個
+          x: myPlayer.x + (Math.random() - 0.5) * 2400,
+          y: myPlayer.y + (Math.random() - 0.5) * 2400,
+          radius: 12,
+          amount: Math.floor(Math.random() * 8) + 8
         });
       }
     }
@@ -545,8 +777,8 @@
           maxHp: spec.hp,
           radius: chosenKey === 'tank' ? 26 : 22,
           speed: spec.speed,
-          cores: chosenKey === 'tank' ? 20 : 12,
-          scrapReward: chosenKey === 'tank' ? 40 : 25,
+          cores: chosenKey === 'tank' ? 18 : 10,
+          scrapReward: chosenKey === 'tank' ? 15 : 8, // ボットのドロップ資材も減量
           lastAttack: 0,
           wanderTimer: 0
         });
@@ -565,19 +797,39 @@
 
         let curSpeed = bot.speed;
 
-        // 要塞トラップとの接触判定（ボット）
+        // 要塞トラップとの接触判定
         defenseStructures.forEach(st => {
           const sd = Math.hypot(bot.x - st.x, bot.y - st.y);
           if (sd < bot.radius + st.radius) {
             if (st.type === 'spike') {
-              bot.hp -= st.dps; // 針罠で継続被ダメージ
+              bot.hp -= st.dps;
             } else if (st.type === 'slow') {
-              curSpeed *= st.slowRate; // 粘着網で減速
+              curSpeed *= st.slowRate;
             } else if (st.type === 'wall') {
-              // 鋼鉄壁で押し返し
               const ang = Math.atan2(bot.y - st.y, bot.x - st.x);
               bot.x = st.x + Math.cos(ang) * (bot.radius + st.radius);
               bot.y = st.y + Math.sin(ang) * (bot.radius + st.radius);
+            }
+          }
+        });
+
+        // フィールドギミックとの接触
+        fieldGimmicks.forEach(g => {
+          const gd = Math.hypot(bot.x - g.x, bot.y - g.y);
+          if (gd < bot.radius + g.radius) {
+            if (g.type === 'bouncer') {
+              const ga = Math.atan2(bot.y - g.y, bot.x - g.x);
+              bot.vx += Math.cos(ga) * g.force;
+              bot.vy += Math.sin(ga) * g.force;
+            } else if (g.type === 'pulse') {
+              bot.vx += Math.cos(g.angle) * g.power;
+              bot.vy += Math.sin(g.angle) * g.power;
+            } else if (g.type === 'magnet_hazard') {
+              const ga = Math.atan2(g.y - bot.y, g.x - bot.x);
+              bot.vx += Math.cos(ga) * g.pull;
+              bot.vy += Math.sin(ga) * g.pull;
+            } else if (g.type === 'geyser' && g.active) {
+              bot.hp -= g.dps;
             }
           }
         });
@@ -641,15 +893,13 @@
         bot.x += bot.vx;
         bot.y += bot.vy;
 
-        // ボット撃破
         if (bot.hp <= 0) {
           sound.playExplode();
           dropCoresAt(bot.x, bot.y, bot.cores);
           myPlayer.scrap += bot.scrapReward;
           triggerPopup(bot.x, bot.y, `+${bot.scrapReward} 廃材`, '#2dd4bf');
 
-          // 一定確率でソウルモジュールをドロップ (35%)
-          if (Math.random() < 0.35) {
+          if (Math.random() < 0.25) {
             spawnRandomModule(bot.x, bot.y);
           }
 
@@ -674,13 +924,13 @@
         id: 'mod_' + Math.random().toString(36).substr(2, 6),
         type: k,
         x, y,
-        life: 600 // 10秒間表示
+        life: 600
       });
       triggerPopup(x, y - 25, 'モジュール発見!', '#c084fc');
     }
 
     /* =========================================================
-       5. 強化モーダル UI
+       6. 強化ツリー UI
        ========================================================= */
     function renderUpgradeModal() {
       document.getElementById('modalSp').textContent = myPlayer.sp;
@@ -737,7 +987,7 @@
     });
 
     /* =========================================================
-       6. 建築UI トグル開閉 & 設置
+       7. 建築UI トグル & 設置
        ========================================================= */
     const buildDock = document.getElementById('buildDock');
     const btnToggleBuild = document.getElementById('btnToggleBuild');
@@ -789,6 +1039,9 @@
       defenseStructures.push(struct);
       triggerPopup(struct.x, struct.y - 20, `${tpl.name} 建造! (-${tpl.cost}材)`, '#2dd4bf');
       updateBuildButtonsState();
+
+      // P2P建築同期
+      broadcast({ type: 'build_structure', structure: struct });
     }
 
     function updateBuildButtonsState() {
@@ -810,13 +1063,16 @@
     document.getElementById('buildPylon').addEventListener('click', () => buildStructure('pylon'));
 
     /* =========================================================
-       7. ランキング
+       8. ランキング
        ========================================================= */
     function updateLeaderboard() {
       const all = [];
       if (myPlayer.isAlive) {
         all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
       }
+      remotePlayers.forEach(rp => {
+        all.push({ name: rp.name, cores: rp.cores || 0, tag: 'LIVE', color: 'text-cyan-300' });
+      });
       sleeperPlayers.forEach(sp => {
         all.push({ name: sp.name, cores: sp.cores || 0, tag: '休眠', color: 'text-slate-400' });
       });
@@ -840,7 +1096,7 @@
     }
 
     /* =========================================================
-       8. 戦闘 & ステータス計算（モジュール連携）
+       9. 戦闘 & ステータス計算
        ========================================================= */
     function recalcStats() {
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
@@ -849,7 +1105,6 @@
       let extraHp = (u.maxHp * 50) + ((myPlayer.level - 1) * 15);
       let extraShield = 0;
 
-      // ソウルモジュールの適用
       myPlayer.modules.forEach(mod => {
         if (mod === 'vital') extraHp += 100;
         if (mod === 'aqua') extraShield += 80;
@@ -888,7 +1143,7 @@
       myPlayer.lastAttackTime = now;
 
       let dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.15;
-      if (myPlayer.modules.includes('crimson')) dmgBuff += 0.25; // クリムゾンモジュール(+25%)
+      if (myPlayer.modules.includes('crimson')) dmgBuff += 0.25;
 
       let isCrit = false;
       if (Math.random() < (myPlayer.upgrades.crit || 0) * 0.08) {
@@ -896,8 +1151,7 @@
         isCrit = true;
       }
       const damage = Math.round(cfg.damage * dmgBuff);
-
-      let extraReach = myPlayer.modules.includes('void') ? 1.3 : 1.0; // ヴォイドモジュール(射程+30%)
+      let extraReach = myPlayer.modules.includes('void') ? 1.3 : 1.0;
 
       if (cfg.isMelee) {
         sound.playSlash();
@@ -910,10 +1164,11 @@
           damage, life: 8, isCrit
         };
         slashes.push(slashObj);
+        broadcast({ type: 'attack_slash', ownerId: myPlayer.id, slash: slashObj });
         checkMeleeHits(slashObj, cfg.deflects);
       } else {
         sound.playShoot();
-        bullets.push({
+        const bullet = {
           id: 'b_' + Math.random().toString(36).substr(2, 6),
           ownerId: myPlayer.id,
           x: myPlayer.x + Math.cos(myPlayer.angle) * (myPlayer.radius + 8),
@@ -923,7 +1178,9 @@
           damage, radius: isCrit ? 8 : 6, life: Math.round(70 * extraReach),
           color: isCrit ? '#facc15' : myPlayer.classType === 'sorcerer' ? '#c084fc' : '#38bdf8',
           isCrit
-        });
+        };
+        bullets.push(bullet);
+        broadcast({ type: 'attack_bullet', ownerId: myPlayer.id, bullet });
       }
     }
 
@@ -960,7 +1217,7 @@
       myPlayer.hp -= dmg;
       triggerPopup(myPlayer.x, myPlayer.y - 20, `-${dmg}`, '#f43f5e');
 
-      // 【要件】死亡時：全ロスト（強化・コア・資材・モジュールすべて初期化）
+      // 全ロスト処理
       if (myPlayer.hp <= 0) {
         myPlayer.isAlive = false;
         sound.playExplode();
@@ -969,11 +1226,12 @@
         document.getElementById('lostScrapText').textContent = `-${myPlayer.scrap}`;
         document.getElementById('deathModal').classList.remove('hidden');
         addKillLog(attacker, myPlayer.name);
+        broadcast({ type: 'kill_broadcast', killer: attacker, victim: myPlayer.name });
       }
     }
 
     function dropCoresAt(x, y, amount) {
-      for (let i = 0; i < Math.min(6, Math.max(2, amount)); i++) {
+      for (let i = 0; i < Math.min(5, Math.max(2, amount)); i++) {
         dropCores.push({
           id: 'c_' + Math.random().toString(36).substr(2, 6),
           x: x + (Math.random() - 0.5) * 40,
@@ -997,7 +1255,7 @@
     }
 
     /* =========================================================
-       9. ジョイスティック & アクション操作
+       10. 操作バインド
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -1086,14 +1344,14 @@
     });
 
     /* =========================================================
-       10. 更新 & 描画ループ
+       11. メイン更新 & 描画ループ
        ========================================================= */
     function update() {
       if (!isPlaying || !myPlayer.isAlive) return;
 
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       let speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.07;
-      if (myPlayer.modules.includes('vital')) speedBuff += 0.1; // ヴァイタルモジュール(移動+10%)
+      if (myPlayer.modules.includes('vital')) speedBuff += 0.1;
 
       const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
 
@@ -1105,7 +1363,38 @@
       myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
       myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
 
-      // 鋼鉄壁の衝突（プレイヤーのすり抜け防止）
+      // 拡張ギミックの挙動 & 接触判定
+      fieldGimmicks.forEach(g => {
+        const d = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
+        if (d < myPlayer.radius + g.radius) {
+          if (g.type === 'bouncer') {
+            const ang = Math.atan2(myPlayer.y - g.y, myPlayer.x - g.x);
+            myPlayer.vx = Math.cos(ang) * g.force;
+            myPlayer.vy = Math.sin(ang) * g.force;
+            sound.playBounce();
+            triggerPopup(g.x, g.y, 'バウンド!', '#f59e0b');
+          } else if (g.type === 'pulse') {
+            myPlayer.vx += Math.cos(g.angle) * g.power;
+            myPlayer.vy += Math.sin(g.angle) * g.power;
+          } else if (g.type === 'magnet_hazard') {
+            const ang = Math.atan2(g.y - myPlayer.y, g.x - myPlayer.x);
+            myPlayer.vx += Math.cos(ang) * g.pull;
+            myPlayer.vy += Math.sin(ang) * g.pull;
+          } else if (g.type === 'geyser' && g.active) {
+            takeDamage(g.dps, '毒間欠泉');
+          }
+        }
+
+        // 間欠泉タイマー
+        if (g.type === 'geyser') {
+          if (++g.timer > 180) {
+            g.timer = 0;
+            g.active = !g.active;
+          }
+        }
+      });
+
+      // 鋼鉄壁衝突判定
       defenseStructures.forEach(st => {
         if (st.type === 'wall') {
           const d = Math.hypot(myPlayer.x - st.x, myPlayer.y - st.y);
@@ -1152,7 +1441,7 @@
         }
       }
 
-      // ソウルモジュールオーブの接触回収
+      // ソウルモジュール回収
       for (let i = dropModules.length - 1; i >= 0; i--) {
         const m = dropModules[i];
         if (Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 18) {
@@ -1161,7 +1450,6 @@
             myPlayer.modules.push(m.type);
             triggerPopup(myPlayer.x, myPlayer.y - 35, `モジュール装備: ${MODULE_DEFINITIONS[m.type].name}`, MODULE_DEFINITIONS[m.type].color);
           } else {
-            // スロット満杯時は押し出し交換
             myPlayer.modules.shift();
             myPlayer.modules.push(m.type);
             triggerPopup(myPlayer.x, myPlayer.y - 35, `モジュール更新: ${MODULE_DEFINITIONS[m.type].name}`, MODULE_DEFINITIONS[m.type].color);
@@ -1174,7 +1462,7 @@
         if (--m.life <= 0) dropModules.splice(i, 1);
       }
 
-      // タレット自動射撃
+      // タレット射撃
       defenseStructures.forEach(st => {
         if (st.type === 'turret') {
           const now = performance.now();
@@ -1208,7 +1496,6 @@
         b.y += b.vy;
         if (--b.life <= 0) { bullets.splice(i, 1); continue; }
 
-        // 鋼鉄壁での弾丸ブロック
         let blocked = false;
         defenseStructures.forEach(st => {
           if (st.type === 'wall' && Math.hypot(b.x - st.x, b.y - st.y) < st.radius) {
@@ -1250,6 +1537,7 @@
       maintainScrapNodes();
       maintainBots();
       updateBots();
+      syncNetworkState(); // P2P通信同期
       updateHud();
     }
 
@@ -1301,7 +1589,7 @@
       ctx.save();
       ctx.translate(-camX, -camY);
 
-      // グリッド
+      // グリッド線
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
       ctx.lineWidth = 1;
       const g = 100;
@@ -1313,6 +1601,26 @@
       for (let y = sy; y < camY + canvas.height + g; y += g) {
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
+
+      // ギミック描画
+      fieldGimmicks.forEach(gim => {
+        ctx.beginPath();
+        ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `${gim.color}22`;
+        ctx.fill();
+        ctx.strokeStyle = gim.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.font = 'bold 8px sans-serif';
+        ctx.fillStyle = gim.color;
+        ctx.textAlign = 'center';
+        let label = '★BOUNCE';
+        if (gim.type === 'pulse') label = '➔PULSE';
+        if (gim.type === 'magnet_hazard') label = '✦MAGNET';
+        if (gim.type === 'geyser') label = gim.active ? '⚠POISON' : '💤GEYSER';
+        ctx.fillText(label, gim.x, gim.y + 3);
+      });
 
       // スクラップ鉱石
       scrapNodes.forEach(sc => {
@@ -1327,7 +1635,7 @@
         }
       });
 
-      // ソウルモジュールオーブ描画
+      // ソウルモジュールオーブ
       dropModules.forEach(m => {
         const def = MODULE_DEFINITIONS[m.type];
         ctx.save();
@@ -1346,7 +1654,7 @@
         ctx.restore();
       });
 
-      // 要塞防衛建築（鋼鉄壁・針罠・粘着網・タレット・障壁）
+      // 建築物
       defenseStructures.forEach(st => {
         ctx.beginPath();
         ctx.arc(st.x, st.y, st.radius, 0, Math.PI * 2);
@@ -1380,7 +1688,7 @@
         drawEntityHealthBar(st.x, st.y, st.radius, st.hp, st.maxHp);
       });
 
-      // ボット描画
+      // ボット
       aiBots.forEach(bot => {
         if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < viewR) {
           ctx.save();
@@ -1392,14 +1700,35 @@
           ctx.fillStyle = bot.spec.color;
           ctx.fill();
           ctx.strokeStyle = bot.spec.border;
-          ctx.lineWidth = 2.5;
+          ctx.lineWidth = 2;
           ctx.stroke();
-
-          ctx.fillStyle = '#475569';
-          ctx.fillRect(5, -4, bot.variant === 'sniper' ? 24 : 16, 8);
           ctx.restore();
 
           drawEntityHealthBar(bot.x, bot.y, bot.radius, bot.hp, bot.maxHp);
+        }
+      });
+
+      // リモートプレイヤー
+      remotePlayers.forEach(rp => {
+        if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
+          ctx.save();
+          ctx.translate(rp.x, rp.y);
+          ctx.rotate(rp.angle);
+
+          ctx.beginPath();
+          ctx.arc(0, 0, 26, 0, Math.PI * 2);
+          ctx.fillStyle = '#10b981';
+          ctx.fill();
+          ctx.strokeStyle = '#a7f3d0';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.font = 'bold 9px sans-serif';
+          ctx.fillStyle = '#a7f3d0';
+          ctx.textAlign = 'center';
+          ctx.fillText(rp.name, rp.x, rp.y - 32);
+          drawEntityHealthBar(rp.x, rp.y, 26, rp.hp, rp.maxHp);
         }
       });
 
@@ -1420,7 +1749,7 @@
         ctx.stroke();
       });
 
-      // プレイヤー
+      // 自プレイヤー
       if (myPlayer.isAlive) {
         ctx.save();
         ctx.translate(myPlayer.x, myPlayer.y);
@@ -1453,7 +1782,7 @@
     }
 
     /* =========================================================
-       11. 初期化・全ロスト再出撃
+       12. 初期化 & リスポーン
        ========================================================= */
     document.querySelectorAll('.class-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1470,9 +1799,12 @@
     document.getElementById('btnJoin').addEventListener('click', () => {
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
+      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
       myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
+
       recalcStats();
-      updateModuleSlotsHUD();
+      initFieldGimmicks();
+      initNetwork(r);
 
       document.getElementById('hudName').textContent = myPlayer.name;
       document.getElementById('hudClass').textContent = (CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster).name;
@@ -1483,9 +1815,10 @@
       isPlaying = true;
       updateLeaderboard();
       updateBuildButtonsState();
+      updateModuleSlotsHUD();
     });
 
-    // 【全ロストリスポーン】すべてを失い初期状態で復活
+    // 全ロストリスポーン
     document.getElementById('btnRespawn').addEventListener('click', () => {
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       myPlayer.level = 1;
@@ -1494,8 +1827,8 @@
       myPlayer.sp = 0;
       myPlayer.cores = 0;
       myPlayer.scrap = cfg.initScrap;
-      myPlayer.modules = []; // 外部強化モジュール全喪失
-      myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, buildRate: 0 }; // 強化ツリー全初期化
+      myPlayer.modules = [];
+      myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, buildRate: 0 };
 
       myPlayer.x = 50000 + (Math.random() - 0.5) * 400;
       myPlayer.y = 50000 + (Math.random() - 0.5) * 400;
