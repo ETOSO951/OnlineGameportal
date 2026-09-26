@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Arena.io - 強化・育成＆略奪オンライン</title>
+  <title>ARENA.IO OMNIVERSE: COLOSSAL BASTION</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -22,7 +22,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #030712;
+      background-color: #020617;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     canvas {
@@ -33,283 +33,304 @@
       height: 100%;
       display: block;
     }
-    .custom-scroll::-webkit-scrollbar {
-      display: none;
+    .custom-scroll::-webkit-scrollbar { display: none; }
+    .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4)); }
+      50% { filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.9)); }
     }
-    .custom-scroll {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    @keyframes pulseRing {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-    .shield-effect {
-      animation: pulseRing 1.5s infinite ease-in-out;
-    }
+    .pylon-glow { animation: pulseGlow 2.5s infinite ease-in-out; }
   </style>
 </head>
 <body class="relative bg-slate-950 text-white overflow-hidden">
 
-  <!-- ゲーム描画キャンバス -->
+  <!-- ã¡ã¤ã³æç»ã­ã£ã³ãã¹ -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- ゲーム内メインHUD -->
-  <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-2.5 sm:p-4 select-none">
+  <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-2 sm:p-3 select-none">
     
-    <!-- 上部バー: ステータス、部屋情報、リーダーボード -->
+    <!-- ä¸æ®µãããã¼é¨ -->
     <div class="flex justify-between items-start w-full">
-      <!-- 左上: プレイヤー情報・HP・リソース -->
-      <div class="flex flex-col gap-1 w-40 sm:w-60 pointer-events-auto">
+      <!-- å·¦ä¸: ãã¬ã¤ã¤ã¼æå ±ã»ã¹ãã¼ã¿ã¹ã²ã¼ã¸ã»é²è¡è³æ -->
+      <div class="flex flex-col gap-1 w-44 sm:w-64 pointer-events-auto">
         <div class="flex items-center gap-1.5">
-          <span id="hudName" class="font-extrabold text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[90px] sm:max-w-[120px]">勇者</span>
-          <span id="hudLevelBadge" class="text-[9px] bg-gradient-to-r from-amber-500 to-orange-500 px-1.5 py-0.2 rounded-full font-black text-black">Lv.1</span>
-          <span id="hudClass" class="text-[9px] bg-indigo-900/80 px-1.5 py-0.2 rounded-full border border-indigo-400 font-semibold uppercase text-indigo-200">Gunner</span>
+          <span id="hudName" class="font-black text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[100px] text-amber-300">åè</span>
+          <span id="hudLevelBadge" class="text-[9px] bg-gradient-to-r from-amber-500 to-yellow-400 px-1.5 py-0.2 rounded-full font-black text-black">Lv.1</span>
+          <span id="hudClass" class="text-[9px] bg-indigo-950 px-1.5 py-0.2 rounded-full border border-indigo-400 font-bold text-indigo-300">BLADE</span>
         </div>
 
-        <!-- HP & シールドバー -->
-        <div class="relative w-full h-3 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow">
+        <!-- HP & ã·ã¼ã«ããã¼ -->
+        <div class="relative w-full h-3.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow-inner">
           <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-75"></div>
           <div id="hudShieldFill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-400 opacity-80 w-0 transition-all duration-75"></div>
-          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white drop-shadow">120 / 120</span>
+          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow">180 / 180</span>
         </div>
 
-        <!-- EXPバー -->
-        <div class="relative w-full h-1.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow">
-          <div id="hudExpFill" class="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 w-0 transition-all duration-100"></div>
-        </div>
-
-        <!-- 所持コア & スキルポイント(SP) -->
-        <div class="flex items-center justify-between text-[10px] font-mono mt-0.5 bg-slate-900/80 px-2 py-0.5 rounded-lg border border-slate-800">
-          <div class="flex items-center gap-1 text-amber-300">
-            <i class="fa-solid fa-gem text-amber-400"></i>
-            <span id="hudCores" class="font-black">0</span> コア
+        <!-- ã³ã¢ & å»ºç¯è³æ(ã¹ã¯ã©ãã) & åº§æ¨ã»ã¯ã¿ã¼ -->
+        <div class="flex items-center justify-between text-[10px] font-mono bg-slate-900/85 backdrop-blur px-2 py-0.8 rounded-xl border border-slate-800 shadow">
+          <div class="flex items-center gap-1 text-amber-300" title="ææã³ã¢">
+            <i class="fa-solid fa-gem text-amber-400 text-xs"></i>
+            <span id="hudCores" class="font-black">0</span>
           </div>
-          <button id="btnOpenUpgrade" class="flex items-center gap-1 text-emerald-400 font-bold active:scale-95 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600 animate-pulse">
-            <i class="fa-solid fa-arrow-up"></i>
-            <span>強化 (<span id="hudSp">0</span>SP)</span>
+          <div class="flex items-center gap-1 text-teal-300" title="é²è¡è³æã¹ã¯ã©ãã">
+            <i class="fa-solid fa-cubes-stacked text-teal-400 text-xs"></i>
+            <span id="hudScrap" class="font-black">150</span>
+          </div>
+          <button id="btnOpenUpgrade" class="flex items-center gap-0.5 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600">
+            <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
+            <span class="text-[9px]">å¼·å <b id="hudSp" class="text-white">0</b></span>
           </button>
+        </div>
+
+        <!-- åº§æ¨ã¨ç¾å¨ã»ã¯ã¿ã¼ (100,000x100,000å¯¾å¿) -->
+        <div class="text-[9px] font-mono text-cyan-300 bg-slate-900/70 px-2 py-0.5 rounded-lg border border-slate-800 flex justify-between">
+          <span>SEC: <b id="hudSector" class="text-white font-bold">[50-50]</b></span>
+          <span>X:<b id="hudPosX" class="text-white">50000</b> Y:<b id="hudPosY" class="text-white">50000</b></span>
         </div>
       </div>
 
-      <!-- 中央上部: ネットワークステータス & キルログ -->
+      <!-- ä¸­å¤®ä¸é¨: åææå ± & ä¼ç é²è¡åæ­ãã¿ã³ -->
       <div class="flex flex-col items-center gap-1">
-        <div class="bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-700 shadow-md flex items-center gap-2 text-[10px] pointer-events-auto">
+        <div class="bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700 shadow flex items-center gap-2 text-[10px] pointer-events-auto">
           <div class="flex items-center gap-1">
-            <span id="netStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            <span id="netStatusText" class="font-bold text-amber-300 font-mono">接続待機</span>
+            <span id="netStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="netStatusText" class="font-bold text-emerald-300 font-mono">åæä¸­</span>
           </div>
           <span class="text-slate-600">|</span>
           <div class="text-slate-300 font-mono">
-            <i class="fa-solid fa-users text-cyan-400 mr-0.5"></i><span id="netPlayerCount" class="font-bold text-white">1</span>人
+            <i class="fa-solid fa-users text-cyan-400 mr-0.5"></i><span id="netPlayerCount" class="font-bold text-white">1</span>
           </div>
           <span class="text-slate-600">|</span>
-          <div class="text-slate-300 font-mono">
-            <span id="netPing">--</span>ms
-          </div>
+          <button id="btnSleepLogout" class="text-[9px] bg-indigo-900/80 hover:bg-indigo-800 px-2 py-0.5 rounded border border-indigo-400 text-cyan-200 font-bold active:scale-95">
+            <i class="fa-solid fa-bed mr-0.5"></i>æ ç¹ä¼ç 
+          </button>
         </div>
-
-        <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[240px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
+        <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[260px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
       </div>
 
-      <!-- 右上: ミニマップ & リーダーボード -->
-      <div class="flex flex-col items-end gap-1.5 pointer-events-auto">
-        <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-slate-900/90 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
+      <!-- å³ä¸: è¶åºå¤§ããããã ï¼ çµ±åãªã¼ãã¼ãã¼ã -->
+      <div class="flex flex-col items-end gap-1 pointer-events-auto">
+        <div class="relative w-24 h-24 sm:w-28 sm:h-28 bg-slate-950/95 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
+          <div class="absolute bottom-0.5 right-1 text-[7px] font-mono text-cyan-400 bg-black/60 px-1 rounded">100kÃ100k</div>
         </div>
 
-        <div class="bg-slate-900/85 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[9px] shadow-lg w-28 sm:w-36">
-          <div class="font-bold border-b border-slate-700/80 pb-0.5 text-slate-400 flex items-center justify-between text-[8px]">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-1"></i>ランキング</span>
-            <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono">ROOM</span>
+        <div class="bg-slate-900/90 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[9px] shadow w-36 sm:w-44">
+          <div class="font-bold border-b border-slate-800 pb-0.5 text-slate-400 flex items-center justify-between text-[8px]">
+            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>ã©ã³ã­ã³ã° (ç/ð¤/ãã¹)</span>
+            <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono font-bold">ROOM</span>
           </div>
-          <ol id="leaderboardList" class="mt-1 space-y-0.5 text-slate-200"></ol>
+          <ol id="leaderboardList" class="mt-0.5 space-y-0.5 text-slate-200"></ol>
         </div>
       </div>
     </div>
 
-    <!-- 画面中央通知メッセージ -->
-    <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none -mt-10">
-      <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.9)]">LEVEL UP!</div>
+    <!-- ç»é¢ä¸­å¤®éç¥ -->
+    <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none -mt-8">
+      <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
     </div>
 
-    <!-- 画面下部: スマホ用操作パッド・スキルボタン群 -->
-    <div class="flex justify-between items-end w-full pb-1 sm:pb-3 px-1">
-      <!-- バーチャルジョイスティックゾーン -->
-      <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border border-dashed border-cyan-400/30 bg-slate-900/40 backdrop-blur-sm pointer-events-auto flex items-center justify-center shadow-lg">
-        <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"></div>
+    <!-- ä¸é¨æä½ããã« (ã¸ã§ã¤ã¹ãã£ãã¯ + æ ç¹é²è¡å»ºç¯ãã¼ + ã¢ã¯ã·ã§ã³ãã¿ã³) -->
+    <div class="flex justify-between items-end w-full pb-2 px-1">
+      <!-- ç§»åï¼ç§æºã¸ã§ã¤ã¹ãã£ãã¯ -->
+      <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-cyan-400/40 bg-slate-900/50 backdrop-blur pointer-events-auto flex items-center justify-center">
+        <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 flex items-center justify-center text-cyan-950 font-black text-xs">
+          <i class="fa-solid fa-crosshairs"></i>
+        </div>
       </div>
 
-      <!-- 右側アクションボタン & スキル -->
+      <!-- ä¸­å¤®ä¸: ã¹ãªã¼ãã¼é²è¡æ ç¹å»ºç¯ããã¯ -->
+      <div class="pointer-events-auto flex gap-1 bg-slate-900/85 backdrop-blur-md px-2 py-1.5 rounded-2xl border border-slate-700 shadow-xl mb-1">
+        <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="50" title="èªåè¿æã¿ã¬ãã">
+          <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
+          <span class="font-bold text-slate-200">ã¿ã¬ãã</span>
+          <span class="text-[7px] text-teal-300">50æ</span>
+        </button>
+        <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="80" title="é²è­·éå£ãã¤ã­ã³(ç¡æµãã¼ã )">
+          <i class="fa-solid fa-atom text-indigo-400 text-sm"></i>
+          <span class="font-bold text-slate-200">éå£ãã¼ã </span>
+          <span class="text-[7px] text-teal-300">80æ</span>
+        </button>
+        <button id="buildTrap" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="30" title="æå¿é»ç£ãã©ãã">
+          <i class="fa-solid fa-bolt-lightning text-yellow-400 text-sm"></i>
+          <span class="font-bold text-slate-200">é»ç£ç½ </span>
+          <span class="text-[7px] text-teal-300">30æ</span>
+        </button>
+        <button id="buildPod" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="100" title="ä¼ç é²è¡ã³ã¯ã¼ã³ããã">
+          <i class="fa-solid fa-capsules text-emerald-400 text-sm"></i>
+          <span class="font-bold text-slate-200">é²è¡ããã</span>
+          <span class="text-[7px] text-teal-300">100æ</span>
+        </button>
+      </div>
+
+      <!-- å³å´ã¢ã¯ã·ã§ã³ãã¿ã³ -->
       <div class="flex flex-col items-end gap-2 pointer-events-auto">
-        <!-- クイックエモート & 強化ボタンショートカット -->
-        <div class="flex gap-1.5">
-          <button data-emote="⚔️ 突撃!" class="emote-btn px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] text-amber-200 shadow">⚔️突撃</button>
-          <button data-emote="🆘 救援!" class="emote-btn px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] text-rose-300 shadow">🆘救援</button>
-          <button data-emote="🤝 同盟?" class="emote-btn px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] text-emerald-300 shadow">🤝同盟</button>
-          <button data-emote="💥 罠設置" class="emote-btn px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] text-yellow-300 shadow">💥罠</button>
-        </div>
-
         <div class="flex items-end gap-2.5">
-          <!-- スキル1: メガブラスト or シールド -->
-          <button id="btnSkill" class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow-md flex flex-col items-center justify-center active:scale-90 transition-transform">
-            <i id="skillIcon" class="fa-solid fa-shield-halved text-base text-white"></i>
-            <span id="skillName" class="text-[7px] font-black text-indigo-100">バリア</span>
-            <div id="skillCooldownCover" class="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center text-[10px] font-bold text-white hidden">0s</div>
+          <!-- ã¯ã©ã¹ç¹æã¢ã¯ãã£ãã¹ã­ã« (æ¬ææé¢¨ / ç¹æ®å¼¾ / ããªã³ã¯ / æ¯å´å° / æçºã·ã¼ã«ã) -->
+          <button id="btnSkill" class="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
+            <i id="skillIcon" class="fa-solid fa-wind text-base text-white"></i>
+            <span class="text-[7px] font-black text-indigo-100">SKILL</span>
+            <div id="skillCooldownCover" class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-[10px] font-bold text-white hidden">0s</div>
           </button>
 
-          <!-- スキル2: 地雷トラップ -->
-          <button id="btnMine" class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-600 to-yellow-600 border-2 border-amber-300 shadow-md flex flex-col items-center justify-center active:scale-90 transition-transform">
-            <i class="fa-solid fa-bomb text-base text-white"></i>
-            <span class="text-[7px] font-black text-amber-100">地雷</span>
-            <div id="mineCooldownCover" class="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center text-[10px] font-bold text-white hidden">0s</div>
-          </button>
-
-          <!-- ダッシュボタン -->
-          <button id="btnDash" class="w-13 h-13 sm:w-15 sm:h-15 p-2 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)] flex flex-col items-center justify-center active:scale-90 transition-transform">
+          <!-- ããã·ã¥ãã¿ã³ -->
+          <button id="btnDash" class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i class="fa-solid fa-bolt text-lg text-white"></i>
             <span class="text-[8px] font-black text-cyan-100">DASH</span>
           </button>
 
-          <!-- 攻撃/発射ボタン -->
-          <button id="btnAttack" class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 active:to-red-400 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition-transform p-2">
-            <i class="fa-solid fa-crosshairs text-2xl text-white"></i>
-            <span class="text-[9px] font-black text-rose-100">FIRE</span>
+          <!-- æåç´ç·æ»æ/æ¬æãã¿ã³ -->
+          <button id="btnAttack" class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition p-1">
+            <i id="attackIcon" class="fa-solid fa-khanda text-2xl text-white mb-0.5"></i>
+            <span id="attackLabel" class="text-[9px] font-black tracking-wider text-rose-100">ATTACK</span>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 育成・強化モーダル (スマホ最適化) -->
-  <div id="upgradeModal" class="absolute inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
-    <div class="w-full max-w-sm bg-slate-900 border border-slate-700 p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[92vh]">
+  <!-- å¼·åã¢ã¼ãã« -->
+  <div id="upgradeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h2 class="text-base font-black text-amber-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-hammer"></i> プレイヤー強化ステータス
+        <h2 class="text-base font-black text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-dna text-cyan-400"></i> ã­ã£ã©ã¯ã¿ã¼å¼·å
         </h2>
-        <button id="btnCloseUpgrade" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
+        <button id="btnCloseUpgrade" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
         </button>
       </div>
 
-      <div class="text-[10px] text-slate-400 flex justify-between bg-slate-950/60 p-2 rounded-xl">
-        <span>利用可能SP: <b id="modalSp" class="text-emerald-400 text-xs font-mono">0</b></span>
-        <span>所持コア: <b id="modalCores" class="text-amber-400 text-xs font-mono">0</b></span>
+      <div class="flex justify-between bg-slate-950/70 p-2 rounded-xl border border-slate-800 text-xs">
+        <div>SP: <b id="modalSp" class="text-emerald-400 font-mono">0</b></div>
+        <div>ã³ã¢: <b id="modalCores" class="text-amber-400 font-mono">0</b></div>
+        <div>ã¹ã¯ã©ãã: <b id="modalScrap" class="text-teal-400 font-mono">0</b></div>
       </div>
 
-      <!-- 強化リスト (スクロール可能) -->
-      <div id="upgradeList" class="flex flex-col gap-1.5 overflow-y-auto custom-scroll pr-0.5 flex-1">
-        <!-- 動的生成: HP, 攻撃力, 弾速, リジェネ, 吸血, リロード短縮, 移動速度 -->
-      </div>
-
-      <div class="text-[9px] text-slate-500 text-center">
-        ※強化内容は合言葉ごとに端末へセーブされ、次回ログイン時に引き継がれます。
-      </div>
+      <div id="upgradeStatsList" class="flex flex-col gap-1.5 overflow-y-auto custom-scroll pr-1 flex-1"></div>
     </div>
   </div>
 
-  <!-- ログイン・参加ロビー画面 -->
-  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-3.5 z-40 overflow-y-auto">
-    <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800 p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto">
+  <!-- åºæã»ã¯ã©ã¹é¸æã­ãã¼ç»é¢ -->
+  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex items-center justify-center p-3 z-40 overflow-y-auto">
+    <div class="w-full max-w-md bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto">
       <div class="text-center">
-        <h1 class="text-2xl sm:text-3xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
-          ARENA.IO EX
+        <div class="inline-block px-2.5 py-0.5 bg-gradient-to-r from-amber-500/20 to-cyan-500/20 rounded-full border border-cyan-500/40 text-[9px] font-mono text-cyan-300 font-bold mb-1">
+          100,000 Ã 100,000 COLOSSAL MAP
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
+          ARENA.IO OMNIVERSE
         </h1>
-        <p class="text-[11px] text-slate-400 mt-0.5">強化永続保存＆略奪サバイバル (約10人対応)</p>
+        <p class="text-[11px] text-slate-400">æ¬æã»æ ç¹é²è¡ã»100åèä¹ã¹ãªã¼ãã¼ç¥å¥ªæ¦</p>
       </div>
 
-      <!-- プレイヤー名 -->
-      <div>
-        <label class="text-[11px] font-semibold text-slate-300 mb-0.5 block">プレイヤー名</label>
-        <input id="inputNickname" type="text" maxlength="10" placeholder="名前 (例: たろう)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
-      </div>
-
-      <!-- 合言葉 (ルームID) -->
-      <div>
-        <label class="text-[11px] font-semibold text-slate-300 mb-0.5 flex justify-between">
-          <span>合言葉 (ルームID)</span>
-          <span class="text-[9px] text-amber-400">合言葉ごとに強化データ保存!</span>
-        </label>
-        <input id="inputRoom" type="text" maxlength="12" value="ARENA10" placeholder="例: ARENA10" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono uppercase focus:outline-none focus:border-amber-400">
-      </div>
-
-      <!-- セーブデータ検知プレビュー -->
-      <div id="savedDataNotice" class="hidden bg-slate-800/80 border border-amber-500/40 rounded-xl p-2 text-[10px] text-amber-200">
-        <i class="fa-solid fa-floppy-disk mr-1"></i> <span id="saveDataDetails">前回の強化データが見つかりました！</span>
-      </div>
-
-      <!-- チーム選択 -->
-      <div>
-        <label class="text-[11px] font-semibold text-slate-300 mb-1 block">チーム編成</label>
-        <div class="grid grid-cols-3 gap-2" id="teamSelector">
-          <button type="button" data-team="solo" class="team-btn py-1.5 px-1 rounded-xl border border-cyan-500/50 bg-cyan-950/40 text-cyan-300 text-xs font-bold ring-2 ring-cyan-400">
-            👑 個人戦
-          </button>
-          <button type="button" data-team="red" class="team-btn py-1.5 px-1 rounded-xl border border-rose-500/30 bg-rose-950/20 text-rose-300 text-xs font-bold">
-            🔴 赤チーム
-          </button>
-          <button type="button" data-team="blue" class="team-btn py-1.5 px-1 rounded-xl border border-blue-500/30 bg-blue-950/20 text-blue-300 text-xs font-bold">
-            🔵 青チーム
-          </button>
+      <!-- ãã¬ã¤ã¤ã¼å ï¼ åè¨è -->
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">ãã¬ã¤ã¤ã¼å</label>
+          <input id="inputNickname" type="text" maxlength="12" placeholder="åå" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+        </div>
+        <div>
+          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">åè¨è (ã«ã¼ã ID)</label>
+          <input id="inputRoom" type="text" maxlength="12" value="OMNI10" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono uppercase">
         </div>
       </div>
 
-      <!-- クラス選択 -->
+      <!-- ä¼ç ã¹ãªã¼ãã¼æ¤ç¥éç¥ -->
+      <div id="savedDataNotice" class="hidden bg-slate-800/90 border border-cyan-500/40 rounded-xl p-2 text-[10px] text-cyan-200">
+        <div class="font-bold flex items-center gap-1 text-cyan-300">
+          <i class="fa-solid fa-bed"></i> æ§ç¯æ¸ã¿ã®æ ç¹ã¾ãã¯ä¼ç ä½ãæ¤ç¥ï¼
+        </div>
+        <div id="saveDataDetails" class="text-slate-300 text-[9px]">ååã®åº§æ¨ã»ã¬ãã«ã»ææè³æããç®è¦ãã¾ãã</div>
+      </div>
+
+      <!-- 5å¤§åºæã¯ã©ã¹é¸æ -->
       <div>
-        <label class="text-[11px] font-semibold text-slate-300 mb-1 block">クラス・兵種</label>
-        <div class="grid grid-cols-3 gap-1.5" id="classSelector">
-          <button type="button" data-class="gunner" class="class-btn py-2 px-1 rounded-xl border border-indigo-500 bg-indigo-950/40 text-indigo-300 text-[11px] font-bold flex flex-col items-center ring-2 ring-indigo-400">
-            <i class="fa-solid fa-crosshairs mb-0.5"></i>
-            <span>ガンナー</span>
+        <label class="text-[10px] font-semibold text-slate-300 mb-1 block">åºæã¯ã©ã¹é¸æ</label>
+        <div class="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto custom-scroll" id="classSelector">
+          
+          <button type="button" data-class="blademaster" class="class-btn p-2 rounded-xl border border-rose-500/60 bg-rose-950/30 text-rose-300 text-left flex items-center justify-between ring-2 ring-rose-400">
+            <div>
+              <div class="text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-khanda text-rose-400"></i> ãã¬ã¼ããã¹ã¿ã¼ (æ¬æ/è¿æ¥åå£)
+              </div>
+              <div class="text-[9px] text-slate-400">é«éç§»åã»æç¶è¿æ¥æ¬æã»æµã®å¼¾ä¸¸ãå¼¾ãã»æé¢¨æ¬æã¹ã­ã«</div>
+            </div>
+            <span class="text-[10px] font-mono text-rose-300 font-bold">è¿æ¥</span>
           </button>
-          <button type="button" data-class="shotgun" class="class-btn py-2 px-1 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-[11px] font-bold flex flex-col items-center">
-            <i class="fa-solid fa-burst mb-0.5"></i>
-            <span>ショットガン</span>
+
+          <button type="button" data-class="gunner" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
+            <div>
+              <div class="text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-crosshairs text-cyan-400"></i> ããã¼ã¬ã³ãã¼ (éç«å¨ç ²æ)
+              </div>
+              <div class="text-[9px] text-slate-400">è¶é·è·é¢ã­ã£ãã³ç ²ã»ççºAoEã»ããã¯ããã¯ã»é«ç«å</div>
+            </div>
+            <span class="text-[10px] font-mono text-cyan-300 font-bold">é é</span>
           </button>
-          <button type="button" data-class="sniper" class="class-btn py-2 px-1 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-[11px] font-bold flex flex-col items-center">
-            <i class="fa-solid fa-bullseye mb-0.5"></i>
-            <span>スナイパー</span>
+
+          <button type="button" data-class="sorcerer" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
+            <div>
+              <div class="text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> ã¢ã«ã±ã¤ã³ã½ã¼ãµã©ã¼ (é­å°å£«)
+              </div>
+              <div class="text-[9px] text-slate-400">è¿½å°¾ã½ã¦ã«ãªã¼ãã»ç¬éç§»åããªã³ã¯ã»ã·ã¼ã«ãã´ã©ã«ããã¯ã¹</div>
+            </div>
+            <span class="text-[10px] font-mono text-purple-300 font-bold">é­æ³</span>
           </button>
+
+          <button type="button" data-class="alchemist" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
+            <div>
+              <div class="text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-flask-vial text-emerald-400"></i> ãã¤ãªã¢ã«ã±ãã¹ã (æ¯å·¥å¸«)
+              </div>
+              <div class="text-[9px] text-slate-400">ææ²æ¯ãã©ã¹ã³ã»æç¶æ¯æ²¼çæã»ããæ¯ã¹ãã¬ã¼æ¾å°</div>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-300 font-bold">ç¶æç°å¸¸</span>
+          </button>
+
+          <button type="button" data-class="guardian" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
+            <div>
+              <div class="text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-amber-400"></i> ã¹ãã£ã¼ã«ã¬ã¼ãã£ã¢ã³ (åå¡å®è­·è)
+              </div>
+              <div class="text-[9px] text-slate-400">æé«èä¹ã»ãã¡ã¼ã¸åå°è£ç²ã»æçºè¡ææ³¢ã»æ ç¹å»ºç¯è³æãã¼ãã¹</div>
+            </div>
+            <span class="text-[10px] font-mono text-amber-300 font-bold">ã¿ã³ã¯</span>
+          </button>
+
         </div>
       </div>
 
-      <button id="btnJoin" class="w-full py-3 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 rounded-xl font-black text-sm tracking-wider shadow-lg active:scale-95 transition">
-        強化を引き継いで戦場へ
+      <button id="btnJoin" class="w-full py-2.5 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 rounded-xl font-black text-sm shadow active:scale-95 transition">
+        ã³ã­ããµã«ã»ãªã ããã¼ã¹ã¸åºæ
       </button>
 
-      <div id="lobbyNetLog" class="text-[10px] text-center text-slate-400 font-mono">合言葉を入力して出撃</div>
+      <div id="lobbyNetLog" class="text-[9px] text-center text-slate-400 font-mono">åè¨èãå¥åãã¦ã­ã°ã¤ã³</div>
     </div>
   </div>
 
-  <!-- リスポーン・強奪被害モーダル -->
-  <div id="deathModal" class="absolute inset-0 bg-red-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center p-4 z-50">
-    <div class="w-full max-w-xs bg-slate-900 border border-rose-500/60 p-5 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2.5">
-      <div class="text-3xl text-rose-500 animate-bounce">
-        <i class="fa-solid fa-skull-crossbones"></i>
-      </div>
-      <h2 class="text-xl font-black text-rose-400">撃破されました！</h2>
-      <p id="deathMessage" class="text-[11px] text-slate-300">敵に倒されコアを奪われた！</p>
+  <!-- ãªã¹ãã¼ã³ã»å¼·å¥ªè¢«å®³ã¢ã¼ãã« -->
+  <div id="deathModal" class="absolute inset-0 bg-red-950/85 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
+    <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
+      <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
+      <h2 class="text-lg font-black text-rose-400">æç ´ããã¾ããï¼</h2>
+      <p id="deathMessage" class="text-[11px] text-slate-300">æµã«åãããã³ã¢ãå¥ªãããï¼</p>
       
-      <div class="bg-slate-800/80 rounded-xl p-3 w-full text-left text-[11px] space-y-1.5 border border-slate-700">
-        <div class="flex justify-between text-slate-400"><span>奪われたコア:</span><span id="lostCoresText" class="font-bold text-rose-400">-0</span></div>
-        <div class="flex justify-between text-slate-400"><span>維持されたコア:</span><span id="keptCoresText" class="font-bold text-amber-400">0</span></div>
-        <div class="flex justify-between text-slate-400"><span>キル数:</span><span id="finalKills" class="font-bold text-cyan-400">0</span></div>
-        <div class="text-[9px] text-slate-400 mt-1 border-t border-slate-700 pt-1">
-          ※基礎レベルと強化ツリーはそのまま引き継がれます。
-        </div>
+      <div class="bg-slate-800/80 rounded-xl p-2.5 w-full text-left text-[11px] space-y-1 border border-slate-700">
+        <div class="flex justify-between text-slate-400"><span>å¥ªãããã³ã¢:</span><span id="lostCoresText" class="font-bold text-rose-400">-0</span></div>
+        <div class="flex justify-between text-slate-400"><span>æ®å­ã³ã¢:</span><span id="keptCoresText" class="font-bold text-amber-400">0</span></div>
       </div>
 
-      <button id="btnRespawn" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl font-black text-xs tracking-wider active:scale-95 transition shadow-lg">
-        即座に復帰して奪い返す！
+      <button id="btnRespawn" class="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl font-black text-xs active:scale-95 shadow">
+        ãªã¹ãã¼ã³ãã¦ååºæ
       </button>
     </div>
   </div>
 
   <script>
     /* =========================================================
-       1. WEB AUDIO サウンドエフェクト
+       1. WEB AUDIO ãµã¦ã³ãã¨ãã§ã¯ã
        ========================================================= */
     class SoundFX {
       constructor() { this.ctx = null; }
@@ -322,99 +343,130 @@
       }
       playTone(freq, type, dur, gainVal = 0.1) {
         if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(gainVal, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + dur);
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(gainVal, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + dur);
+        } catch(e) {}
       }
-      playShoot() { this.playTone(600, 'sawtooth', 0.09, 0.1); }
-      playHit() { this.playTone(180, 'square', 0.08, 0.15); }
-      playGem() { this.playTone(950, 'sine', 0.08, 0.08); }
-      playCore() { this.playTone(1200, 'triangle', 0.15, 0.12); }
-      playDash() { this.playTone(320, 'triangle', 0.14, 0.12); }
-      playSkill() { this.playTone(450, 'sine', 0.25, 0.2); }
-      playExplode() { this.playTone(110, 'square', 0.35, 0.25); }
-      playWarp() { this.playTone(800, 'sine', 0.25, 0.18); }
+      playSlash() { this.playTone(320, 'sawtooth', 0.12, 0.14); }
+      playShoot() { this.playTone(650, 'square', 0.08, 0.1); }
+      playMagic() { this.playTone(850, 'sine', 0.18, 0.12); }
+      playHit() { this.playTone(160, 'triangle', 0.06, 0.15); }
+      playBuild() { this.playTone(520, 'triangle', 0.12, 0.15); }
+      playCore() { this.playTone(1200, 'sine', 0.12, 0.12); }
+      playWarp() { this.playTone(720, 'sine', 0.25, 0.16); }
+      playExplode() { this.playTone(80, 'square', 0.35, 0.25); }
     }
     const sound = new SoundFX();
 
     /* =========================================================
-       2. ワールド設定・ギミック・定数
+       2. 100,000 x 100,000 è¶å·¨å¤§ããã ï¼ ç©ºéåå²(Chunk)è¨­å®
        ========================================================= */
-    const WORLD_WIDTH = 4200;  // 広大なステージ
-    const WORLD_HEIGHT = 4200;
-    const GEMS_COUNT = 240;
-    const BOT_COUNT = 8;       // エコシステム徘徊BOT数
+    const WORLD_WIDTH = 100000;
+    const WORLD_HEIGHT = 100000;
+    const CHUNK_SIZE = 2000; // ç©ºéåå²ç¨ãã£ã³ã¯
 
-    // ギミック定義
-    // 加速ゾーン
-    const speedBoostPads = [
-      { x: 900, y: 900, w: 160, h: 80, dirX: 1, dirY: 0 },
-      { x: 3300, y: 3300, w: 160, h: 80, dirX: -1, dirY: 0 },
-      { x: 2100, y: 1200, w: 80, h: 160, dirX: 0, dirY: 1 },
-      { x: 2100, y: 3000, w: 80, h: 160, dirX: 0, dirY: -1 }
+    // ãã¤ãã¼ã¹ãã¼ã¹ã²ã¼ã (æ±è¥¿ååã»ä¸­å¤®ã®è¶é·è·é¢ã¯ã¼ã)
+    const hyperGates = [
+      { id: 'gate_c', x: 50000, y: 50000, targetX: 20000, targetY: 20000, name: 'ä¸­å¤®ãã©ã¤ã ã²ã¼ã', color: '#38bdf8' },
+      { id: 'gate_nw', x: 20000, y: 20000, targetX: 80000, targetY: 20000, name: 'åè¥¿ã²ã¼ã', color: '#a855f7' },
+      { id: 'gate_ne', x: 80000, y: 20000, targetX: 80000, targetY: 80000, name: 'åæ±ã²ã¼ã', color: '#a855f7' },
+      { id: 'gate_se', x: 80000, y: 80000, targetX: 20000, targetY: 80000, name: 'åæ±ã²ã¼ã', color: '#a855f7' },
+      { id: 'gate_sw', x: 20000, y: 80000, targetX: 50000, targetY: 50000, name: 'åè¥¿ã²ã¼ã', color: '#a855f7' }
     ];
 
-    // 回復の泉 (Healing Springs)
-    const healSprings = [
-      { x: 2100, y: 2100, r: 160 }, // 中央
-      { x: 1000, y: 3200, r: 110 },
-      { x: 3200, y: 1000, r: 110 }
+    // ç¹æ®ç°å¢ã¢ãããªã¼ã¾ã¼ã³ (æ¾å°ç·ã»åéåã»çµæ¶å°å¸¯)
+    const anomalyZones = [
+      { x: 35000, y: 35000, r: 1800, type: 'radiation', name: 'é¸æ§æ¾å°è½ã¾ã¼ã³', color: '#22c55e' },
+      { x: 65000, y: 65000, r: 1800, type: 'antigrav', name: 'åéåã¢ãããªã¼', color: '#06b6d4' },
+      { x: 50000, y: 50000, r: 1500, type: 'sanctuary', name: 'ãã©ã¤ã èåã®æ³', color: '#f59e0b' }
     ];
 
-    // 隠れ草むら (Bushes)
-    const bushes = [
-      { x: 1400, y: 1500, r: 150 },
-      { x: 2800, y: 1500, r: 150 },
-      { x: 1400, y: 2700, r: 150 },
-      { x: 2800, y: 2700, r: 150 },
-      { x: 2100, y: 900, r: 130 },
-      { x: 2100, y: 3300, r: 130 }
-    ];
-
-    // ポータルワープ (A <-> B)
-    const portals = [
-      { id: 'p1', x: 600, y: 2100, targetX: 3600, targetY: 2100, r: 60, color: '#a855f7' },
-      { id: 'p2', x: 3600, y: 2100, targetX: 600, targetY: 2100, r: 60, color: '#a855f7' },
-      { id: 'p3', x: 2100, y: 550, targetX: 2100, targetY: 3650, r: 60, color: '#06b6d4' },
-      { id: 'p4', x: 2100, y: 3650, targetX: 2100, targetY: 550, r: 60, color: '#06b6d4' }
-    ];
-
-    // 巨大障害物 (アスタロイド)
-    const obstacles = [
-      { x: 1200, y: 1200, r: 110 }, { x: 3000, y: 1200, r: 110 },
-      { x: 1200, y: 3000, r: 110 }, { x: 3000, y: 3000, r: 110 },
-      { x: 1700, y: 2100, r: 90 }, { x: 2500, y: 2100, r: 90 }
-    ];
-
-    // クラス基本設定
-    const CLASS_CONFIG = {
-      gunner: { name: 'ガンナー', reload: 180, speed: 4.8, bulletSpeed: 14, bulletDmg: 20, bulletSize: 6, maxHp: 120, count: 1, spread: 0 },
-      shotgun: { name: 'ショットガン', reload: 440, speed: 4.5, bulletSpeed: 12, bulletDmg: 15, bulletSize: 5, maxHp: 140, count: 3, spread: 0.3 },
-      sniper: { name: 'スナイパー', reload: 650, speed: 4.3, bulletSpeed: 23, bulletDmg: 65, bulletSize: 7, maxHp: 95, count: 1, spread: 0.02 }
+    // 5å¤§ã¯ã©ã¹ã®åºæ¬ä»æ§
+    const CLASS_CONFIGS = {
+      blademaster: {
+        name: 'ãã¬ã¼ããã¹ã¿ã¼',
+        isMelee: true,
+        maxHp: 200,
+        speed: 5.6,
+        attackRate: 260,
+        range: 90,
+        arc: Math.PI * 0.75, // æç¶è¿æ¥æ¬æ
+        damage: 48,
+        deflects: true,
+        scrapBonus: 0
+      },
+      gunner: {
+        name: 'ããã¼ã¬ã³ãã¼',
+        isMelee: false,
+        maxHp: 180,
+        speed: 4.6,
+        attackRate: 240,
+        range: 650,
+        damage: 32,
+        bulletSpeed: 17,
+        bulletSize: 7,
+        scrapBonus: 0
+      },
+      sorcerer: {
+        name: 'ã¢ã«ã±ã¤ã³é­å°å£«',
+        isMelee: false,
+        maxHp: 150,
+        speed: 4.8,
+        attackRate: 300,
+        range: 550,
+        damage: 28,
+        bulletSpeed: 13,
+        homing: true,
+        scrapBonus: 0
+      },
+      alchemist: {
+        name: 'ãã¤ãªæ¯å·¥å¸«',
+        isMelee: false,
+        maxHp: 160,
+        speed: 4.9,
+        attackRate: 320,
+        range: 480,
+        damage: 18,
+        isPoison: true,
+        scrapBonus: 20
+      },
+      guardian: {
+        name: 'ã¹ãã£ã¼ã«åå¡å®è­·è',
+        isMelee: true,
+        maxHp: 320,
+        speed: 4.2,
+        attackRate: 380,
+        range: 75,
+        arc: Math.PI * 0.6,
+        damage: 35,
+        reflectArmor: 0.25,
+        scrapBonus: 80
+      }
     };
 
-    // アップグレード定義 (SPまたはコアで解放・強化)
+    // 10ç¨®é¡ã®ã¹ãã¼ã¿ã¹å¼·å
     const UPGRADE_TYPES = [
-      { id: 'maxHp', name: '最大HP増強', desc: 'HP上限+25', maxLv: 10, icon: 'fa-heart', cost: 1 },
-      { id: 'dmg', name: '攻撃力強化', desc: '弾の威力+18%', maxLv: 10, icon: 'fa-fire', cost: 1 },
-      { id: 'reload', name: '連射力向上', desc: 'リロード速度+8%', maxLv: 10, icon: 'fa-gauge-high', cost: 1 },
-      { id: 'speed', name: '移動速度', desc: '移動速度+6%', maxLv: 8, icon: 'fa-person-running', cost: 1 },
-      { id: 'regen', name: '自己リジェネ', desc: '秒間自然回復+2.5', maxLv: 8, icon: 'fa-notes-medical', cost: 1 },
-      { id: 'lifesteal', name: '吸血 (ライフスティール)', desc: '与ダメージの8%をHP回復', maxLv: 5, icon: 'fa-vial', cost: 2 },
-      { id: 'shield', name: 'ナノシールド', desc: '耐久30の自動シールド展開', maxLv: 5, icon: 'fa-shield-halved', cost: 2 },
-      { id: 'bulletSpeed', name: '弾速・射程', desc: '弾速と射程+12%', maxLv: 6, icon: 'fa-meteor', cost: 1 }
+      { id: 'maxHp', name: 'æå¤§HPå¢å¼·', desc: 'HP+40', maxLv: 15, icon: 'fa-heart', cost: 1 },
+      { id: 'dmg', name: 'æ»æå/æ¬æå¨å', desc: 'å¨å+15%', maxLv: 15, icon: 'fa-fire', cost: 1 },
+      { id: 'speed', name: 'æ©åç§»åéåº¦', desc: 'éåº¦+6%', maxLv: 10, icon: 'fa-person-running', cost: 1 },
+      { id: 'regen', name: 'ãããªã¸ã§ã', desc: 'ç§éåå¾©+3', maxLv: 10, icon: 'fa-notes-medical', cost: 1 },
+      { id: 'armor', name: 'éè£ã¢ã¼ãã¼', desc: 'è¢«ãã¡è»½æ¸+4%', maxLv: 10, icon: 'fa-shield', cost: 2 },
+      { id: 'magnet', name: 'ã³ã¢ç£ç³å¸å¼', desc: 'å¸å¼åå¾+40px', maxLv: 8, icon: 'fa-magnet', cost: 1 },
+      { id: 'buildRate', name: 'æ ç¹å»ºç¯å·¥å­¦', desc: 'é²è¡å»ºç¯HP+20%', maxLv: 8, icon: 'fa-wrench', cost: 1 }
     ];
 
     /* =========================================================
-       3. プレイヤー状態 & localStorage 永続セーブ管理
+       3. ãã¬ã¤ã¤ã¼ç¶æ ï¼ æ°¸ç¶ã»ã¼ãã»ã¹ãªã¼ãã¼æ ç¹ç®¡ç
        ========================================================= */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -430,74 +482,80 @@
     window.addEventListener('resize', resize);
     resize();
 
-    let roomCode = 'ARENA10';
+    let roomCode = 'OMNI10';
     const myId = 'p_' + Math.random().toString(36).substr(2, 7);
 
     let myPlayer = {
       id: myId,
-      name: '勇者',
-      team: 'solo',
-      classType: 'gunner',
-      x: 2100 + (Math.random() - 0.5) * 500,
-      y: 2100 + (Math.random() - 0.5) * 500,
+      name: 'è¿é·ã®å£å£«',
+      classType: 'blademaster',
+      x: 50000 + (Math.random() - 0.5) * 800,
+      y: 50000 + (Math.random() - 0.5) * 800,
       angle: 0,
       vx: 0,
       vy: 0,
-      hp: 120,
-      maxHp: 120,
+      hp: 200,
+      maxHp: 200,
       shield: 0,
-      maxShield: 0,
       stamina: 100,
-      cores: 0,       // 奪い合い対象のコア
-      sp: 0,          // スキルポイント
+      cores: 0,
+      scrap: 150, // å»ºç¯è³æ
+      sp: 0,
       level: 1,
       exp: 0,
-      nextExp: 40,
-      kills: 0,
-      radius: 24,
+      nextExp: 50,
+      radius: 26,
       isAlive: true,
-      isInBush: false,
       isDashing: false,
-      lastShootTime: 0,
+      lastAttackTime: 0,
       warpCooldown: 0,
       skillCooldown: 0,
-      mineCooldown: 0,
-      emote: null,
-      emoteTimer: 0,
-      upgrades: {
-        maxHp: 0,
-        dmg: 0,
-        reload: 0,
-        speed: 0,
-        regen: 0,
-        lifesteal: 0,
-        shield: 0,
-        bulletSpeed: 0
-      }
+      slashAnimation: 0, // æ¬æã¢ãã¡ç¨ã¿ã¤ãã¼
+      upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, magnet: 0, buildRate: 0 }
     };
 
-    // セーブとロード (合言葉 + プレイヤー名に紐づけて永続化)
+    // ã¯ã¼ã«ãåã¨ã³ãã£ãã£
+    let remotePlayers = new Map();
+    let sleeperPlayers = []; // èä¹100åã¹ãªã¼ãã¼
+    let defenseStructures = []; // è¨­ç½®åé²è¡å»ºç¯ (ã¿ã¬ããã»éå£ã»ç½ ã»ããã)
+    let bullets = [];
+    let slashes = []; // æ¬æã¨ãã§ã¯ã
+    let gems = [];
+    let dropCores = [];
+    let toxicPools = []; // æ¯æ²¼
+    let colossusBosses = []; // å·¨å¤§å¾å¾ãã¹
+    let particles = [];
+    let popups = [];
+
     function getSaveKey() {
-      return `arena_io_save_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`;
+      return `arena_omni_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`;
+    }
+    function getSleeperKey() {
+      return `arena_omni_sleepers_${roomCode.toUpperCase()}`;
+    }
+    function getBaseKey() {
+      return `arena_omni_bases_${roomCode.toUpperCase()}`;
     }
 
     function savePlayerData() {
       try {
         const data = {
           name: myPlayer.name,
+          classType: myPlayer.classType,
+          x: Math.round(myPlayer.x),
+          y: Math.round(myPlayer.y),
           level: myPlayer.level,
           exp: myPlayer.exp,
           nextExp: myPlayer.nextExp,
           cores: myPlayer.cores,
+          scrap: myPlayer.scrap,
           sp: myPlayer.sp,
-          kills: myPlayer.kills,
           upgrades: myPlayer.upgrades,
-          classType: myPlayer.classType
+          hp: Math.round(myPlayer.hp),
+          maxHp: Math.round(myPlayer.maxHp)
         };
         localStorage.setItem(getSaveKey(), JSON.stringify(data));
-      } catch (e) {
-        console.error('セーブ失敗:', e);
-      }
+      } catch (e) {}
     }
 
     function loadPlayerData() {
@@ -507,157 +565,131 @@
         const d = JSON.parse(raw);
         myPlayer.level = d.level || 1;
         myPlayer.exp = d.exp || 0;
-        myPlayer.nextExp = d.nextExp || 40;
+        myPlayer.nextExp = d.nextExp || 50;
         myPlayer.cores = d.cores || 0;
+        myPlayer.scrap = d.scrap !== undefined ? d.scrap : 150;
         myPlayer.sp = d.sp || 0;
-        myPlayer.kills = d.kills || 0;
         if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
+        if (d.x && d.y) {
+          myPlayer.x = d.x;
+          myPlayer.y = d.y;
+        }
         if (d.classType) myPlayer.classType = d.classType;
+        removeMySleeperRecord();
         return true;
       } catch (e) {
         return false;
       }
     }
 
+    // ã­ã°ã¢ã¦ãæã«èä¹100åã¹ãªã¼ãã¼ãç»é²
+    function registerAsSleeper() {
+      try {
+        const sKey = getSleeperKey();
+        const raw = localStorage.getItem(sKey);
+        let list = raw ? JSON.parse(raw) : [];
+        list = list.filter(item => item.name !== myPlayer.name);
+
+        const newSleeper = {
+          id: 'sleep_' + myPlayer.name,
+          name: myPlayer.name,
+          classType: myPlayer.classType,
+          x: Math.round(myPlayer.x),
+          y: Math.round(myPlayer.y),
+          level: myPlayer.level,
+          cores: myPlayer.cores,
+          maxHp: myPlayer.maxHp * 100, // èä¹100å
+          hp: myPlayer.maxHp * 100,
+          radius: myPlayer.radius + 6,
+          isSleeper: true,
+          inPod: isNearStructure(myPlayer.x, myPlayer.y, 'pod')
+        };
+        list.push(newSleeper);
+        localStorage.setItem(sKey, JSON.stringify(list));
+        sleeperPlayers = list;
+
+        broadcast({ type: 'sleeper_created', sleeper: newSleeper });
+      } catch (e) {}
+    }
+
+    function removeMySleeperRecord() {
+      try {
+        const sKey = getSleeperKey();
+        const raw = localStorage.getItem(sKey);
+        if (!raw) return;
+        let list = JSON.parse(raw);
+        list = list.filter(item => item.name !== myPlayer.name);
+        localStorage.setItem(sKey, JSON.stringify(list));
+        sleeperPlayers = list;
+        broadcast({ type: 'sleeper_awaken', name: myPlayer.name });
+      } catch (e) {}
+    }
+
+    function isNearStructure(x, y, type) {
+      return defenseStructures.some(s => s.type === type && Math.hypot(s.x - x, s.y - y) < s.radius + 30);
+    }
+
     function checkSavedDataPreview() {
-      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'ARENA10';
+      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
       const n = document.getElementById('inputNickname').value.trim();
       const notice = document.getElementById('savedDataNotice');
       if (!n) {
         notice.classList.add('hidden');
         return;
       }
-      const key = `arena_io_save_${r}_${n}`;
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(`arena_omni_${r}_${n}`);
       if (raw) {
         const d = JSON.parse(raw);
-        document.getElementById('saveDataDetails').textContent = `前回のセーブデータ検出: Lv.${d.level || 1} / 所持コア: ${d.cores || 0} / SP: ${d.sp || 0}`;
+        document.getElementById('saveDataDetails').textContent = `Lv.${d.level || 1} / ã³ã¢: ${d.cores || 0} / ã¹ã¯ã©ãã: ${d.scrap || 0} / åº§æ¨: (${d.x}, ${d.y})`;
         notice.classList.remove('hidden');
       } else {
         notice.classList.add('hidden');
       }
     }
-
     document.getElementById('inputRoom').addEventListener('input', checkSavedDataPreview);
     document.getElementById('inputNickname').addEventListener('input', checkSavedDataPreview);
 
-    /* =========================================================
-       4. 動的強化UIレンダラー & ステータス再計算
-       ========================================================= */
     function recalcStats() {
-      const cfg = CLASS_CONFIG[myPlayer.classType] || CLASS_CONFIG.gunner;
+      const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       const u = myPlayer.upgrades;
-
-      myPlayer.maxHp = cfg.maxHp + (u.maxHp * 25) + ((myPlayer.level - 1) * 8);
-      myPlayer.maxShield = u.shield * 30;
+      myPlayer.maxHp = cfg.maxHp + (u.maxHp * 40) + ((myPlayer.level - 1) * 15);
       if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
-      if (myPlayer.shield > myPlayer.maxShield) myPlayer.shield = myPlayer.maxShield;
-
-      myPlayer.radius = 24 + ((myPlayer.level - 1) * 0.8) + (u.maxHp * 0.6);
       savePlayerData();
     }
 
-    function renderUpgradeModal() {
-      document.getElementById('modalSp').textContent = myPlayer.sp;
-      document.getElementById('modalCores').textContent = myPlayer.cores;
-      const list = document.getElementById('upgradeList');
-      list.innerHTML = '';
-
-      UPGRADE_TYPES.forEach(upg => {
-        const curLv = myPlayer.upgrades[upg.id] || 0;
-        const isMax = curLv >= upg.maxLv;
-        const canBuy = myPlayer.sp >= upg.cost && !isMax;
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between bg-slate-800/80 p-2 rounded-xl border border-slate-700/80';
-        row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-400 text-xs">
-              <i class="fa-solid ${upg.icon}"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-slate-100">${upg.name}</span>
-                <span class="text-[9px] font-mono text-cyan-400">Lv.${curLv}/${upg.maxLv}</span>
-              </div>
-              <div class="text-[9px] text-slate-400">${upg.desc}</div>
-            </div>
-          </div>
-          <button data-id="${upg.id}" ${canBuy ? '' : 'disabled'} class="btn-buy-upgrade px-3 py-1.5 rounded-lg font-bold text-[10px] ${canBuy ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white active:scale-95 shadow' : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'}">
-            ${isMax ? 'MAX' : `${upg.cost} SP`}
-          </button>
-        `;
-        list.appendChild(row);
-      });
-
-      document.querySelectorAll('.btn-buy-upgrade').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const uid = btn.dataset.id;
-          const target = UPGRADE_TYPES.find(u => u.id === uid);
-          if (target && myPlayer.sp >= target.cost && (myPlayer.upgrades[uid] || 0) < target.maxLv) {
-            myPlayer.sp -= target.cost;
-            myPlayer.upgrades[uid] = (myPlayer.upgrades[uid] || 0) + 1;
-            sound.playCore();
-            recalcStats();
-            renderUpgradeModal();
-            updateHud();
-          }
-        });
-      });
-    }
-
-    document.getElementById('btnOpenUpgrade').addEventListener('click', () => {
-      renderUpgradeModal();
-      document.getElementById('upgradeModal').classList.remove('hidden');
-    });
-    document.getElementById('btnCloseUpgrade').addEventListener('click', () => {
-      document.getElementById('upgradeModal').classList.add('hidden');
-    });
-
     /* =========================================================
-       5. ネットワーク通信 (WebRTC PeerJS メッシュ/ホスト同期)
+       4. ãªã¢ã«ã¿ã¤ã éä¿¡ (PeerJS P2P ã¡ãã·ã¥)
        ========================================================= */
-    const remotePlayers = new Map();
-    let bullets = [];
-    let gems = [];
-    let dropCores = [];    // 倒された時に落としたコア
-    let mines = [];        // 設置された地雷
-    let bots = [];         // 徘徊BOT
-    let particles = [];
-    let popups = [];
-
     let peer = null;
     let isHost = false;
     let hostConn = null;
     const peerConnections = new Map();
-    let lastPingSend = 0;
-
-    function getHostPeerId(roomId) {
-      return `arena_ex_mesh_${roomId.toLowerCase().trim()}_host`;
-    }
 
     function initNetwork(rId) {
       roomCode = rId;
-      const hostId = getHostPeerId(roomCode);
+      const hostId = `arena_omni_${roomCode.toLowerCase()}_host`;
       const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = `合言葉 [${roomCode}] サーバー接続試行...`;
+      logEl.textContent = `åè¨è [${roomCode}] ãµã¼ãã¼æ¥ç¶è©¦è¡ä¸­...`;
+
+      // ã­ã¼ã«ã«ä¿å­ããã¦ããã¹ãªã¼ãã¼ï¼å»ºç¯ç©ãå±é
+      try {
+        const sRaw = localStorage.getItem(getSleeperKey());
+        if (sRaw) sleeperPlayers = JSON.parse(sRaw);
+        const bRaw = localStorage.getItem(getBaseKey());
+        if (bRaw) defenseStructures = JSON.parse(bRaw);
+      } catch(e) {}
 
       peer = new Peer(hostId, {
         debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
-        }
+        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
       });
 
       peer.on('open', () => {
         isHost = true;
-        logEl.textContent = `ルームホストとして開通！BOT & オーブ生成中...`;
+        logEl.textContent = '100,000x100,000 ãã¹ãã¯ã¼ã«ãééï¼';
         updateNetUI(true, 1);
         setupHostNet();
-        initWorldGemsAndBots();
+        initWorldEcosystem();
       });
 
       peer.on('error', (err) => {
@@ -665,32 +697,22 @@
           peer.destroy();
           connectClient(hostId);
         } else {
-          logEl.textContent = `通信エラー: ${err.type}。再試行してください。`;
+          logEl.textContent = `æ¥ç¶ç¶æ³: ${err.type}`;
         }
       });
     }
 
     function connectClient(hostId) {
       const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = `ホスト発見！クライアント接続中...`;
-
-      peer = new Peer(`arena_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
+      logEl.textContent = 'ã¯ã¼ã«ãã«åå¥ä¸­...';
+      peer = new Peer(`omni_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
         debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
-        }
+        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
       });
 
       peer.on('open', () => {
         hostConn = peer.connect(hostId, { reliable: false });
         setupClientNet();
-      });
-
-      peer.on('error', (err) => {
-        logEl.textContent = `接続エラー (${err.type})`;
       });
     }
 
@@ -700,21 +722,19 @@
           peerConnections.set(conn.peer, conn);
           updateNetUI(true, peerConnections.size + 1);
 
-          // 新規参加者へマップ現況 (Gems, Cores, Mines, Bots) を送信
+          // æ°è¦åå èã¸å¨ã¯ã¼ã«ãç¶æ³ãåæ
           conn.send({
-            type: 'init_world',
-            gems,
-            dropCores,
-            mines,
-            bots
+            type: 'init_world_full',
+            sleeperPlayers,
+            defenseStructures,
+            colossusBosses
           });
         });
 
-        conn.on('data', (data) => {
-          handleNetData(data, conn.peer);
-          // クライアント発信データを他全クライアントへ中継
+        conn.on('data', (d) => {
+          handleNetData(d);
           peerConnections.forEach((other, pid) => {
-            if (pid !== conn.peer && other.open) other.send(data);
+            if (pid !== conn.peer && other.open) other.send(d);
           });
         });
 
@@ -722,7 +742,6 @@
           peerConnections.delete(conn.peer);
           remotePlayers.delete(conn.peer);
           updateNetUI(true, peerConnections.size + 1);
-          broadcast({ type: 'player_leave', peerId: conn.peer });
         });
       });
     }
@@ -730,19 +749,10 @@
     function setupClientNet() {
       hostConn.on('open', () => {
         isHost = false;
-        document.getElementById('lobbyNetLog').textContent = `接続成功！`;
         updateNetUI(false, 2);
-
-        setInterval(() => {
-          if (hostConn && hostConn.open) {
-            lastPingSend = performance.now();
-            hostConn.send({ type: 'ping', t: lastPingSend });
-          }
-        }, 2000);
       });
-
-      hostConn.on('data', (d) => handleNetData(d));
-      hostConn.on('close', () => updateNetUI(false, 1, '切断されました'));
+      hostConn.on('data', handleNetData);
+      hostConn.on('close', () => updateNetUI(false, 1, 'åæ­ããã¾ãã'));
     }
 
     function broadcast(payload) {
@@ -753,92 +763,75 @@
       }
     }
 
-    function handleNetData(data, senderPeerId) {
+    function handleNetData(data) {
       if (!data) return;
-
       switch (data.type) {
-        case 'ping':
-          if (isHost && senderPeerId) {
-            const sc = peerConnections.get(senderPeerId);
-            if (sc && sc.open) sc.send({ type: 'pong', t: data.t });
-          }
-          break;
-
-        case 'pong':
-          document.getElementById('netPing').textContent = Math.round(performance.now() - data.t);
-          break;
-
         case 'sync_state':
           if (data.id === myPlayer.id) return;
           remotePlayers.set(data.id, { ...data, lastSeen: performance.now() });
           updateLeaderboard();
           break;
 
-        case 'shoot':
+        case 'attack_slash':
+          if (data.ownerId === myPlayer.id) return;
+          slashes.push(data.slash);
+          sound.playSlash();
+          break;
+
+        case 'attack_bullet':
           if (data.ownerId === myPlayer.id) return;
           bullets.push(data.bullet);
           sound.playShoot();
           break;
 
-        case 'hit':
-          if (data.targetId === myPlayer.id) {
-            takeDamage(data.damage, data.attackerName, data.isMine);
+        case 'build_structure':
+          defenseStructures.push(data.structure);
+          sound.playBuild();
+          break;
+
+        case 'damage_structure':
+          const st = defenseStructures.find(s => s.id === data.structureId);
+          if (st) {
+            st.hp -= data.damage;
+            if (st.hp <= 0) {
+              defenseStructures = defenseStructures.filter(s => s.id !== st.id);
+              triggerExplosion(st.x, st.y);
+            }
           }
           break;
 
-        case 'place_mine':
-          mines.push(data.mine);
-          break;
-
-        case 'mine_explode':
-          const mIdx = mines.findIndex(m => m.id === data.mineId);
-          if (mIdx !== -1) {
-            triggerExplosionEffect(mines[mIdx].x, mines[mIdx].y);
-            mines.splice(mIdx, 1);
+        case 'damage_sleeper':
+          const sl = sleeperPlayers.find(s => s.name === data.targetName);
+          if (sl) {
+            sl.hp -= data.damage;
+            sound.playHit();
+            if (sl.hp <= 0) {
+              sleeperPlayers = sleeperPlayers.filter(s => s.name !== sl.name);
+              localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
+              addKillLog(data.attackerName, `${sl.name} [ä¼ç ç³å]`);
+            }
           }
           break;
 
-        case 'gem_eaten':
-          const gIdx = gems.findIndex(g => g.id === data.gemId);
-          if (gIdx !== -1) {
-            gems.splice(gIdx, 1);
-            if (isHost) setTimeout(() => spawnSingleGem(), 3500);
-          }
+        case 'sleeper_created':
+          sleeperPlayers = sleeperPlayers.filter(s => s.name !== data.sleeper.name);
+          sleeperPlayers.push(data.sleeper);
+          updateLeaderboard();
           break;
 
-        case 'core_collected':
-          const cIdx = dropCores.findIndex(c => c.id === data.coreId);
-          if (cIdx !== -1) dropCores.splice(cIdx, 1);
+        case 'sleeper_awaken':
+          sleeperPlayers = sleeperPlayers.filter(s => s.name !== data.name);
+          updateLeaderboard();
           break;
 
-        case 'init_world':
-          gems = data.gems || [];
-          dropCores = data.dropCores || [];
-          mines = data.mines || [];
-          bots = data.bots || [];
-          break;
-
-        case 'host_bots_sync':
-          if (!isHost) bots = data.bots || [];
-          break;
-
-        case 'bot_hit':
-          if (isHost) {
-            damageBot(data.botId, data.damage, data.attackerId, data.attackerName);
-          }
-          break;
-
-        case 'drop_cores_spawn':
-          dropCores.push(...data.cores);
+        case 'init_world_full':
+          sleeperPlayers = data.sleeperPlayers || [];
+          defenseStructures = data.defenseStructures || [];
+          colossusBosses = data.colossusBosses || [];
           break;
 
         case 'kill_broadcast':
           addKillLog(data.killer, data.victim);
-          break;
-
-        case 'player_leave':
-          remotePlayers.delete(data.peerId);
-          updateLeaderboard();
           break;
       }
     }
@@ -847,94 +840,83 @@
       const dot = document.getElementById('netStatusDot');
       const text = document.getElementById('netStatusText');
       const countEl = document.getElementById('netPlayerCount');
-
-      dot.className = 'w-2 h-2 rounded-full';
       if (err) {
-        dot.classList.add('bg-rose-500');
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
         text.textContent = err;
-        text.className = 'font-bold text-rose-400 font-mono';
       } else {
-        dot.classList.add('bg-emerald-400');
-        text.textContent = asHost ? '👑 HOST' : '🟢 CLIENT';
-        text.className = 'font-bold text-emerald-400 font-mono';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        text.textContent = asHost ? 'ð HOST' : 'ð¢ CLIENT';
       }
       countEl.textContent = count;
       document.getElementById('roomCodeBadge').textContent = roomCode;
     }
 
     /* =========================================================
-       6. BOT (NPC生態系) & マップオブジェクト管理
+       5. 100,000x100,000 çæç³»ã»å·¨å¤§ã³ã­ããµã¹ãã¹çæ
        ========================================================= */
-    function initWorldGemsAndBots() {
-      gems = [];
-      for (let i = 0; i < GEMS_COUNT; i++) spawnSingleGem();
-
-      bots = [];
-      const botNames = ['メカドローンα', 'ワイルドスライム', '賞金首ゴーレム', 'ハンターBot', 'ガーディアンβ', 'アサシンBot', 'エリートセンチネル', '侵略ドローン'];
-      for (let i = 0; i < BOT_COUNT; i++) {
-        const isElite = i === 2 || i === 6;
-        bots.push({
-          id: 'bot_' + i,
-          name: botNames[i % botNames.length],
-          isElite,
-          x: 1000 + Math.random() * 2200,
-          y: 1000 + Math.random() * 2200,
-          vx: 0,
-          vy: 0,
-          hp: isElite ? 350 : 130,
-          maxHp: isElite ? 350 : 130,
-          radius: isElite ? 32 : 22,
-          speed: isElite ? 3.2 : 2.6,
-          cores: isElite ? 15 : 4,
-          lastShoot: 0,
-          angle: Math.random() * Math.PI * 2
-        });
-      }
-    }
-
-    function spawnSingleGem() {
-      const g = {
-        id: 'g_' + Math.random().toString(36).substr(2, 7),
-        x: Math.round(150 + Math.random() * (WORLD_WIDTH - 300)),
-        y: Math.round(150 + Math.random() * (WORLD_HEIGHT - 300)),
-        val: Math.random() < 0.2 ? 25 : 10,
-        color: Math.random() < 0.2 ? '#fbbf24' : '#06b6d4',
-        r: Math.random() < 0.2 ? 7 : 5
-      };
-      gems.push(g);
-    }
-
-    function damageBot(botId, dmg, attackerId, attackerName) {
-      const b = bots.find(bot => bot.id === botId);
-      if (!b) return;
-      b.hp -= dmg;
-
-      if (b.hp <= 0) {
-        sound.playExplode();
-        // 大量のコアと経験値をドロップ
-        const dropped = [];
-        const count = b.isElite ? 8 : 4;
-        for (let i = 0; i < count; i++) {
-          dropped.push({
-            id: 'c_' + Math.random().toString(36).substr(2, 7),
-            x: b.x + (Math.random() - 0.5) * 60,
-            y: b.y + (Math.random() - 0.5) * 60,
-            val: b.isElite ? 5 : 2
-          });
-        }
-        dropCores.push(...dropped);
-        broadcast({ type: 'drop_cores_spawn', cores: dropped });
-        broadcast({ type: 'kill_broadcast', killer: attackerName || '誰か', victim: b.name });
-
-        // BOTリスポーン
-        b.hp = b.maxHp;
-        b.x = 800 + Math.random() * 2600;
-        b.y = 800 + Math.random() * 2600;
-      }
+    function initWorldEcosystem() {
+      colossusBosses = [
+        { id: 'boss_1', name: 'âèç©ºã®ç ´å£ç¥ã´ã©ã¤ãâ', x: 50000, y: 48000, hp: 3500, maxHp: 3500, radius: 65, color: '#f43f5e', cores: 120, speed: 2.2, angle: 0 },
+        { id: 'boss_2', name: 'âåè¥¿ã®å·¨ç¥ã¯ã­ãã¹â', x: 22000, y: 22000, hp: 2800, maxHp: 2800, radius: 55, color: '#a855f7', cores: 80, speed: 2.0, angle: 0 },
+        { id: 'boss_3', name: 'âåæ±ã®æ©ç²ç«ã¬ã´ã£ã¢â', x: 78000, y: 78000, hp: 3000, maxHp: 3000, radius: 60, color: '#eab308', cores: 90, speed: 2.1, angle: 0 }
+      ];
     }
 
     /* =========================================================
-       7. 操作入力 (タッチジョイスティック & スキル)
+       6. ã¹ãªã¼ãã¼é²è¡æ ç¹å»ºç¯ã·ã¹ãã  (ã¿ã¬ããã»éå£ã»ããã)
+       ========================================================= */
+    const STRUCTURE_TEMPLATES = {
+      turret: { name: 'èªåè¿æã¿ã¬ãã', cost: 50, hp: 250, radius: 24, range: 400, color: '#06b6d4', icon: 'fa-crosshairs' },
+      pylon: { name: 'é²è­·éå£ãã¤ã­ã³', cost: 80, hp: 450, radius: 32, domeRadius: 220, color: '#818cf8', icon: 'fa-atom' },
+      trap: { name: 'é»ç£ã·ã§ãã¯ç½ ', cost: 30, hp: 80, radius: 18, damage: 65, color: '#facc15', icon: 'fa-bolt-lightning' },
+      pod: { name: 'é²è¡ã³ã¯ã¼ã³ããã', cost: 100, hp: 800, radius: 36, color: '#10b981', icon: 'fa-capsules' }
+    };
+
+    function buildStructure(type) {
+      if (!myPlayer.isAlive) return;
+      const tpl = STRUCTURE_TEMPLATES[type];
+      if (myPlayer.scrap < tpl.cost) {
+        triggerPopup(myPlayer.x, myPlayer.y - 30, 'è³æ(ã¹ã¯ã©ãã)ä¸è¶³!', '#f43f5e');
+        return;
+      }
+
+      myPlayer.scrap -= tpl.cost;
+      sound.playBuild();
+
+      const struct = {
+        id: 'st_' + Math.random().toString(36).substr(2, 7),
+        ownerName: myPlayer.name,
+        type,
+        x: Math.round(myPlayer.x + Math.cos(myPlayer.angle) * 50),
+        y: Math.round(myPlayer.y + Math.sin(myPlayer.angle) * 50),
+        hp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
+        maxHp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
+        radius: tpl.radius,
+        domeRadius: tpl.domeRadius || 0,
+        range: tpl.range || 0,
+        color: tpl.color,
+        lastShoot: 0
+      };
+
+      defenseStructures.push(struct);
+      saveStructures();
+      broadcast({ type: 'build_structure', structure: struct });
+      triggerPopup(struct.x, struct.y - 20, `${tpl.name} å»ºé !`, '#2dd4bf');
+    }
+
+    function saveStructures() {
+      try {
+        localStorage.setItem(getBaseKey(), JSON.stringify(defenseStructures));
+      } catch(e) {}
+    }
+
+    document.getElementById('buildTurret').addEventListener('click', () => buildStructure('turret'));
+    document.getElementById('buildPylon').addEventListener('click', () => buildStructure('pylon'));
+    document.getElementById('buildTrap').addEventListener('click', () => buildStructure('trap'));
+    document.getElementById('buildPod').addEventListener('click', () => buildStructure('pod'));
+
+    /* =========================================================
+       7. ã¹ããæä½ (ã¸ã§ã¤ã¹ãã£ãã¯ + æåç´ç·ç§æº)
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -952,9 +934,9 @@
 
       joyKnob.style.transform = `translate(calc(-50% + ${Math.cos(angle) * bounded}px), calc(-50% + ${Math.sin(angle) * bounded}px))`;
 
-      if (dist > 6) {
+      if (dist > 5) {
         joyVector = { x: Math.cos(angle) * (bounded / maxR), y: Math.sin(angle) * (bounded / maxR) };
-        myPlayer.angle = angle;
+        myPlayer.angle = angle; // èªæ©ã®åãã¸ãã¤ã¬ã¯ãæå
       } else {
         joyVector = { x: 0, y: 0 };
       }
@@ -983,295 +965,646 @@
     function resetJoy() {
       joyTouchId = null;
       joyVector = { x: 0, y: 0 };
-      joyKnob.style.transform = `translate(-50%, -50%)`;
+      joyKnob.style.transform = 'translate(-50%, -50%)';
     }
     window.addEventListener('touchend', (e) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) {
-          resetJoy();
-          break;
-        }
+        if (e.changedTouches[i].identifier === joyTouchId) { resetJoy(); break; }
       }
     });
     window.addEventListener('touchcancel', resetJoy);
 
-    // PCキーボード補助
-    const keys = {};
-    window.addEventListener('keydown', (e) => {
-      keys[e.key.toLowerCase()] = true;
-      if (e.key === ' ' || e.key === 'Enter') shootWeapon();
-      if (e.key === 'Shift') triggerDash();
-      if (e.key === 'e' || e.key === 'E') activateSkill();
-      if (e.key === 'q' || e.key === 'Q') placeMine();
-    });
-    window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
-
     /* =========================================================
-       8. 戦闘・スキル・強奪・被弾ロジック
+       8. æåç´ç·æ»æ ï¼ ã¯ã©ã¹ç¹æã¢ã¯ã·ã§ã³ (ãªã¼ãã¨ã¤ã å¨å»)
        ========================================================= */
-    function getAutoAimTarget() {
-      let nearest = null;
-      let minD = 580;
-
-      // 敵プレイヤー優先
-      remotePlayers.forEach(rp => {
-        if (!rp.isAlive) return;
-        if (myPlayer.team !== 'solo' && myPlayer.team === rp.team) return;
-        const d = Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y);
-        if (d < minD) { minD = d; nearest = rp; }
-      });
-
-      // BOTも狙う
-      if (!nearest) {
-        bots.forEach(b => {
-          const d = Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y);
-          if (d < minD) { minD = d; nearest = b; }
-        });
-      }
-      return nearest;
-    }
-
-    function shootWeapon() {
+    function performManualAttack() {
       if (!myPlayer.isAlive) return;
-      const cfg = CLASS_CONFIG[myPlayer.classType];
+      const cfg = CLASS_CONFIGS[myPlayer.classType];
       const now = performance.now();
-      const reloadReduction = 1 - ((myPlayer.upgrades.reload || 0) * 0.08);
-      if (now - myPlayer.lastShootTime < cfg.reload * Math.max(0.35, reloadReduction)) return;
+      if (now - myPlayer.lastAttackTime < cfg.attackRate) return;
+      myPlayer.lastAttackTime = now;
 
-      myPlayer.lastShootTime = now;
-      sound.playShoot();
+      const dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.15;
+      const damage = Math.round(cfg.damage * dmgBuff);
 
-      const target = getAutoAimTarget();
-      let aimAngle = myPlayer.angle;
-      if (target) {
-        aimAngle = Math.atan2(target.y - myPlayer.y, target.x - myPlayer.x);
-        myPlayer.angle = aimAngle;
-      }
+      if (cfg.isMelee) {
+        // è¿æ¥æç¶æ¬æ (ãã¬ã¼ããã¹ã¿ã¼ / ã¬ã¼ãã£ã¢ã³)
+        sound.playSlash();
+        myPlayer.slashAnimation = 12; // ã¢ãã¡ã¼ã·ã§ã³æé
 
-      const dmgBuff = 1 + ((myPlayer.upgrades.dmg || 0) * 0.18);
-      const bSpeedBuff = 1 + ((myPlayer.upgrades.bulletSpeed || 0) * 0.12);
-
-      for (let i = 0; i < cfg.count; i++) {
-        let spreadAngle = aimAngle;
-        if (cfg.count > 1) {
-          spreadAngle += (i - (cfg.count - 1) / 2) * (cfg.spread / cfg.count);
-        } else if (cfg.spread > 0) {
-          spreadAngle += (Math.random() - 0.5) * cfg.spread;
-        }
-
-        const b = {
-          id: 'b_' + Math.random().toString(36).substr(2, 7),
+        const slashObj = {
+          id: 'sl_' + Math.random().toString(36).substr(2, 6),
           ownerId: myPlayer.id,
           ownerName: myPlayer.name,
-          team: myPlayer.team,
-          color: getPlayerColor(myPlayer),
-          x: myPlayer.x + Math.cos(spreadAngle) * (myPlayer.radius + 6),
-          y: myPlayer.y + Math.sin(spreadAngle) * (myPlayer.radius + 6),
-          vx: Math.cos(spreadAngle) * (cfg.bulletSpeed * bSpeedBuff),
-          vy: Math.sin(spreadAngle) * (cfg.bulletSpeed * bSpeedBuff),
-          damage: Math.round(cfg.bulletDmg * dmgBuff),
-          radius: cfg.bulletSize,
-          life: 85
+          x: myPlayer.x,
+          y: myPlayer.y,
+          angle: myPlayer.angle,
+          arc: cfg.arc,
+          range: cfg.range,
+          damage,
+          life: 8
         };
+        slashes.push(slashObj);
+        broadcast({ type: 'attack_slash', ownerId: myPlayer.id, slash: slashObj });
 
-        bullets.push(b);
-        broadcast({ type: 'shoot', ownerId: myPlayer.id, bullet: b });
+        // æ¬æãããå¤å® (æµã»ã¹ãªã¼ãã¼ã»å¼¾ä¸¸å¼¾ã)
+        checkMeleeHits(slashObj, cfg.deflects);
+      } else {
+        // ç´ç·æåå°æ (ã¬ã³ãã¼ / ã½ã¼ãµã©ã¼ / ã¢ã«ã±ãã¹ã)
+        sound.playShoot();
+        const bullet = {
+          id: 'b_' + Math.random().toString(36).substr(2, 6),
+          ownerId: myPlayer.id,
+          ownerName: myPlayer.name,
+          x: myPlayer.x + Math.cos(myPlayer.angle) * (myPlayer.radius + 8),
+          y: myPlayer.y + Math.sin(myPlayer.angle) * (myPlayer.radius + 8),
+          vx: Math.cos(myPlayer.angle) * cfg.bulletSpeed,
+          vy: Math.sin(myPlayer.angle) * cfg.bulletSpeed,
+          damage,
+          radius: cfg.bulletSize || 6,
+          life: 70,
+          color: myPlayer.classType === 'sorcerer' ? '#c084fc' : myPlayer.classType === 'alchemist' ? '#34d399' : '#38bdf8',
+          isPoison: !!cfg.isPoison,
+          isHoming: !!cfg.homing
+        };
+        bullets.push(bullet);
+        broadcast({ type: 'attack_bullet', ownerId: myPlayer.id, bullet });
       }
 
-      myPlayer.vx -= Math.cos(aimAngle) * 1.5;
-      myPlayer.vy -= Math.sin(aimAngle) * 1.5;
+      // åå
+      myPlayer.vx -= Math.cos(myPlayer.angle) * 1.5;
+      myPlayer.vy -= Math.sin(myPlayer.angle) * 1.5;
+    }
+
+    function checkMeleeHits(sl, canDeflect) {
+      // æ¬æã§æµã®å¼¾ä¸¸ãå¼¾ã (ãã¬ã¼ããã¹ã¿ã¼ã®ããã·ã)
+      if (canDeflect) {
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          if (b.ownerId !== myPlayer.id && Math.hypot(b.x - sl.x, b.y - sl.y) < sl.range + 20) {
+            b.vx = -b.vx * 1.2;
+            b.vy = -b.vy * 1.2;
+            b.ownerId = myPlayer.id; // èªåã®å¼¾ã¨ãã¦è·³ã­è¿ã
+            triggerPopup(b.x, b.y, 'å¼¾ãè¿ã!', '#38bdf8');
+          }
+        }
+      }
+
+      // å¯¾ä»ãã¬ã¤ã¤ã¼
+      remotePlayers.forEach(rp => {
+        if (!rp.isAlive) return;
+        const dist = Math.hypot(rp.x - sl.x, rp.y - sl.y);
+        const ang = Math.atan2(rp.y - sl.y, rp.x - sl.x);
+        const diff = Math.abs(normalizeAngle(ang - sl.angle));
+        if (dist < sl.range + 26 && diff < sl.arc / 2) {
+          sound.playHit();
+          broadcast({ type: 'damage_player', targetId: rp.id, attackerName: myPlayer.name, damage: sl.damage });
+        }
+      });
+
+      // å¯¾ä¼ç ã¹ãªã¼ãã¼ (èä¹100å)
+      sleeperPlayers.forEach(sleeper => {
+        const dist = Math.hypot(sleeper.x - sl.x, sleeper.y - sl.y);
+        const ang = Math.atan2(sleeper.y - sl.y, sleeper.x - sl.x);
+        const diff = Math.abs(normalizeAngle(ang - sl.angle));
+        if (dist < sl.range + sleeper.radius && diff < sl.arc / 2) {
+          // é²è­·éå£ãã¼ã åã«ããã¹ãªã¼ãã¼ã¯ç¡æµ
+          if (isInForcefield(sleeper.x, sleeper.y)) {
+            triggerPopup(sleeper.x, sleeper.y, 'éå£ã«ããå®å¨é²å¾¡!', '#818cf8');
+            return;
+          }
+          const sleepDmg = Math.max(1, Math.round(sl.damage * 0.01)); // è¢«ãã¡ã¼ã¸1/100
+          sleeper.hp -= sleepDmg;
+          sound.playHit();
+          broadcast({ type: 'damage_sleeper', targetName: sleeper.name, attackerName: myPlayer.name, damage: sleepDmg });
+          if (sleeper.hp <= 0) {
+            dropCoresAt(sleeper.x, sleeper.y, sleeper.cores);
+            sleeperPlayers = sleeperPlayers.filter(s => s.name !== sleeper.name);
+            localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
+          }
+        }
+      });
+
+      // å¯¾é²è¡æ§é ç©
+      defenseStructures.forEach(st => {
+        if (st.ownerName !== myPlayer.name && Math.hypot(st.x - sl.x, st.y - sl.y) < sl.range + st.radius) {
+          st.hp -= sl.damage;
+          broadcast({ type: 'damage_structure', structureId: st.id, damage: sl.damage });
+          if (st.hp <= 0) {
+            defenseStructures = defenseStructures.filter(s => s.id !== st.id);
+            triggerExplosion(st.x, st.y);
+          }
+        }
+      });
+    }
+
+    function isInForcefield(x, y) {
+      return defenseStructures.some(st => st.type === 'pylon' && Math.hypot(st.x - x, st.y - y) < st.domeRadius);
+    }
+
+    function normalizeAngle(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    // ã¯ã©ã¹ç¹æã¢ã¯ãã£ãã¹ã­ã«
+    function activateClassSkill() {
+      if (!myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
+      myPlayer.skillCooldown = 280;
+
+      if (myPlayer.classType === 'blademaster') {
+        // æé¢¨åè»¢æ¬æ (360åº¦å¨æ¹ä½)
+        sound.playSlash();
+        const spin = {
+          id: 'spin_' + Math.random().toString(36).substr(2, 6),
+          ownerId: myPlayer.id,
+          x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 130, damage: 85, life: 12
+        };
+        slashes.push(spin);
+        checkMeleeHits(spin, true);
+        triggerPopup(myPlayer.x, myPlayer.y, 'æé¢¨åå£æ¼è!', '#f43f5e');
+      } else if (myPlayer.classType === 'sorcerer') {
+        // ããªã³ã¯ (ç¬éç§»å)
+        sound.playWarp();
+        myPlayer.x += Math.cos(myPlayer.angle) * 350;
+        myPlayer.y += Math.sin(myPlayer.angle) * 350;
+        triggerPopup(myPlayer.x, myPlayer.y, 'ç©ºéè·³èºããªã³ã¯!', '#c084fc');
+      } else if (myPlayer.classType === 'alchemist') {
+        // èé£æ¯æ²¼ã®ææ²
+        sound.playShoot();
+        toxicPools.push({
+          x: myPlayer.x + Math.cos(myPlayer.angle) * 120,
+          y: myPlayer.y + Math.sin(myPlayer.angle) * 120,
+          r: 90,
+          life: 240,
+          damage: 1.2
+        });
+        triggerPopup(myPlayer.x, myPlayer.y, 'èé£æ¯æ²¼å±é!', '#34d399');
+      } else {
+        // ã·ã¼ã«ãå±é / æçºè¡ææ³¢
+        sound.playTone(450, 'sine', 0.2, 0.2);
+        myPlayer.shield += 120;
+        triggerPopup(myPlayer.x, myPlayer.y, 'è¦å¡é²å¾¡æå¢!', '#38bdf8');
+      }
     }
 
     function triggerDash() {
       if (!myPlayer.isAlive || myPlayer.stamina < 30) return;
       myPlayer.stamina -= 30;
       myPlayer.isDashing = true;
-      sound.playDash();
-
-      const boost = 14;
-      myPlayer.vx += Math.cos(myPlayer.angle) * boost;
-      myPlayer.vy += Math.sin(myPlayer.angle) * boost;
-
-      for (let i = 0; i < 7; i++) {
-        particles.push({
-          x: myPlayer.x, y: myPlayer.y,
-          vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
-          color: '#38bdf8', size: 4, alpha: 1, decay: 0.07
-        });
-      }
-      setTimeout(() => { myPlayer.isDashing = false; }, 220);
+      sound.playTone(320, 'triangle', 0.1, 0.1);
+      myPlayer.vx += Math.cos(myPlayer.angle) * 18;
+      myPlayer.vy += Math.sin(myPlayer.angle) * 18;
+      setTimeout(() => { myPlayer.isDashing = false; }, 200);
     }
 
-    // アクティブスキル: バリアシールド展開
-    function activateSkill() {
-      if (!myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
-      myPlayer.skillCooldown = 300; // 5秒
-      sound.playSkill();
+    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); performManualAttack(); });
+    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); performManualAttack(); });
+    document.getElementById('btnDash').addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
+    document.getElementById('btnDash').addEventListener('mousedown', (e) => { e.preventDefault(); triggerDash(); });
+    document.getElementById('btnSkill').addEventListener('click', activateClassSkill);
 
-      myPlayer.shield = Math.min(myPlayer.shield + 60, myPlayer.maxShield + 60);
-      popups.push({
-        x: myPlayer.x, y: myPlayer.y - 30,
-        text: '🛡️ シールド展開!', color: '#38bdf8', size: 14, life: 40, dy: -0.8
-      });
-    }
-
-    // 地雷トラップ設置
-    function placeMine() {
-      if (!myPlayer.isAlive || myPlayer.mineCooldown > 0) return;
-      myPlayer.mineCooldown = 360; // 6秒
-      sound.playSkill();
-
-      const mine = {
-        id: 'm_' + Math.random().toString(36).substr(2, 7),
-        ownerId: myPlayer.id,
-        team: myPlayer.team,
-        x: myPlayer.x,
-        y: myPlayer.y,
-        damage: 65,
-        radius: 14
-      };
-      mines.push(mine);
-      broadcast({ type: 'place_mine', mine });
-    }
-
-    function triggerExplosionEffect(x, y) {
-      sound.playExplode();
-      for (let i = 0; i < 15; i++) {
-        particles.push({
-          x, y,
-          vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
-          color: Math.random() < 0.5 ? '#f59e0b' : '#ef4444',
-          size: 5, alpha: 1, decay: 0.05
-        });
-      }
-    }
-
-    // 被弾＆強奪ペナルティ
-    function takeDamage(dmg, attackerName, isMine = false) {
+    /* =========================================================
+       9. ç©çæ´æ° ï¼ ç©ºéåå²(Chunk)æé©å
+       ========================================================= */
+    function update() {
       if (!myPlayer.isAlive) return;
-      sound.playHit();
 
-      // シールド吸収
-      if (myPlayer.shield > 0) {
-        if (myPlayer.shield >= dmg) {
-          myPlayer.shield -= dmg;
-          dmg = 0;
-        } else {
-          dmg -= myPlayer.shield;
-          myPlayer.shield = 0;
+      const cfg = CLASS_CONFIGS[myPlayer.classType];
+      const speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.06;
+      const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
+
+      myPlayer.vx += joyVector.x * curSpeed * 0.28;
+      myPlayer.vy += joyVector.y * curSpeed * 0.28;
+      myPlayer.vx *= 0.85;
+      myPlayer.vy *= 0.85;
+
+      // 100,000x100,000 ã¯ã¼ã«ãå¢ç
+      myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
+      myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
+
+      // ã¯ã¼ãã²ã¼ãè¡çªå¤å®
+      if (myPlayer.warpCooldown > 0) {
+        myPlayer.warpCooldown--;
+      } else {
+        hyperGates.forEach(g => {
+          if (Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y) < 70) {
+            myPlayer.x = g.targetX;
+            myPlayer.y = g.targetY;
+            myPlayer.warpCooldown = 150;
+            sound.playWarp();
+            triggerPopup(myPlayer.x, myPlayer.y, `${g.name} è»¢éå®äº!`, g.color);
+          }
+        });
+      }
+
+      // ã¢ãããªã¼ã¾ã¼ã³å¤å®
+      anomalyZones.forEach(az => {
+        if (Math.hypot(myPlayer.x - az.x, myPlayer.y - az.y) < az.r) {
+          if (az.type === 'sanctuary') {
+            myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + 0.5);
+          } else if (az.type === 'radiation') {
+            myPlayer.hp -= 0.3;
+          }
+        }
+      });
+
+      // è¨­ç½®åã¿ã¬ããã®èªåè¿æAI
+      defenseStructures.forEach(st => {
+        if (st.type === 'turret') {
+          const now = performance.now();
+          if (now - st.lastShoot > 700) {
+            // æãè¿ãæµã¹ãªã¼ãã¼ã¾ãã¯ä»ãã¬ã¤ã¤ã¼ãç´¢æµ
+            let target = null;
+            let minDist = st.range;
+            remotePlayers.forEach(rp => {
+              const d = Math.hypot(rp.x - st.x, rp.y - st.y);
+              if (d < minDist) { minDist = d; target = rp; }
+            });
+
+            if (target) {
+              st.lastShoot = now;
+              const ang = Math.atan2(target.y - st.y, target.x - st.x);
+              bullets.push({
+                id: 'tb_' + Math.random().toString(36).substr(2, 6),
+                ownerId: 'turret',
+                x: st.x, y: st.y,
+                vx: Math.cos(ang) * 14, vy: Math.sin(ang) * 14,
+                damage: 22, radius: 5, life: 60, color: '#06b6d4'
+              });
+            }
+          }
+        }
+      });
+
+      // æ¬æã»å¼¾ä¸¸ã®æ´æ°
+      for (let i = slashes.length - 1; i >= 0; i--) {
+        if (--slashes[i].life <= 0) slashes.splice(i, 1);
+      }
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        if (--b.life <= 0) { bullets.splice(i, 1); continue; }
+
+        // å¼¾ä¸¸ã®èªãã¬ã¤ã¤ã¼ã¸ã®è¢«å¼¾
+        if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
+          takeDamage(b.damage, b.ownerName || 'ã¿ã¬ãã');
+          bullets.splice(i, 1);
         }
       }
 
+      // ãªã¸ã§ã & ã¹ã¿ãã & ã¯ã¼ã«ãã¦ã³
+      const regenVal = 0.04 + (myPlayer.upgrades.regen || 0) * 0.05;
+      if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenVal);
+      if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + 0.4);
+      if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
+      if (myPlayer.slashAnimation > 0) myPlayer.slashAnimation--;
+
+      // èªç¶ã¹ã¯ã©ããåå (ãã£ã¼ã«ãå¾å¾ã§ã¹ã¯ã©ããèªåèç©)
+      if (Math.random() < 0.04) myPlayer.scrap += 1;
+
+      updateHud();
+    }
+
+    function takeDamage(dmg, attacker) {
+      if (!myPlayer.isAlive) return;
+      sound.playHit();
+      const armorRed = (myPlayer.upgrades.armor || 0) * 0.04;
+      dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
+
+      if (myPlayer.shield > 0) {
+        if (myPlayer.shield >= dmg) { myPlayer.shield -= dmg; dmg = 0; }
+        else { dmg -= myPlayer.shield; myPlayer.shield = 0; }
+      }
+
       myPlayer.hp -= dmg;
-      popups.push({
-        x: myPlayer.x + (Math.random() - 0.5) * 20,
-        y: myPlayer.y - 25,
-        text: `-${dmg}`, color: isMine ? '#f59e0b' : '#f43f5e',
-        size: 16, life: 35, dy: -1
-      });
+      triggerPopup(myPlayer.x, myPlayer.y - 20, `-${dmg}`, '#f43f5e');
 
       if (myPlayer.hp <= 0) {
         myPlayer.isAlive = false;
         sound.playExplode();
-
-        // コア強奪: 半分をその場にばら撒きドロップ
-        const lostCores = Math.ceil(myPlayer.cores * 0.5);
-        myPlayer.cores -= lostCores;
-
-        const dropped = [];
-        for (let i = 0; i < Math.min(12, lostCores); i++) {
-          dropped.push({
-            id: 'c_' + Math.random().toString(36).substr(2, 7),
-            x: myPlayer.x + (Math.random() - 0.5) * 80,
-            y: myPlayer.y + (Math.random() - 0.5) * 80,
-            val: Math.max(1, Math.floor(lostCores / Math.min(12, lostCores)))
-          });
-        }
-        dropCores.push(...dropped);
-        broadcast({ type: 'drop_cores_spawn', cores: dropped });
-
+        const lost = Math.ceil(myPlayer.cores * 0.5);
+        myPlayer.cores -= lost;
+        dropCoresAt(myPlayer.x, myPlayer.y, lost);
         savePlayerData();
 
-        document.getElementById('deathMessage').textContent = `${attackerName || '敵'} に倒され、コアが奪われた！`;
-        document.getElementById('lostCoresText').textContent = `-${lostCores}`;
+        document.getElementById('lostCoresText').textContent = `-${lost}`;
         document.getElementById('keptCoresText').textContent = myPlayer.cores;
-        document.getElementById('finalKills').textContent = myPlayer.kills;
         document.getElementById('deathModal').classList.remove('hidden');
+        broadcast({ type: 'kill_broadcast', killer: attacker, victim: myPlayer.name });
+      }
+    }
 
-        broadcast({
-          type: 'kill_broadcast',
-          killer: attackerName || 'Unknown',
-          victim: myPlayer.name
+    function dropCoresAt(x, y, amount) {
+      for (let i = 0; i < Math.min(12, Math.max(3, amount)); i++) {
+        dropCores.push({
+          id: 'c_' + Math.random().toString(36).substr(2, 6),
+          x: x + (Math.random() - 0.5) * 60,
+          y: y + (Math.random() - 0.5) * 60,
+          val: Math.max(1, Math.floor(amount / 5))
         });
       }
     }
 
-    function sendEmote(txt) {
-      if (!myPlayer.isAlive) return;
-      myPlayer.emote = txt;
-      myPlayer.emoteTimer = 130;
-      popups.push({
-        x: myPlayer.x, y: myPlayer.y - 35,
-        text: txt, color: '#fef08a', size: 15, life: 55, dy: -0.6
-      });
-      syncMyState();
+    function triggerExplosion(x, y) {
+      sound.playExplode();
+      for (let i = 0; i < 18; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
+          color: '#fbbf24', size: 5, alpha: 1, decay: 0.04
+        });
+      }
     }
 
-    // ボタンリスナー登録
-    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); shootWeapon(); });
-    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); shootWeapon(); });
-    document.getElementById('btnDash').addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
-    document.getElementById('btnDash').addEventListener('mousedown', (e) => { e.preventDefault(); triggerDash(); });
-    document.getElementById('btnSkill').addEventListener('click', activateSkill);
-    document.getElementById('btnMine').addEventListener('click', placeMine);
+    function triggerPopup(x, y, text, color) {
+      popups.push({ x, y, text, color, life: 40 });
+    }
 
-    document.querySelectorAll('.emote-btn').forEach(b => {
-      b.addEventListener('click', () => sendEmote(b.dataset.emote));
-    });
+    function updateHud() {
+      document.getElementById('hudHpFill').style.width = `${(myPlayer.hp / myPlayer.maxHp) * 100}%`;
+      document.getElementById('hudHpText').textContent = `${Math.ceil(myPlayer.hp)} / ${myPlayer.maxHp}`;
+      document.getElementById('hudCores').textContent = myPlayer.cores;
+      document.getElementById('hudScrap').textContent = myPlayer.scrap;
+      document.getElementById('hudSp').textContent = myPlayer.sp;
+      document.getElementById('hudPosX').textContent = Math.round(myPlayer.x);
+      document.getElementById('hudPosY').textContent = Math.round(myPlayer.y);
+
+      // ã»ã¯ã¿ã¼è¨ç® (100,000x100,000ã100x100ã°ãªããã«åå²)
+      const secX = Math.floor(myPlayer.x / 1000);
+      const secY = Math.floor(myPlayer.y / 1000);
+      document.getElementById('hudSector').textContent = `[${secX}-${secY}]`;
+
+      const cd = document.getElementById('skillCooldownCover');
+      if (myPlayer.skillCooldown > 0) {
+        cd.classList.remove('hidden');
+        cd.textContent = `${Math.ceil(myPlayer.skillCooldown / 60)}s`;
+      } else cd.classList.add('hidden');
+    }
 
     /* =========================================================
-       9. ログイン・クラス選択 & リスポーン
+       10. æç» (100,000x100,000 ç©ºéã«ãªã³ã°æç»)
        ========================================================= */
-    let selectedTeam = 'solo';
-    let selectedClass = 'gunner';
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    document.querySelectorAll('.team-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('ring-2', 'ring-cyan-400', 'ring-rose-400', 'ring-blue-400'));
-        selectedTeam = btn.dataset.team;
-        if (selectedTeam === 'solo') btn.classList.add('ring-2', 'ring-cyan-400');
-        if (selectedTeam === 'red') btn.classList.add('ring-2', 'ring-rose-400');
-        if (selectedTeam === 'blue') btn.classList.add('ring-2', 'ring-blue-400');
+      const camX = myPlayer.x - canvas.width / 2;
+      const camY = myPlayer.y - canvas.height / 2;
+      const viewR = Math.hypot(canvas.width, canvas.height) / 2 + 100;
+
+      ctx.save();
+      ctx.translate(-camX, -camY);
+
+      // ã°ãªããç·
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+      const g = 100;
+      const sx = Math.floor(camX / g) * g;
+      const sy = Math.floor(camY / g) * g;
+      for (let x = sx; x < camX + canvas.width + g; x += g) {
+        ctx.beginPath(); ctx.moveTo(x, camY); ctx.lineTo(x, camY + canvas.height); ctx.stroke();
+      }
+      for (let y = sy; y < camY + canvas.height + g; y += g) {
+        ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
+      }
+
+      // ãã¤ãã¼ã²ã¼ãæç»
+      hyperGates.forEach(gate => {
+        if (Math.hypot(gate.x - myPlayer.x, gate.y - myPlayer.y) < viewR) {
+          ctx.beginPath();
+          ctx.arc(gate.x, gate.y, 60, 0, Math.PI * 2);
+          ctx.fillStyle = `${gate.color}22`;
+          ctx.fill();
+          ctx.strokeStyle = gate.color;
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
       });
-    });
 
+      // è¨­ç½®åé²è¡å»ºç¯ (ã¿ã¬ããã»éå£ãã¼ã ã»ç½ ã»ããã)
+      defenseStructures.forEach(st => {
+        if (Math.hypot(st.x - myPlayer.x, st.y - myPlayer.y) < viewR + 250) {
+          if (st.type === 'pylon') {
+            // é²è­·éå£ãã¼ã 
+            ctx.beginPath();
+            ctx.arc(st.x, st.y, st.domeRadius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(129, 140, 248, 0.12)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(129, 140, 248, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          ctx.beginPath();
+          ctx.arc(st.x, st.y, st.radius, 0, Math.PI * 2);
+          ctx.fillStyle = st.color;
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // HPãã¼
+          ctx.fillStyle = 'rgba(0,0,0,0.6)';
+          ctx.fillRect(st.x - 20, st.y - st.radius - 8, 40, 3);
+          ctx.fillStyle = '#2dd4bf';
+          ctx.fillRect(st.x - 20, st.y - st.radius - 8, 40 * (st.hp / st.maxHp), 3);
+        }
+      });
+
+      // ä¼ç ã¹ãªã¼ãã¼ (èä¹100åç³å)
+      sleeperPlayers.forEach(sl => {
+        if (Math.hypot(sl.x - myPlayer.x, sl.y - myPlayer.y) < viewR) {
+          ctx.beginPath();
+          ctx.arc(sl.x, sl.y, sl.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#475569';
+          ctx.fill();
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillStyle = '#93c5fd';
+          ctx.textAlign = 'center';
+          ctx.fillText('ð¤ [ä¼ç ç³å]', sl.x, sl.y - sl.radius - 16);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(`${sl.name} (100x HP)`, sl.x, sl.y - sl.radius - 4);
+        }
+      });
+
+      // æ¬æã¨ãã§ã¯ã (æç¶ã¢ã¼ã¯æç»)
+      slashes.forEach(sl => {
+        ctx.beginPath();
+        ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+      });
+
+      // å¼¾ä¸¸
+      bullets.forEach(b => {
+        if (Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < viewR) {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+          ctx.fillStyle = b.color;
+          ctx.fill();
+        }
+      });
+
+      // èªãã¬ã¤ã¤ã¼æç»
+      if (myPlayer.isAlive) {
+        drawCharacter(myPlayer, myPlayer.x, myPlayer.y, myPlayer.angle, true);
+        drawAimingGuide(myPlayer);
+      }
+
+      // ãªã¢ã¼ããã¬ã¤ã¤ã¼
+      remotePlayers.forEach(rp => {
+        if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
+          drawCharacter(rp, rp.x, rp.y, rp.angle, false);
+        }
+      });
+
+      // ãããã¢ãã
+      for (let i = popups.length - 1; i >= 0; i--) {
+        const p = popups[i];
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillStyle = p.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(p.text, p.x, p.y);
+        p.y -= 0.6;
+        if (--p.life <= 0) popups.splice(i, 1);
+      }
+
+      ctx.restore();
+      renderMiniMap();
+    }
+
+    function drawAimingGuide(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.beginPath();
+      ctx.setLineDash([5, 5]);
+      ctx.moveTo(p.radius + 10, 0);
+      ctx.lineTo(p.radius + 130, 0);
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawCharacter(p, x, y, angle, isSelf) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // ã¯ã©ã¹ã«å¿ããæ­¦å¨ã®æç»
+      if (p.classType === 'blademaster') {
+        // åå£
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(10, -14); ctx.lineTo(34, -18);
+        ctx.moveTo(10, 14); ctx.lineTo(34, 18);
+        ctx.stroke();
+      } else {
+        // éèº«
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(8, -5, 24, 10);
+      }
+
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius || 26, 0, Math.PI * 2);
+      ctx.fillStyle = isSelf ? '#0ea5e9' : '#10b981';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.rotate(-angle);
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, 0, -32);
+      ctx.restore();
+    }
+
+    // 100,000x100,000 ããããã
+    function renderMiniMap() {
+      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+      const sx = miniCanvas.width / WORLD_WIDTH;
+      const sy = miniCanvas.height / WORLD_HEIGHT;
+
+      // ã²ã¼ã
+      miniCtx.fillStyle = '#38bdf8';
+      hyperGates.forEach(g => miniCtx.fillRect(g.x * sx - 2, g.y * sy - 2, 4, 4));
+
+      // ã¹ãªã¼ãã¼
+      miniCtx.fillStyle = '#94a3b8';
+      sleeperPlayers.forEach(sl => miniCtx.fillRect(sl.x * sx - 1, sl.y * sy - 1, 2, 2));
+
+      // èªå
+      miniCtx.fillStyle = '#f43f5e';
+      miniCtx.beginPath();
+      miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 3, 0, Math.PI * 2);
+      miniCtx.fill();
+    }
+
+    function updateLeaderboard() {
+      const all = [];
+      all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
+      remotePlayers.forEach(rp => all.push({ name: rp.name, cores: rp.cores || 0, tag: 'LIVE', color: 'text-cyan-300' }));
+      sleeperPlayers.forEach(sp => all.push({ name: sp.name, cores: sp.cores || 0, tag: 'ð¤', color: 'text-slate-400' }));
+      colossusBosses.forEach(b => all.push({ name: b.name, cores: b.cores, tag: 'BOSS', color: 'text-rose-400 font-bold' }));
+
+      all.sort((a, b) => b.cores - a.cores);
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      all.slice(0, 5).forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = `flex justify-between items-center ${item.color}`;
+        li.innerHTML = `
+          <span class="truncate max-w-[100px]">${i + 1}. [${item.tag}] ${item.name}</span>
+          <span class="font-mono text-amber-300 font-bold">${item.cores}</span>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function addKillLog(killer, victim) {
+      const feed = document.getElementById('killFeed');
+      const item = document.createElement('div');
+      item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
+      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> âï¸ <span class="text-slate-300">${victim}</span>`;
+      feed.prepend(item);
+      setTimeout(() => item.remove(), 4000);
+    }
+
+    /* =========================================================
+       11. ã©ã¤ããµã¤ã¯ã« ï¼ ã¤ãã³ã
+       ========================================================= */
     document.querySelectorAll('.class-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.class-btn').forEach(b => {
-          b.classList.remove('ring-2', 'ring-indigo-400', 'border-indigo-500');
-          b.classList.add('border-slate-700');
-        });
-        selectedClass = btn.dataset.class;
-        btn.classList.add('ring-2', 'ring-indigo-400', 'border-indigo-500');
+        document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('ring-2', 'ring-rose-400'));
+        btn.classList.add('ring-2', 'ring-rose-400');
+        myPlayer.classType = btn.dataset.class;
       });
     });
 
     document.getElementById('btnJoin').addEventListener('click', () => {
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
-      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'ARENA10';
-
-      myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
+      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
+      myPlayer.name = n || 'åè' + Math.floor(Math.random() * 899 + 100);
       roomCode = r;
-      myPlayer.team = selectedTeam;
-      myPlayer.classType = selectedClass;
 
-      // 永続セーブデータの読み込み
       loadPlayerData();
       recalcStats();
 
       document.getElementById('hudName').textContent = myPlayer.name;
-      document.getElementById('hudClass').textContent = CLASS_CONFIG[myPlayer.classType].name;
+      document.getElementById('hudClass').textContent = CLASS_CONFIGS[myPlayer.classType].name;
 
       initNetwork(roomCode);
 
@@ -1279,645 +1612,24 @@
       document.getElementById('gameHud').classList.remove('hidden');
     });
 
-    document.getElementById('btnRespawn').addEventListener('click', () => {
-      recalcStats();
-      myPlayer.x = 2100 + (Math.random() - 0.5) * 800;
-      myPlayer.y = 2100 + (Math.random() - 0.5) * 800;
-      myPlayer.vx = 0;
-      myPlayer.vy = 0;
-      myPlayer.isAlive = true;
-      myPlayer.stamina = 100;
-      myPlayer.shield = myPlayer.maxShield;
-      document.getElementById('deathModal').classList.add('hidden');
-      syncMyState();
+    document.getElementById('btnSleepLogout').addEventListener('click', () => {
+      registerAsSleeper();
+      savePlayerData();
+      if (peer) peer.destroy();
+      document.getElementById('gameHud').classList.add('hidden');
+      document.getElementById('lobbyScreen').classList.remove('hidden');
+      document.getElementById('lobbyNetLog').textContent = 'èä¹100åã®ç³åã¨ãã¦æ ç¹ä¼ç ãã¾ããã';
+      checkSavedDataPreview();
     });
 
-    function getPlayerColor(p) {
-      if (p.team === 'red') return '#f43f5e';
-      if (p.team === 'blue') return '#3b82f6';
-      return '#10b981';
-    }
-
-    function addKillLog(killer, victim) {
-      const feed = document.getElementById('killFeed');
-      const item = document.createElement('div');
-      item.className = 'bg-slate-900/85 px-2 py-0.5 rounded-full border border-slate-700 text-[10px] text-white shadow';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> 💥 <span class="text-slate-400">${victim}</span>`;
-      feed.prepend(item);
-      setTimeout(() => item.remove(), 4000);
-    }
-
-    function updateLeaderboard() {
-      const all = [myPlayer, ...Array.from(remotePlayers.values())];
-      all.sort((a, b) => ((b.cores || 0) * 10 + (b.level || 1) * 20) - ((a.cores || 0) * 10 + (a.level || 1) * 20));
-
-      const list = document.getElementById('leaderboardList');
-      list.innerHTML = '';
-      all.slice(0, 5).forEach((p, i) => {
-        const li = document.createElement('li');
-        const isMe = p.id === myPlayer.id;
-        li.className = `flex justify-between items-center ${isMe ? 'text-amber-300 font-bold' : 'text-slate-300'}`;
-        let icon = p.team === 'red' ? '🔴' : p.team === 'blue' ? '🔵' : '👑';
-        li.innerHTML = `<span class="truncate max-w-[80px]">${i + 1}.${icon} ${p.name}</span><span class="font-mono text-[8px] text-amber-300"><i class="fa-solid fa-gem text-[7px]"></i>${p.cores || 0}</span>`;
-        list.appendChild(li);
-      });
-      document.getElementById('netPlayerCount').textContent = all.length;
-    }
-
-    /* =========================================================
-       10. ゲームループ (物理・ギミック・BOTシミュレート・描画)
-       ========================================================= */
-    let lastNetworkTick = 0;
-    const NETWORK_TICK_RATE = 50;
-
-    function syncMyState() {
-      broadcast({
-        type: 'sync_state',
-        id: myPlayer.id,
-        name: myPlayer.name,
-        team: myPlayer.team,
-        classType: myPlayer.classType,
-        x: Math.round(myPlayer.x),
-        y: Math.round(myPlayer.y),
-        angle: Number(myPlayer.angle.toFixed(2)),
-        hp: Math.round(myPlayer.hp),
-        maxHp: Math.round(myPlayer.maxHp),
-        shield: Math.round(myPlayer.shield),
-        cores: myPlayer.cores,
-        level: myPlayer.level,
-        isAlive: myPlayer.isAlive,
-        isInBush: myPlayer.isInBush,
-        emote: myPlayer.emote
-      });
-    }
-
-    function update() {
-      if (!myPlayer.isAlive) return;
-
-      // キーボード補助
-      if (keys['w'] || keys['arrowup']) joyVector.y = -1;
-      else if (keys['s'] || keys['arrowdown']) joyVector.y = 1;
-      else if (joyTouchId === null && !keys['w'] && !keys['s']) joyVector.y = 0;
-
-      if (keys['a'] || keys['arrowleft']) joyVector.x = -1;
-      else if (keys['d'] || keys['arrowright']) joyVector.x = 1;
-      else if (joyTouchId === null && !keys['a'] && !keys['d']) joyVector.x = 0;
-
-      // 速度計算 (スピード強化反映)
-      const cfg = CLASS_CONFIG[myPlayer.classType];
-      const speedBuff = 1 + ((myPlayer.upgrades.speed || 0) * 0.06);
-      const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
-
-      myPlayer.vx += joyVector.x * curSpeed * 0.28;
-      myPlayer.vy += joyVector.y * curSpeed * 0.28;
-      myPlayer.vx *= 0.82;
-      myPlayer.vy *= 0.82;
-
-      // マップギミック判定: 加速ゾーン
-      speedBoostPads.forEach(pad => {
-        if (myPlayer.x > pad.x && myPlayer.x < pad.x + pad.w &&
-            myPlayer.y > pad.y && myPlayer.y < pad.y + pad.h) {
-          myPlayer.vx += pad.dirX * 4.5;
-          myPlayer.vy += pad.dirY * 4.5;
-        }
-      });
-
-      // マップギミック判定: 回復の泉
-      healSprings.forEach(spring => {
-        if (Math.hypot(myPlayer.x - spring.x, myPlayer.y - spring.y) < spring.r) {
-          if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + 0.3);
-        }
-      });
-
-      // マップギミック判定: 隠れ草むら
-      let insideBush = false;
-      bushes.forEach(bush => {
-        if (Math.hypot(myPlayer.x - bush.x, myPlayer.y - bush.y) < bush.r) insideBush = true;
-      });
-      myPlayer.isInBush = insideBush;
-
-      // マップギミック判定: ワープポータル
-      if (myPlayer.warpCooldown > 0) {
-        myPlayer.warpCooldown--;
-      } else {
-        portals.forEach(p => {
-          if (Math.hypot(myPlayer.x - p.x, myPlayer.y - p.y) < p.r) {
-            myPlayer.x = p.targetX;
-            myPlayer.y = p.targetY;
-            myPlayer.warpCooldown = 150; // 2.5秒再ワープ防止
-            sound.playWarp();
-            popups.push({
-              x: myPlayer.x, y: myPlayer.y - 25,
-              text: '🌀 WARP!', color: p.color, size: 14, life: 35, dy: -1
-            });
-          }
-        });
-      }
-
-      // 座標更新 & 境界制限
-      myPlayer.x += myPlayer.vx;
-      myPlayer.y += myPlayer.vy;
-      myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x));
-      myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y));
-
-      // 障害物コリジョン
-      obstacles.forEach(obs => {
-        const dx = myPlayer.x - obs.x;
-        const dy = myPlayer.y - obs.y;
-        const dist = Math.hypot(dx, dy);
-        const minDist = myPlayer.radius + obs.r;
-        if (dist < minDist) {
-          const overlap = minDist - dist;
-          myPlayer.x += (dx / dist) * overlap;
-          myPlayer.y += (dy / dist) * overlap;
-        }
-      });
-
-      // 自然回復(リジェネ強化) & スタミナ
-      const regenRate = 0.05 + ((myPlayer.upgrades.regen || 0) * 0.04);
-      if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenRate);
-      if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + 0.4);
-
-      // クールダウン更新
-      if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
-      if (myPlayer.mineCooldown > 0) myPlayer.mineCooldown--;
-      if (myPlayer.emoteTimer > 0 && --myPlayer.emoteTimer <= 0) myPlayer.emote = null;
-
-      // オーブ収集
-      for (let i = gems.length - 1; i >= 0; i--) {
-        const g = gems[i];
-        const dist = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
-        if (dist < 110) {
-          g.x += (myPlayer.x - g.x) * 0.16;
-          g.y += (myPlayer.y - g.y) * 0.16;
-        }
-        if (dist < myPlayer.radius + g.r) {
-          myPlayer.exp += g.val;
-          sound.playGem();
-          broadcast({ type: 'gem_eaten', gemId: g.id });
-          gems.splice(i, 1);
-
-          // レベルアップ -> SP獲得
-          if (myPlayer.exp >= myPlayer.nextExp) {
-            myPlayer.level++;
-            myPlayer.sp += 1;
-            myPlayer.exp -= myPlayer.nextExp;
-            myPlayer.nextExp = Math.round(myPlayer.nextExp * 1.45);
-            recalcStats();
-            document.getElementById('centerAlert').classList.remove('opacity-0');
-            setTimeout(() => document.getElementById('centerAlert').classList.add('opacity-0'), 1400);
-          }
-        }
-      }
-
-      // 落ちているコア (強奪・ドロップ品) の回収
-      for (let i = dropCores.length - 1; i >= 0; i--) {
-        const c = dropCores[i];
-        const dist = Math.hypot(myPlayer.x - c.x, myPlayer.y - c.y);
-        if (dist < 120) {
-          c.x += (myPlayer.x - c.x) * 0.18;
-          c.y += (myPlayer.y - c.y) * 0.18;
-        }
-        if (dist < myPlayer.radius + 12) {
-          myPlayer.cores += c.val;
-          sound.playCore();
-          broadcast({ type: 'core_collected', coreId: c.id });
-          dropCores.splice(i, 1);
-          popups.push({
-            x: myPlayer.x, y: myPlayer.y - 20,
-            text: `+${c.val} コア強奪!`, color: '#fbbf24', size: 13, life: 30, dy: -1
-          });
-          savePlayerData();
-        }
-      }
-
-      // 設置された地雷の爆発踏み判定
-      for (let i = mines.length - 1; i >= 0; i--) {
-        const m = mines[i];
-        if (m.ownerId !== myPlayer.id && (myPlayer.team === 'solo' || myPlayer.team !== m.team)) {
-          if (Math.hypot(myPlayer.x - m.x, myPlayer.y - m.y) < myPlayer.radius + m.radius) {
-            takeDamage(m.damage, '地雷トラップ', true);
-            broadcast({ type: 'mine_explode', mineId: m.id });
-            mines.splice(i, 1);
-          }
-        }
-      }
-
-      // 弾丸更新・当たり判定
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.x += b.vx;
-        b.y += b.vy;
-        b.life--;
-
-        // 障害物衝突
-        let hitObs = false;
-        for (const obs of obstacles) {
-          if (Math.hypot(b.x - obs.x, b.y - obs.y) < obs.r + b.radius) {
-            hitObs = true; break;
-          }
-        }
-        if (hitObs || b.life <= 0) {
-          bullets.splice(i, 1);
-          continue;
-        }
-
-        // 自分が撃った弾のヒット判定
-        if (b.ownerId === myPlayer.id) {
-          // 対プレイヤー
-          remotePlayers.forEach(rp => {
-            if (!rp.isAlive) return;
-            if (myPlayer.team !== 'solo' && myPlayer.team === rp.team) return;
-
-            const dist = Math.hypot(b.x - rp.x, b.y - rp.y);
-            const targetR = 24 + ((rp.level || 1) - 1) * 0.8;
-
-            if (dist < targetR + b.radius) {
-              sound.playHit();
-              bullets.splice(i, 1);
-
-              // 吸血(ライフスティール)
-              const lsLv = myPlayer.upgrades.lifesteal || 0;
-              if (lsLv > 0) {
-                const heal = Math.round(b.damage * (lsLv * 0.08));
-                myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + heal);
-              }
-
-              broadcast({
-                type: 'hit',
-                targetId: rp.id,
-                attackerName: myPlayer.name,
-                damage: b.damage,
-                isMine: false
-              });
-            }
-          });
-
-          // 対BOT
-          bots.forEach(bot => {
-            const dist = Math.hypot(b.x - bot.x, b.y - bot.y);
-            if (dist < bot.radius + b.radius) {
-              sound.playHit();
-              bullets.splice(i, 1);
-
-              if (isHost) {
-                damageBot(bot.id, b.damage, myPlayer.id, myPlayer.name);
-              } else {
-                broadcast({
-                  type: 'bot_hit',
-                  botId: bot.id,
-                  damage: b.damage,
-                  attackerId: myPlayer.id,
-                  attackerName: myPlayer.name
-                });
-              }
-            }
-          });
-        }
-      }
-
-      // BOTシミュレーション (ホストが統括)
-      if (isHost) {
-        bots.forEach(bot => {
-          bot.x += Math.cos(bot.angle) * bot.speed;
-          bot.y += Math.sin(bot.angle) * bot.speed;
-
-          if (bot.x < 200 || bot.x > WORLD_WIDTH - 200 || bot.y < 200 || bot.y > WORLD_HEIGHT - 200 || Math.random() < 0.02) {
-            bot.angle = Math.random() * Math.PI * 2;
-          }
-        });
-      }
-
-      // パーティクル & ポップアップ
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.alpha -= p.decay;
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
-      for (let i = popups.length - 1; i >= 0; i--) {
-        const pop = popups[i];
-        pop.y += pop.dy;
-        if (--pop.life <= 0) popups.splice(i, 1);
-      }
-
-      updateHud();
-
-      // 定期ステータス送信 (20Hz)
-      const now = performance.now();
-      if (now - lastNetworkTick > NETWORK_TICK_RATE) {
-        lastNetworkTick = now;
-        syncMyState();
-        if (isHost) broadcast({ type: 'host_bots_sync', bots });
-      }
-    }
-
-    function updateHud() {
-      const hpPct = Math.max(0, Math.min(100, (myPlayer.hp / myPlayer.maxHp) * 100));
-      document.getElementById('hudHpFill').style.width = `${hpPct}%`;
-      const shieldPct = myPlayer.maxShield > 0 ? Math.min(100, (myPlayer.shield / myPlayer.maxShield) * 100) : 0;
-      document.getElementById('hudShieldFill').style.width = `${shieldPct}%`;
-      document.getElementById('hudHpText').textContent = `${Math.ceil(myPlayer.hp)} / ${myPlayer.maxHp}${myPlayer.shield > 0 ? ` (+${Math.ceil(myPlayer.shield)})` : ''}`;
-      document.getElementById('hudExpFill').style.width = `${(myPlayer.exp / myPlayer.nextExp) * 100}%`;
-      document.getElementById('hudLevelBadge').textContent = `Lv.${myPlayer.level}`;
-      document.getElementById('hudCores').textContent = myPlayer.cores;
-      document.getElementById('hudSp').textContent = myPlayer.sp;
-
-      // クールダウン表示
-      const scCover = document.getElementById('skillCooldownCover');
-      if (myPlayer.skillCooldown > 0) {
-        scCover.classList.remove('hidden');
-        scCover.textContent = `${Math.ceil(myPlayer.skillCooldown / 60)}s`;
-      } else {
-        scCover.classList.add('hidden');
-      }
-
-      const mcCover = document.getElementById('mineCooldownCover');
-      if (myPlayer.mineCooldown > 0) {
-        mcCover.classList.remove('hidden');
-        mcCover.textContent = `${Math.ceil(myPlayer.mineCooldown / 60)}s`;
-      } else {
-        mcCover.classList.add('hidden');
-      }
-    }
-
-    /* =========================================================
-       11. 描画 (Canvas レンダリング)
-       ========================================================= */
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const camX = myPlayer.x - canvas.width / 2;
-      const camY = myPlayer.y - canvas.height / 2;
-
-      ctx.save();
-      ctx.translate(-camX, -camY);
-
-      // 背景グリッド
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-      ctx.lineWidth = 1;
-      const grid = 70;
-      const startX = Math.floor(camX / grid) * grid;
-      const startY = Math.floor(camY / grid) * grid;
-      for (let x = startX; x < camX + canvas.width + grid; x += grid) {
-        ctx.beginPath(); ctx.moveTo(x, camY); ctx.lineTo(x, camY + canvas.height); ctx.stroke();
-      }
-      for (let y = startY; y < camY + canvas.height + grid; y += grid) {
-        ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
-      }
-
-      // 外周ボーダー
-      ctx.strokeStyle = '#f43f5e';
-      ctx.lineWidth = 10;
-      ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-      // 加速ゾーン
-      speedBoostPads.forEach(pad => {
-        ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
-        ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
-        ctx.strokeStyle = '#06b6d4';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(pad.x, pad.y, pad.w, pad.h);
-        ctx.fillStyle = '#67e8f9';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText('⚡ BOOST', pad.x + pad.w / 2 - 25, pad.y + pad.h / 2 + 4);
-      });
-
-      // 回復の泉
-      healSprings.forEach(spring => {
-        ctx.beginPath();
-        ctx.arc(spring.x, spring.y, spring.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#10b981';
-        ctx.stroke();
-        ctx.fillStyle = '#34d399';
-        ctx.font = 'bold 13px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('💖 REGEN FOUNTAIN', spring.x, spring.y);
-      });
-
-      // ポータルワープ
-      portals.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}33`;
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = p.color;
-        ctx.stroke();
-        ctx.fillStyle = p.color;
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('🌀 PORTAL', p.x, p.y + 4);
-      });
-
-      // 巨大障害物
-      obstacles.forEach(obs => {
-        ctx.beginPath();
-        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#1e293b';
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#475569';
-        ctx.stroke();
-      });
-
-      // オーブ描画
-      gems.forEach(g => {
-        ctx.beginPath();
-        ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
-        ctx.fillStyle = g.color;
-        ctx.fill();
-      });
-
-      // ドロップしたコア (強奪・宝石)
-      dropCores.forEach(c => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = '#fbbf24';
-        ctx.shadowColor = '#f59e0b';
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // 地雷
-      mines.forEach(m => {
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ef4444';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#fef08a';
-        ctx.stroke();
-      });
-
-      // 弾丸
-      bullets.forEach(b => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fillStyle = b.color;
-        ctx.fill();
-      });
-
-      // BOT描画
-      bots.forEach(bot => {
-        ctx.save();
-        ctx.translate(bot.x, bot.y);
-        ctx.beginPath();
-        ctx.arc(0, 0, bot.radius, 0, Math.PI * 2);
-        ctx.fillStyle = bot.isElite ? '#a855f7' : '#eab308';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-
-        ctx.font = 'bold 10px sans-serif';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText(bot.name, 0, -bot.radius - 8);
-        ctx.restore();
-      });
-
-      // リモートプレイヤー描画 (草むらステルス対応)
-      remotePlayers.forEach(rp => {
-        if (!rp.isAlive) return;
-        // 相手が草むらの中にいて、自分が外にいる場合は透明化
-        if (rp.isInBush && !myPlayer.isInBush) return;
-        drawCharacter(rp, rp.x, rp.y, rp.angle, false);
-      });
-
-      // 自プレイヤー
-      if (myPlayer.isAlive) {
-        drawCharacter(myPlayer, myPlayer.x, myPlayer.y, myPlayer.angle, true);
-      }
-
-      // 草むら (プレイヤーより前面に半透明描画)
-      bushes.forEach(bush => {
-        ctx.beginPath();
-        ctx.arc(bush.x, bush.y, bush.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(22, 101, 52, 0.65)';
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
-        ctx.stroke();
-      });
-
-      // パーティクル
-      particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // ポップアップ
-      popups.forEach(pop => {
-        ctx.font = `bold ${pop.size}px sans-serif`;
-        ctx.fillStyle = pop.color;
-        ctx.textAlign = 'center';
-        ctx.fillText(pop.text, pop.x, pop.y);
-      });
-
-      ctx.restore();
-      renderMiniMap();
-    }
-
-    function drawCharacter(p, x, y, angle, isSelf) {
-      const r = p.radius || 24;
-      const color = getPlayerColor(p);
-
-      ctx.save();
-      ctx.translate(x, y);
-
-      // シールドオーラ
-      if (p.shield > 0) {
-        ctx.beginPath();
-        ctx.arc(0, 0, r + 7, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-
-      // 砲身
-      ctx.save();
-      ctx.rotate(angle);
-      ctx.fillStyle = '#64748b';
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 2;
-      ctx.fillRect(r * 0.4, -6, r * 1.15, 12);
-      ctx.strokeRect(r * 0.4, -6, r * 1.15, 12);
-      ctx.restore();
-
-      // 本体
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.lineWidth = isSelf ? 3 : 2;
-      ctx.strokeStyle = isSelf ? '#ffffff' : '#0f172a';
-      ctx.stroke();
-
-      // 名前 & 所持コアバッジ
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${p.name} (💎${p.cores || 0})`, 0, -r - 12);
-
-      // HPバー
-      const bw = 36;
-      const maxHp = p.maxHp || 120;
-      const hp = Math.max(0, p.hp || 0);
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(-bw / 2, -r - 7, bw, 4);
-      ctx.fillStyle = color;
-      ctx.fillRect(-bw / 2, -r - 7, bw * (hp / maxHp), 4);
-
-      // エモート
-      if (p.emote) {
-        ctx.font = 'bold 15px sans-serif';
-        ctx.fillStyle = '#fef08a';
-        ctx.fillText(p.emote, 0, -r - 26);
-      }
-
-      ctx.restore();
-    }
-
-    function renderMiniMap() {
-      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-      const sx = miniCanvas.width / WORLD_WIDTH;
-      const sy = miniCanvas.height / WORLD_HEIGHT;
-
-      // 泉 & 草むら
-      miniCtx.fillStyle = 'rgba(16, 185, 129, 0.5)';
-      healSprings.forEach(s => {
-        miniCtx.beginPath();
-        miniCtx.arc(s.x * sx, s.y * sy, s.r * sx, 0, Math.PI * 2);
-        miniCtx.fill();
-      });
-
-      // 他プレイヤー
-      remotePlayers.forEach(p => {
-        if (!p.isAlive) return;
-        miniCtx.beginPath();
-        miniCtx.arc(p.x * sx, p.y * sy, 2.5, 0, Math.PI * 2);
-        miniCtx.fillStyle = getPlayerColor(p);
-        miniCtx.fill();
-      });
-
-      // 自プレイヤー
-      if (myPlayer.isAlive) {
-        miniCtx.beginPath();
-        miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 3.5, 0, Math.PI * 2);
-        miniCtx.fillStyle = '#ffffff';
-        miniCtx.fill();
-      }
-    }
+    document.getElementById('btnRespawn').addEventListener('click', () => {
+      recalcStats();
+      myPlayer.x = 50000 + (Math.random() - 0.5) * 800;
+      myPlayer.y = 50000 + (Math.random() - 0.5) * 800;
+      myPlayer.isAlive = true;
+      myPlayer.hp = myPlayer.maxHp;
+      document.getElementById('deathModal').classList.add('hidden');
+    });
 
     function loop() {
       update();
