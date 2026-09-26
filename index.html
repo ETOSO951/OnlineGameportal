@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ARENA.IO OMNIVERSE: COLOSSAL BASTION</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +24,7 @@
       height: 100%;
       overflow: hidden;
       background-color: #020617;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     canvas {
       position: absolute;
@@ -33,91 +34,95 @@
       height: 100%;
       display: block;
     }
-    .custom-scroll::-webkit-scrollbar { display: none; }
-    .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-    @keyframes pulseGlow {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4)); }
-      50% { filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.9)); }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scroll { -ms-overflow-style: auto; scrollbar-width: thin; }
+    
+    .build-btn-disabled {
+      opacity: 0.45;
+      filter: grayscale(0.8);
+      pointer-events: none;
+      border-color: #475569 !important;
     }
-    .pylon-glow { animation: pulseGlow 2.5s infinite ease-in-out; }
   </style>
 </head>
 <body class="relative bg-slate-950 text-white overflow-hidden">
 
-  <!-- ã¡ã¤ã³æç»ã­ã£ã³ãã¹ -->
+  <!-- メイン描画キャンバス -->
   <canvas id="gameCanvas"></canvas>
 
+  <!-- ゲーム内 HUD オーバレイ -->
   <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-2 sm:p-3 select-none">
     
-    <!-- ä¸æ®µãããã¼é¨ -->
+    <!-- 上段ヘッダー部 -->
     <div class="flex justify-between items-start w-full">
-      <!-- å·¦ä¸: ãã¬ã¤ã¤ã¼æå ±ã»ã¹ãã¼ã¿ã¹ã²ã¼ã¸ã»é²è¡è³æ -->
-      <div class="flex flex-col gap-1 w-44 sm:w-64 pointer-events-auto">
+      <!-- 左上: プレイヤー情報・ステータスゲージ・資材 -->
+      <div class="flex flex-col gap-1 w-44 sm:w-60 pointer-events-auto">
         <div class="flex items-center gap-1.5">
-          <span id="hudName" class="font-black text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[100px] text-amber-300">åè</span>
-          <span id="hudLevelBadge" class="text-[9px] bg-gradient-to-r from-amber-500 to-yellow-400 px-1.5 py-0.2 rounded-full font-black text-black">Lv.1</span>
-          <span id="hudClass" class="text-[9px] bg-indigo-950 px-1.5 py-0.2 rounded-full border border-indigo-400 font-bold text-indigo-300">BLADE</span>
+          <span id="hudName" class="font-black text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[95px] text-amber-300">勇者</span>
+          <span id="hudLevelBadge" class="text-[9px] bg-gradient-to-r from-amber-500 to-yellow-400 px-1.5 py-0.5 rounded-full font-black text-black">Lv.1</span>
+          <span id="hudClass" class="text-[9px] bg-indigo-950 px-1.5 py-0.5 rounded-full border border-indigo-400 font-bold text-indigo-300 truncate max-w-[75px]">BLADE</span>
         </div>
 
-        <!-- HP & ã·ã¼ã«ããã¼ -->
+        <!-- HP & シールドバー -->
         <div class="relative w-full h-3.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow-inner">
           <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-75"></div>
           <div id="hudShieldFill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-400 opacity-80 w-0 transition-all duration-75"></div>
-          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow">180 / 180</span>
+          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow">200 / 200</span>
         </div>
 
-        <!-- ã³ã¢ & å»ºç¯è³æ(ã¹ã¯ã©ãã) & åº§æ¨ã»ã¯ã¿ã¼ -->
-        <div class="flex items-center justify-between text-[10px] font-mono bg-slate-900/85 backdrop-blur px-2 py-0.8 rounded-xl border border-slate-800 shadow">
-          <div class="flex items-center gap-1 text-amber-300" title="ææã³ã¢">
+        <!-- コア & スクラップ & 強化ボタン -->
+        <div class="flex items-center justify-between text-[10px] font-mono bg-slate-900/85 backdrop-blur px-2 py-1 rounded-xl border border-slate-800 shadow">
+          <div class="flex items-center gap-1 text-amber-300" title="所持コア">
             <i class="fa-solid fa-gem text-amber-400 text-xs"></i>
             <span id="hudCores" class="font-black">0</span>
           </div>
-          <div class="flex items-center gap-1 text-teal-300" title="é²è¡è³æã¹ã¯ã©ãã">
+          <div class="flex items-center gap-1 text-teal-300" title="防衛建築スクラップ">
             <i class="fa-solid fa-cubes-stacked text-teal-400 text-xs"></i>
-            <span id="hudScrap" class="font-black">150</span>
+            <span id="hudScrap" class="font-black">60</span>
           </div>
-          <button id="btnOpenUpgrade" class="flex items-center gap-0.5 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600">
+          <button id="btnOpenUpgrade" class="flex items-center gap-1 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 hover:bg-emerald-900 px-1.5 py-0.5 rounded-lg border border-emerald-600 transition">
             <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
-            <span class="text-[9px]">å¼·å <b id="hudSp" class="text-white">0</b></span>
+            <span class="text-[9px]">強化 <b id="hudSp" class="text-white">0</b></span>
           </button>
         </div>
 
-        <!-- åº§æ¨ã¨ç¾å¨ã»ã¯ã¿ã¼ (100,000x100,000å¯¾å¿) -->
-        <div class="text-[9px] font-mono text-cyan-300 bg-slate-900/70 px-2 py-0.5 rounded-lg border border-slate-800 flex justify-between">
-          <span>SEC: <b id="hudSector" class="text-white font-bold">[50-50]</b></span>
+        <!-- 座標とセクター (100,000x100,000) -->
+        <div class="text-[9px] font-mono text-cyan-300 bg-slate-900/75 px-2 py-0.5 rounded-lg border border-slate-800 flex justify-between">
+          <span>区画: <b id="hudSector" class="text-white font-bold">[50-50]</b></span>
           <span>X:<b id="hudPosX" class="text-white">50000</b> Y:<b id="hudPosY" class="text-white">50000</b></span>
         </div>
       </div>
 
-      <!-- ä¸­å¤®ä¸é¨: åææå ± & ä¼ç é²è¡åæ­ãã¿ã³ -->
+      <!-- 中央上部: 同期情報 & 休眠防衛切断ボタン -->
       <div class="flex flex-col items-center gap-1">
         <div class="bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700 shadow flex items-center gap-2 text-[10px] pointer-events-auto">
           <div class="flex items-center gap-1">
             <span id="netStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span id="netStatusText" class="font-bold text-emerald-300 font-mono">åæä¸­</span>
+            <span id="netStatusText" class="font-bold text-emerald-300 font-mono">同期中</span>
           </div>
           <span class="text-slate-600">|</span>
           <div class="text-slate-300 font-mono">
             <i class="fa-solid fa-users text-cyan-400 mr-0.5"></i><span id="netPlayerCount" class="font-bold text-white">1</span>
           </div>
           <span class="text-slate-600">|</span>
-          <button id="btnSleepLogout" class="text-[9px] bg-indigo-900/80 hover:bg-indigo-800 px-2 py-0.5 rounded border border-indigo-400 text-cyan-200 font-bold active:scale-95">
-            <i class="fa-solid fa-bed mr-0.5"></i>æ ç¹ä¼ç 
+          <button id="btnSleepLogout" class="text-[9px] bg-indigo-900/80 hover:bg-indigo-800 px-2 py-0.5 rounded-md border border-indigo-400 text-cyan-200 font-bold active:scale-95 transition">
+            <i class="fa-solid fa-bed mr-0.5"></i>拠点休眠
           </button>
         </div>
         <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[260px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
       </div>
 
-      <!-- å³ä¸: è¶åºå¤§ããããã ï¼ çµ±åãªã¼ãã¼ãã¼ã -->
+      <!-- 右上: 超広大ミニマップ ＆ 統合リーダーボード -->
       <div class="flex flex-col items-end gap-1 pointer-events-auto">
         <div class="relative w-24 h-24 sm:w-28 sm:h-28 bg-slate-950/95 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
-          <div class="absolute bottom-0.5 right-1 text-[7px] font-mono text-cyan-400 bg-black/60 px-1 rounded">100kÃ100k</div>
+          <div class="absolute bottom-0.5 right-1 text-[7px] font-mono text-cyan-400 bg-black/70 px-1 rounded">100k×100k</div>
         </div>
 
         <div class="bg-slate-900/90 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[9px] shadow w-36 sm:w-44">
           <div class="font-bold border-b border-slate-800 pb-0.5 text-slate-400 flex items-center justify-between text-[8px]">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>ã©ã³ã­ã³ã° (ç/ð¤/ãã¹)</span>
+            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>順位 (生/💤/ボス)</span>
             <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono font-bold">ROOM</span>
           </div>
           <ol id="leaderboardList" class="mt-0.5 space-y-0.5 text-slate-200"></ol>
@@ -125,61 +130,61 @@
       </div>
     </div>
 
-    <!-- ç»é¢ä¸­å¤®éç¥ -->
+    <!-- 画面中央通知 -->
     <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none -mt-8">
       <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
     </div>
 
-    <!-- ä¸é¨æä½ããã« (ã¸ã§ã¤ã¹ãã£ãã¯ + æ ç¹é²è¡å»ºç¯ãã¼ + ã¢ã¯ã·ã§ã³ãã¿ã³) -->
+    <!-- 下部操作パネル (ジョイスティック + 拠点防衛建築バー + アクションボタン) -->
     <div class="flex justify-between items-end w-full pb-2 px-1">
-      <!-- ç§»åï¼ç§æºã¸ã§ã¤ã¹ãã£ãã¯ -->
+      <!-- 移動＆照準ジョイスティック -->
       <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-cyan-400/40 bg-slate-900/50 backdrop-blur pointer-events-auto flex items-center justify-center">
         <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 flex items-center justify-center text-cyan-950 font-black text-xs">
           <i class="fa-solid fa-crosshairs"></i>
         </div>
       </div>
 
-      <!-- ä¸­å¤®ä¸: ã¹ãªã¼ãã¼é²è¡æ ç¹å»ºç¯ããã¯ -->
-      <div class="pointer-events-auto flex gap-1 bg-slate-900/85 backdrop-blur-md px-2 py-1.5 rounded-2xl border border-slate-700 shadow-xl mb-1">
-        <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="50" title="èªåè¿æã¿ã¬ãã">
+      <!-- 中央下: スリーパー防衛拠点建築ドック（スクラップコスト必須） -->
+      <div class="pointer-events-auto flex gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 shadow-2xl mb-1">
+        <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="50" title="自動迎撃タレット">
           <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
-          <span class="font-bold text-slate-200">ã¿ã¬ãã</span>
-          <span class="text-[7px] text-teal-300">50æ</span>
+          <span class="font-bold text-slate-200">タレット</span>
+          <span class="text-[7px] text-teal-300 font-mono">50材</span>
         </button>
-        <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="80" title="é²è­·éå£ãã¤ã­ã³(ç¡æµãã¼ã )">
+        <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="80" title="防護障壁パイロン(無敵ドーム)">
           <i class="fa-solid fa-atom text-indigo-400 text-sm"></i>
-          <span class="font-bold text-slate-200">éå£ãã¼ã </span>
-          <span class="text-[7px] text-teal-300">80æ</span>
+          <span class="font-bold text-slate-200">障壁ドーム</span>
+          <span class="text-[7px] text-teal-300 font-mono">80材</span>
         </button>
-        <button id="buildTrap" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="30" title="æå¿é»ç£ãã©ãã">
+        <button id="buildTrap" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="30" title="感応電磁トラップ">
           <i class="fa-solid fa-bolt-lightning text-yellow-400 text-sm"></i>
-          <span class="font-bold text-slate-200">é»ç£ç½ </span>
-          <span class="text-[7px] text-teal-300">30æ</span>
+          <span class="font-bold text-slate-200">電磁罠</span>
+          <span class="text-[7px] text-teal-300 font-mono">30材</span>
         </button>
-        <button id="buildPod" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px]" data-cost="100" title="ä¼ç é²è¡ã³ã¯ã¼ã³ããã">
+        <button id="buildPod" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="100" title="休眠防衛コクーンポッド">
           <i class="fa-solid fa-capsules text-emerald-400 text-sm"></i>
-          <span class="font-bold text-slate-200">é²è¡ããã</span>
-          <span class="text-[7px] text-teal-300">100æ</span>
+          <span class="font-bold text-slate-200">防衛ポッド</span>
+          <span class="text-[7px] text-teal-300 font-mono">100材</span>
         </button>
       </div>
 
-      <!-- å³å´ã¢ã¯ã·ã§ã³ãã¿ã³ -->
+      <!-- 右側アクションボタン -->
       <div class="flex flex-col items-end gap-2 pointer-events-auto">
         <div class="flex items-end gap-2.5">
-          <!-- ã¯ã©ã¹ç¹æã¢ã¯ãã£ãã¹ã­ã« (æ¬ææé¢¨ / ç¹æ®å¼¾ / ããªã³ã¯ / æ¯å´å° / æçºã·ã¼ã«ã) -->
+          <!-- クラス特有アクティブスキル -->
           <button id="btnSkill" class="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="skillIcon" class="fa-solid fa-wind text-base text-white"></i>
             <span class="text-[7px] font-black text-indigo-100">SKILL</span>
             <div id="skillCooldownCover" class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-[10px] font-bold text-white hidden">0s</div>
           </button>
 
-          <!-- ããã·ã¥ãã¿ã³ -->
+          <!-- ダッシュボタン -->
           <button id="btnDash" class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i class="fa-solid fa-bolt text-lg text-white"></i>
             <span class="text-[8px] font-black text-cyan-100">DASH</span>
           </button>
 
-          <!-- æåç´ç·æ»æ/æ¬æãã¿ã³ -->
+          <!-- 直線攻撃・斬撃ボタン -->
           <button id="btnAttack" class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition p-1">
             <i id="attackIcon" class="fa-solid fa-khanda text-2xl text-white mb-0.5"></i>
             <span id="attackLabel" class="text-[9px] font-black tracking-wider text-rose-100">ATTACK</span>
@@ -189,12 +194,12 @@
     </div>
   </div>
 
-  <!-- å¼·åã¢ã¼ãã« -->
+  <!-- 強化モーダル -->
   <div id="upgradeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[90vh]">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[88vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h2 class="text-base font-black text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-dna text-cyan-400"></i> ã­ã£ã©ã¯ã¿ã¼å¼·å
+        <h2 class="text-sm sm:text-base font-black text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-dna text-cyan-400"></i> キャラクター強化ツリー
         </h2>
         <button id="btnCloseUpgrade" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center">
           <i class="fa-solid fa-xmark text-sm"></i>
@@ -202,135 +207,145 @@
       </div>
 
       <div class="flex justify-between bg-slate-950/70 p-2 rounded-xl border border-slate-800 text-xs">
-        <div>SP: <b id="modalSp" class="text-emerald-400 font-mono">0</b></div>
-        <div>ã³ã¢: <b id="modalCores" class="text-amber-400 font-mono">0</b></div>
-        <div>ã¹ã¯ã©ãã: <b id="modalScrap" class="text-teal-400 font-mono">0</b></div>
+        <div>強化SP: <b id="modalSp" class="text-emerald-400 font-mono">0</b></div>
+        <div>所持コア: <b id="modalCores" class="text-amber-400 font-mono">0</b></div>
+        <div>スクラップ: <b id="modalScrap" class="text-teal-400 font-mono">0</b></div>
       </div>
 
       <div id="upgradeStatsList" class="flex flex-col gap-1.5 overflow-y-auto custom-scroll pr-1 flex-1"></div>
     </div>
   </div>
 
-  <!-- åºæã»ã¯ã©ã¹é¸æã­ãã¼ç»é¢ -->
+  <!-- 出撃・クラス選択ロビー画面（全クラス表示・レスポンシブスクロール対応） -->
   <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex items-center justify-center p-3 z-40 overflow-y-auto">
-    <div class="w-full max-w-md bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto">
+    <div class="w-full max-w-lg bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto max-h-[95vh] overflow-y-auto custom-scroll">
+      
       <div class="text-center">
         <div class="inline-block px-2.5 py-0.5 bg-gradient-to-r from-amber-500/20 to-cyan-500/20 rounded-full border border-cyan-500/40 text-[9px] font-mono text-cyan-300 font-bold mb-1">
-          100,000 Ã 100,000 COLOSSAL MAP
+          100,000 × 100,000 COLOSSAL MAP
         </div>
         <h1 class="text-xl sm:text-2xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
           ARENA.IO OMNIVERSE
         </h1>
-        <p class="text-[11px] text-slate-400">æ¬æã»æ ç¹é²è¡ã»100åèä¹ã¹ãªã¼ãã¼ç¥å¥ªæ¦</p>
+        <p class="text-[11px] text-slate-400">斬撃・拠点防衛・100倍耐久スリーパー略奪戦</p>
       </div>
 
-      <!-- ãã¬ã¤ã¤ã¼å ï¼ åè¨è -->
+      <!-- プレイヤー名 ＆ 合言葉 -->
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">ãã¬ã¤ã¤ã¼å</label>
-          <input id="inputNickname" type="text" maxlength="12" placeholder="åå" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">プレイヤー名</label>
+          <input id="inputNickname" type="text" maxlength="12" placeholder="名前" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
         </div>
         <div>
-          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">åè¨è (ã«ã¼ã ID)</label>
-          <input id="inputRoom" type="text" maxlength="12" value="OMNI10" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono uppercase">
+          <label class="text-[10px] font-semibold text-slate-300 mb-0.5 block">合言葉 (ルームID)</label>
+          <input id="inputRoom" type="text" maxlength="12" value="OMNI10" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-cyan-400">
         </div>
       </div>
 
-      <!-- ä¼ç ã¹ãªã¼ãã¼æ¤ç¥éç¥ -->
+      <!-- 休眠スリーパー検知通知 -->
       <div id="savedDataNotice" class="hidden bg-slate-800/90 border border-cyan-500/40 rounded-xl p-2 text-[10px] text-cyan-200">
         <div class="font-bold flex items-center gap-1 text-cyan-300">
-          <i class="fa-solid fa-bed"></i> æ§ç¯æ¸ã¿ã®æ ç¹ã¾ãã¯ä¼ç ä½ãæ¤ç¥ï¼
+          <i class="fa-solid fa-bed"></i> 構築済みの拠点または休眠体を検知！
         </div>
-        <div id="saveDataDetails" class="text-slate-300 text-[9px]">ååã®åº§æ¨ã»ã¬ãã«ã»ææè³æããç®è¦ãã¾ãã</div>
+        <div id="saveDataDetails" class="text-slate-300 text-[9px]">前回の座標・レベル・所持資材から目覚めます。</div>
       </div>
 
-      <!-- 5å¤§åºæã¯ã©ã¹é¸æ -->
+      <!-- 全5大出撃クラス選択（完全にスクロール＆視認可能） -->
       <div>
-        <label class="text-[10px] font-semibold text-slate-300 mb-1 block">åºæã¯ã©ã¹é¸æ</label>
-        <div class="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto custom-scroll" id="classSelector">
+        <label class="text-[10px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
+          <span>出撃クラス選択（全5種）</span>
+          <span class="text-[9px] text-cyan-400 font-normal">タップして選択</span>
+        </label>
+        
+        <div class="flex flex-col gap-1.5 max-h-56 sm:max-h-64 overflow-y-auto custom-scroll pr-1" id="classSelector">
           
-          <button type="button" data-class="blademaster" class="class-btn p-2 rounded-xl border border-rose-500/60 bg-rose-950/30 text-rose-300 text-left flex items-center justify-between ring-2 ring-rose-400">
-            <div>
-              <div class="text-xs font-black flex items-center gap-1.5">
-                <i class="fa-solid fa-khanda text-rose-400"></i> ãã¬ã¼ããã¹ã¿ã¼ (æ¬æ/è¿æ¥åå£)
+          <!-- 1. ブレードマスター -->
+          <button type="button" data-class="blademaster" class="class-btn p-2 rounded-xl border border-rose-500/60 bg-rose-950/40 text-left flex items-center justify-between ring-2 ring-rose-400 transition">
+            <div class="flex-1 pr-2">
+              <div class="text-xs font-black text-rose-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-khanda text-rose-400"></i> ブレードマスター (斬撃/近接双剣)
               </div>
-              <div class="text-[9px] text-slate-400">é«éç§»åã»æç¶è¿æ¥æ¬æã»æµã®å¼¾ä¸¸ãå¼¾ãã»æé¢¨æ¬æã¹ã­ã«</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">高速移動・扇状近接斬撃・敵の弾丸を弾く・360度旋風斬撃スキル</div>
             </div>
-            <span class="text-[10px] font-mono text-rose-300 font-bold">è¿æ¥</span>
+            <span class="text-[10px] font-mono text-rose-300 font-bold bg-rose-950 px-2 py-0.5 rounded border border-rose-500/40">近接</span>
           </button>
 
-          <button type="button" data-class="gunner" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
-            <div>
-              <div class="text-xs font-black flex items-center gap-1.5">
-                <i class="fa-solid fa-crosshairs text-cyan-400"></i> ããã¼ã¬ã³ãã¼ (éç«å¨ç ²æ)
+          <!-- 2. ヘビーガンナー -->
+          <button type="button" data-class="gunner" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
+            <div class="flex-1 pr-2">
+              <div class="text-xs font-black text-cyan-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-crosshairs text-cyan-400"></i> ヘビーガンナー (重火器砲手)
               </div>
-              <div class="text-[9px] text-slate-400">è¶é·è·é¢ã­ã£ãã³ç ²ã»ççºAoEã»ããã¯ããã¯ã»é«ç«å</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">超長距離キャノン砲・高弾速・直線ノックバック・遠距離牽制</div>
             </div>
-            <span class="text-[10px] font-mono text-cyan-300 font-bold">é é</span>
+            <span class="text-[10px] font-mono text-cyan-300 font-bold bg-cyan-950 px-2 py-0.5 rounded border border-cyan-500/40">遠隔</span>
           </button>
 
-          <button type="button" data-class="sorcerer" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
-            <div>
-              <div class="text-xs font-black flex items-center gap-1.5">
-                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> ã¢ã«ã±ã¤ã³ã½ã¼ãµã©ã¼ (é­å°å£«)
+          <!-- 3. アルケインソーサラー -->
+          <button type="button" data-class="sorcerer" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
+            <div class="flex-1 pr-2">
+              <div class="text-xs font-black text-purple-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> アルケイン魔導士 (魔法術士)
               </div>
-              <div class="text-[9px] text-slate-400">è¿½å°¾ã½ã¦ã«ãªã¼ãã»ç¬éç§»åããªã³ã¯ã»ã·ã¼ã«ãã´ã©ã«ããã¯ã¹</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">誘導ソウル弾・空間跳躍ブリンクスキル・高い殲滅機動力</div>
             </div>
-            <span class="text-[10px] font-mono text-purple-300 font-bold">é­æ³</span>
+            <span class="text-[10px] font-mono text-purple-300 font-bold bg-purple-950 px-2 py-0.5 rounded border border-purple-500/40">魔法</span>
           </button>
 
-          <button type="button" data-class="alchemist" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
-            <div>
-              <div class="text-xs font-black flex items-center gap-1.5">
-                <i class="fa-solid fa-flask-vial text-emerald-400"></i> ãã¤ãªã¢ã«ã±ãã¹ã (æ¯å·¥å¸«)
+          <!-- 4. バイオ毒工師 -->
+          <button type="button" data-class="alchemist" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
+            <div class="flex-1 pr-2">
+              <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-flask-vial text-emerald-400"></i> バイオ毒工師 (状態異常)
               </div>
-              <div class="text-[9px] text-slate-400">ææ²æ¯ãã©ã¹ã³ã»æç¶æ¯æ²¼çæã»ããæ¯ã¹ãã¬ã¼æ¾å°</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">腐食毒弾・残留毒沼生成スキル・敵スリーパーの耐久を継続削り</div>
             </div>
-            <span class="text-[10px] font-mono text-emerald-300 font-bold">ç¶æç°å¸¸</span>
+            <span class="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/40">毒沼</span>
           </button>
 
-          <button type="button" data-class="guardian" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-left flex items-center justify-between">
-            <div>
-              <div class="text-xs font-black flex items-center gap-1.5">
-                <i class="fa-solid fa-shield-halved text-amber-400"></i> ã¹ãã£ã¼ã«ã¬ã¼ãã£ã¢ã³ (åå¡å®è­·è)
+          <!-- 5. スティール城塞守護者 -->
+          <button type="button" data-class="guardian" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
+            <div class="flex-1 pr-2">
+              <div class="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-amber-400"></i> スティール城塞守護者 (タンク)
               </div>
-              <div class="text-[9px] text-slate-400">æé«èä¹ã»ãã¡ã¼ã¸åå°è£ç²ã»æçºè¡ææ³¢ã»æ ç¹å»ºç¯è³æãã¼ãã¹</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">最高耐久・被ダメージ反射装甲・城塞シールド展開・初期資材ボーナス</div>
             </div>
-            <span class="text-[10px] font-mono text-amber-300 font-bold">ã¿ã³ã¯</span>
+            <span class="text-[10px] font-mono text-amber-300 font-bold bg-amber-950 px-2 py-0.5 rounded border border-amber-500/40">防壁</span>
           </button>
 
         </div>
       </div>
 
       <button id="btnJoin" class="w-full py-2.5 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 rounded-xl font-black text-sm shadow active:scale-95 transition">
-        ã³ã­ããµã«ã»ãªã ããã¼ã¹ã¸åºæ
+        コロッサル・オムニバースへ出撃
       </button>
 
-      <div id="lobbyNetLog" class="text-[9px] text-center text-slate-400 font-mono">åè¨èãå¥åãã¦ã­ã°ã¤ã³</div>
+      <div id="lobbyNetLog" class="text-[9px] text-center text-slate-400 font-mono">合言葉を入力してログイン</div>
     </div>
   </div>
 
-  <!-- ãªã¹ãã¼ã³ã»å¼·å¥ªè¢«å®³ã¢ã¼ãã« -->
+  <!-- リスポーン・強奪被害モーダル -->
   <div id="deathModal" class="absolute inset-0 bg-red-950/85 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
     <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
       <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
-      <h2 class="text-lg font-black text-rose-400">æç ´ããã¾ããï¼</h2>
-      <p id="deathMessage" class="text-[11px] text-slate-300">æµã«åãããã³ã¢ãå¥ªãããï¼</p>
+      <h2 class="text-lg font-black text-rose-400">撃破されました！</h2>
+      <p id="deathMessage" class="text-[11px] text-slate-300">敵に倒され、コアが奪われた！</p>
       
       <div class="bg-slate-800/80 rounded-xl p-2.5 w-full text-left text-[11px] space-y-1 border border-slate-700">
-        <div class="flex justify-between text-slate-400"><span>å¥ªãããã³ã¢:</span><span id="lostCoresText" class="font-bold text-rose-400">-0</span></div>
-        <div class="flex justify-between text-slate-400"><span>æ®å­ã³ã¢:</span><span id="keptCoresText" class="font-bold text-amber-400">0</span></div>
+        <div class="flex justify-between text-slate-400"><span>奪われたコア:</span><span id="lostCoresText" class="font-bold text-rose-400">-0</span></div>
+        <div class="flex justify-between text-slate-400"><span>残存コア:</span><span id="keptCoresText" class="font-bold text-amber-400">0</span></div>
       </div>
 
       <button id="btnRespawn" class="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl font-black text-xs active:scale-95 shadow">
-        ãªã¹ãã¼ã³ãã¦ååºæ
+        リスポーンして再出撃
       </button>
     </div>
   </div>
 
   <script>
     /* =========================================================
-       1. WEB AUDIO ãµã¦ã³ãã¨ãã§ã¯ã
+       1. WEB AUDIO サウンドエフェクト
        ========================================================= */
     class SoundFX {
       constructor() { this.ctx = null; }
@@ -359,54 +374,49 @@
       }
       playSlash() { this.playTone(320, 'sawtooth', 0.12, 0.14); }
       playShoot() { this.playTone(650, 'square', 0.08, 0.1); }
-      playMagic() { this.playTone(850, 'sine', 0.18, 0.12); }
       playHit() { this.playTone(160, 'triangle', 0.06, 0.15); }
       playBuild() { this.playTone(520, 'triangle', 0.12, 0.15); }
-      playCore() { this.playTone(1200, 'sine', 0.12, 0.12); }
       playWarp() { this.playTone(720, 'sine', 0.25, 0.16); }
       playExplode() { this.playTone(80, 'square', 0.35, 0.25); }
+      playScrap() { this.playTone(900, 'sine', 0.08, 0.12); }
     }
     const sound = new SoundFX();
 
     /* =========================================================
-       2. 100,000 x 100,000 è¶å·¨å¤§ããã ï¼ ç©ºéåå²(Chunk)è¨­å®
+       2. 100,000 x 100,000 超巨大マップ ＆ 空間設定
        ========================================================= */
     const WORLD_WIDTH = 100000;
     const WORLD_HEIGHT = 100000;
-    const CHUNK_SIZE = 2000; // ç©ºéåå²ç¨ãã£ã³ã¯
 
-    // ãã¤ãã¼ã¹ãã¼ã¹ã²ã¼ã (æ±è¥¿ååã»ä¸­å¤®ã®è¶é·è·é¢ã¯ã¼ã)
     const hyperGates = [
-      { id: 'gate_c', x: 50000, y: 50000, targetX: 20000, targetY: 20000, name: 'ä¸­å¤®ãã©ã¤ã ã²ã¼ã', color: '#38bdf8' },
-      { id: 'gate_nw', x: 20000, y: 20000, targetX: 80000, targetY: 20000, name: 'åè¥¿ã²ã¼ã', color: '#a855f7' },
-      { id: 'gate_ne', x: 80000, y: 20000, targetX: 80000, targetY: 80000, name: 'åæ±ã²ã¼ã', color: '#a855f7' },
-      { id: 'gate_se', x: 80000, y: 80000, targetX: 20000, targetY: 80000, name: 'åæ±ã²ã¼ã', color: '#a855f7' },
-      { id: 'gate_sw', x: 20000, y: 80000, targetX: 50000, targetY: 50000, name: 'åè¥¿ã²ã¼ã', color: '#a855f7' }
+      { id: 'gate_c', x: 50000, y: 50000, targetX: 20000, targetY: 20000, name: '中央プライムゲート', color: '#38bdf8' },
+      { id: 'gate_nw', x: 20000, y: 20000, targetX: 80000, targetY: 20000, name: '北西ゲート', color: '#a855f7' },
+      { id: 'gate_ne', x: 80000, y: 20000, targetX: 80000, targetY: 80000, name: '北東ゲート', color: '#a855f7' },
+      { id: 'gate_se', x: 80000, y: 80000, targetX: 20000, targetY: 80000, name: '南東ゲート', color: '#a855f7' },
+      { id: 'gate_sw', x: 20000, y: 80000, targetX: 50000, targetY: 50000, name: '南西ゲート', color: '#a855f7' }
     ];
 
-    // ç¹æ®ç°å¢ã¢ãããªã¼ã¾ã¼ã³ (æ¾å°ç·ã»åéåã»çµæ¶å°å¸¯)
     const anomalyZones = [
-      { x: 35000, y: 35000, r: 1800, type: 'radiation', name: 'é¸æ§æ¾å°è½ã¾ã¼ã³', color: '#22c55e' },
-      { x: 65000, y: 65000, r: 1800, type: 'antigrav', name: 'åéåã¢ãããªã¼', color: '#06b6d4' },
-      { x: 50000, y: 50000, r: 1500, type: 'sanctuary', name: 'ãã©ã¤ã èåã®æ³', color: '#f59e0b' }
+      { x: 35000, y: 35000, r: 1800, type: 'radiation', name: '酸性放射能ゾーン', color: '#22c55e' },
+      { x: 65000, y: 65000, r: 1800, type: 'antigrav', name: '反重力アノマリー', color: '#06b6d4' },
+      { x: 50000, y: 50000, r: 1500, type: 'sanctuary', name: 'プライム聖域の泉', color: '#f59e0b' }
     ];
 
-    // 5å¤§ã¯ã©ã¹ã®åºæ¬ä»æ§
     const CLASS_CONFIGS = {
       blademaster: {
-        name: 'ãã¬ã¼ããã¹ã¿ã¼',
+        name: 'ブレードマスター',
         isMelee: true,
         maxHp: 200,
-        speed: 5.6,
+        speed: 5.5,
         attackRate: 260,
-        range: 90,
-        arc: Math.PI * 0.75, // æç¶è¿æ¥æ¬æ
+        range: 95,
+        arc: Math.PI * 0.75,
         damage: 48,
         deflects: true,
-        scrapBonus: 0
+        initScrap: 60
       },
       gunner: {
-        name: 'ããã¼ã¬ã³ãã¼',
+        name: 'ヘビーガンナー',
         isMelee: false,
         maxHp: 180,
         speed: 4.6,
@@ -415,10 +425,10 @@
         damage: 32,
         bulletSpeed: 17,
         bulletSize: 7,
-        scrapBonus: 0
+        initScrap: 60
       },
       sorcerer: {
-        name: 'ã¢ã«ã±ã¤ã³é­å°å£«',
+        name: 'アルケイン魔導士',
         isMelee: false,
         maxHp: 150,
         speed: 4.8,
@@ -427,10 +437,10 @@
         damage: 28,
         bulletSpeed: 13,
         homing: true,
-        scrapBonus: 0
+        initScrap: 60
       },
       alchemist: {
-        name: 'ãã¤ãªæ¯å·¥å¸«',
+        name: 'バイオ毒工師',
         isMelee: false,
         maxHp: 160,
         speed: 4.9,
@@ -438,10 +448,10 @@
         range: 480,
         damage: 18,
         isPoison: true,
-        scrapBonus: 20
+        initScrap: 80
       },
       guardian: {
-        name: 'ã¹ãã£ã¼ã«åå¡å®è­·è',
+        name: 'スティール城塞守護者',
         isMelee: true,
         maxHp: 320,
         speed: 4.2,
@@ -450,23 +460,29 @@
         arc: Math.PI * 0.6,
         damage: 35,
         reflectArmor: 0.25,
-        scrapBonus: 80
+        initScrap: 130
       }
     };
 
-    // 10ç¨®é¡ã®ã¹ãã¼ã¿ã¹å¼·å
+    const STRUCTURE_TEMPLATES = {
+      turret: { name: '自動迎撃タレット', cost: 50, hp: 250, radius: 24, range: 400, color: '#06b6d4' },
+      pylon: { name: '防護障壁パイロン', cost: 80, hp: 450, radius: 32, domeRadius: 220, color: '#818cf8' },
+      trap: { name: '電磁ショック罠', cost: 30, hp: 80, radius: 18, damage: 65, color: '#facc15' },
+      pod: { name: '防衛コクーンポッド', cost: 100, hp: 800, radius: 36, color: '#10b981' }
+    };
+
     const UPGRADE_TYPES = [
-      { id: 'maxHp', name: 'æå¤§HPå¢å¼·', desc: 'HP+40', maxLv: 15, icon: 'fa-heart', cost: 1 },
-      { id: 'dmg', name: 'æ»æå/æ¬æå¨å', desc: 'å¨å+15%', maxLv: 15, icon: 'fa-fire', cost: 1 },
-      { id: 'speed', name: 'æ©åç§»åéåº¦', desc: 'éåº¦+6%', maxLv: 10, icon: 'fa-person-running', cost: 1 },
-      { id: 'regen', name: 'ãããªã¸ã§ã', desc: 'ç§éåå¾©+3', maxLv: 10, icon: 'fa-notes-medical', cost: 1 },
-      { id: 'armor', name: 'éè£ã¢ã¼ãã¼', desc: 'è¢«ãã¡è»½æ¸+4%', maxLv: 10, icon: 'fa-shield', cost: 2 },
-      { id: 'magnet', name: 'ã³ã¢ç£ç³å¸å¼', desc: 'å¸å¼åå¾+40px', maxLv: 8, icon: 'fa-magnet', cost: 1 },
-      { id: 'buildRate', name: 'æ ç¹å»ºç¯å·¥å­¦', desc: 'é²è¡å»ºç¯HP+20%', maxLv: 8, icon: 'fa-wrench', cost: 1 }
+      { id: 'maxHp', name: '最大HP増強', desc: 'HP+40', maxLv: 15, cost: 1 },
+      { id: 'dmg', name: '攻撃力/斬撃威力', desc: '威力+15%', maxLv: 15, cost: 1 },
+      { id: 'speed', name: '機動移動速度', desc: '速度+6%', maxLv: 10, cost: 1 },
+      { id: 'regen', name: 'ナノリジェネ', desc: '秒間回復+3', maxLv: 10, cost: 1 },
+      { id: 'armor', name: '重装アーマー', desc: '被ダメ軽減+4%', maxLv: 10, cost: 2 },
+      { id: 'magnet', name: 'コア磁石吸引', desc: '吸引半径+40px', maxLv: 8, cost: 1 },
+      { id: 'buildRate', name: '拠点建築工学', desc: '防衛建築HP+20%', maxLv: 8, cost: 1 }
     ];
 
     /* =========================================================
-       3. ãã¬ã¤ã¤ã¼ç¶æ ï¼ æ°¸ç¶ã»ã¼ãã»ã¹ãªã¼ãã¼æ ç¹ç®¡ç
+       3. プレイヤー状態 ＆ 永続セーブ・スリーパー拠点管理
        ========================================================= */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -487,7 +503,7 @@
 
     let myPlayer = {
       id: myId,
-      name: 'è¿é·ã®å£å£«',
+      name: '勇者',
       classType: 'blademaster',
       x: 50000 + (Math.random() - 0.5) * 800,
       y: 50000 + (Math.random() - 0.5) * 800,
@@ -499,7 +515,7 @@
       shield: 0,
       stamina: 100,
       cores: 0,
-      scrap: 150, // å»ºç¯è³æ
+      scrap: 60, // 建築用資材（自然増殖しない）
       sp: 0,
       level: 1,
       exp: 0,
@@ -510,32 +526,25 @@
       lastAttackTime: 0,
       warpCooldown: 0,
       skillCooldown: 0,
-      slashAnimation: 0, // æ¬æã¢ãã¡ç¨ã¿ã¤ãã¼
+      slashAnimation: 0,
       upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, magnet: 0, buildRate: 0 }
     };
 
-    // ã¯ã¼ã«ãåã¨ã³ãã£ãã£
     let remotePlayers = new Map();
-    let sleeperPlayers = []; // èä¹100åã¹ãªã¼ãã¼
-    let defenseStructures = []; // è¨­ç½®åé²è¡å»ºç¯ (ã¿ã¬ããã»éå£ã»ç½ ã»ããã)
+    let sleeperPlayers = [];
+    let defenseStructures = [];
+    let scrapNodes = []; // 自然湧きスクラップ鉱石・廃材
     let bullets = [];
-    let slashes = []; // æ¬æã¨ãã§ã¯ã
-    let gems = [];
+    let slashes = [];
     let dropCores = [];
-    let toxicPools = []; // æ¯æ²¼
-    let colossusBosses = []; // å·¨å¤§å¾å¾ãã¹
+    let toxicPools = [];
+    let colossusBosses = [];
     let particles = [];
     let popups = [];
 
-    function getSaveKey() {
-      return `arena_omni_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`;
-    }
-    function getSleeperKey() {
-      return `arena_omni_sleepers_${roomCode.toUpperCase()}`;
-    }
-    function getBaseKey() {
-      return `arena_omni_bases_${roomCode.toUpperCase()}`;
-    }
+    function getSaveKey() { return `arena_omni_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`; }
+    function getSleeperKey() { return `arena_omni_sleepers_${roomCode.toUpperCase()}`; }
+    function getBaseKey() { return `arena_omni_bases_${roomCode.toUpperCase()}`; }
 
     function savePlayerData() {
       try {
@@ -567,7 +576,7 @@
         myPlayer.exp = d.exp || 0;
         myPlayer.nextExp = d.nextExp || 50;
         myPlayer.cores = d.cores || 0;
-        myPlayer.scrap = d.scrap !== undefined ? d.scrap : 150;
+        myPlayer.scrap = d.scrap !== undefined ? d.scrap : 60;
         myPlayer.sp = d.sp || 0;
         if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
         if (d.x && d.y) {
@@ -582,7 +591,6 @@
       }
     }
 
-    // ã­ã°ã¢ã¦ãæã«èä¹100åã¹ãªã¼ãã¼ãç»é²
     function registerAsSleeper() {
       try {
         const sKey = getSleeperKey();
@@ -598,16 +606,14 @@
           y: Math.round(myPlayer.y),
           level: myPlayer.level,
           cores: myPlayer.cores,
-          maxHp: myPlayer.maxHp * 100, // èä¹100å
+          maxHp: myPlayer.maxHp * 100, // 耐久100倍
           hp: myPlayer.maxHp * 100,
           radius: myPlayer.radius + 6,
-          isSleeper: true,
-          inPod: isNearStructure(myPlayer.x, myPlayer.y, 'pod')
+          isSleeper: true
         };
         list.push(newSleeper);
         localStorage.setItem(sKey, JSON.stringify(list));
         sleeperPlayers = list;
-
         broadcast({ type: 'sleeper_created', sleeper: newSleeper });
       } catch (e) {}
     }
@@ -625,10 +631,6 @@
       } catch (e) {}
     }
 
-    function isNearStructure(x, y, type) {
-      return defenseStructures.some(s => s.type === type && Math.hypot(s.x - x, s.y - y) < s.radius + 30);
-    }
-
     function checkSavedDataPreview() {
       const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
       const n = document.getElementById('inputNickname').value.trim();
@@ -640,7 +642,7 @@
       const raw = localStorage.getItem(`arena_omni_${r}_${n}`);
       if (raw) {
         const d = JSON.parse(raw);
-        document.getElementById('saveDataDetails').textContent = `Lv.${d.level || 1} / ã³ã¢: ${d.cores || 0} / ã¹ã¯ã©ãã: ${d.scrap || 0} / åº§æ¨: (${d.x}, ${d.y})`;
+        document.getElementById('saveDataDetails').textContent = `Lv.${d.level || 1} / 所持コア: ${d.cores || 0} / スクラップ: ${d.scrap || 0} / 座標: (${d.x}, ${d.y})`;
         notice.classList.remove('hidden');
       } else {
         notice.classList.add('hidden');
@@ -658,7 +660,7 @@
     }
 
     /* =========================================================
-       4. ãªã¢ã«ã¿ã¤ã éä¿¡ (PeerJS P2P ã¡ãã·ã¥)
+       4. リアルタイム通信 (PeerJS P2P メッシュ)
        ========================================================= */
     let peer = null;
     let isHost = false;
@@ -669,9 +671,8 @@
       roomCode = rId;
       const hostId = `arena_omni_${roomCode.toLowerCase()}_host`;
       const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = `åè¨è [${roomCode}] ãµã¼ãã¼æ¥ç¶è©¦è¡ä¸­...`;
+      logEl.textContent = `合言葉 [${roomCode}] サーバー接続試行中...`;
 
-      // ã­ã¼ã«ã«ä¿å­ããã¦ããã¹ãªã¼ãã¼ï¼å»ºç¯ç©ãå±é
       try {
         const sRaw = localStorage.getItem(getSleeperKey());
         if (sRaw) sleeperPlayers = JSON.parse(sRaw);
@@ -681,12 +682,12 @@
 
       peer = new Peer(hostId, {
         debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
+        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
       });
 
       peer.on('open', () => {
         isHost = true;
-        logEl.textContent = '100,000x100,000 ãã¹ãã¯ã¼ã«ãééï¼';
+        logEl.textContent = '100,000x100,000 ホストワールド開通！';
         updateNetUI(true, 1);
         setupHostNet();
         initWorldEcosystem();
@@ -697,14 +698,14 @@
           peer.destroy();
           connectClient(hostId);
         } else {
-          logEl.textContent = `æ¥ç¶ç¶æ³: ${err.type}`;
+          logEl.textContent = `接続状態: ${err.type}`;
         }
       });
     }
 
     function connectClient(hostId) {
       const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = 'ã¯ã¼ã«ãã«åå¥ä¸­...';
+      logEl.textContent = 'ワールドに参入中...';
       peer = new Peer(`omni_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
         debug: 1,
         config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
@@ -722,7 +723,6 @@
           peerConnections.set(conn.peer, conn);
           updateNetUI(true, peerConnections.size + 1);
 
-          // æ°è¦åå èã¸å¨ã¯ã¼ã«ãç¶æ³ãåæ
           conn.send({
             type: 'init_world_full',
             sleeperPlayers,
@@ -752,7 +752,7 @@
         updateNetUI(false, 2);
       });
       hostConn.on('data', handleNetData);
-      hostConn.on('close', () => updateNetUI(false, 1, 'åæ­ããã¾ãã'));
+      hostConn.on('close', () => updateNetUI(false, 1, '切断されました'));
     }
 
     function broadcast(payload) {
@@ -808,7 +808,7 @@
             if (sl.hp <= 0) {
               sleeperPlayers = sleeperPlayers.filter(s => s.name !== sl.name);
               localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
-              addKillLog(data.attackerName, `${sl.name} [ä¼ç ç³å]`);
+              addKillLog(data.attackerName, `${sl.name} [休眠石像]`);
             }
           }
           break;
@@ -845,41 +845,51 @@
         text.textContent = err;
       } else {
         dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        text.textContent = asHost ? 'ð HOST' : 'ð¢ CLIENT';
+        text.textContent = asHost ? '👑 HOST' : '🟢 CLIENT';
       }
       countEl.textContent = count;
       document.getElementById('roomCodeBadge').textContent = roomCode;
     }
 
     /* =========================================================
-       5. 100,000x100,000 çæç³»ã»å·¨å¤§ã³ã­ããµã¹ãã¹çæ
+       5. 100,000x100,000 生態系 & スクラップ鉱石ノード
        ========================================================= */
     function initWorldEcosystem() {
       colossusBosses = [
-        { id: 'boss_1', name: 'âèç©ºã®ç ´å£ç¥ã´ã©ã¤ãâ', x: 50000, y: 48000, hp: 3500, maxHp: 3500, radius: 65, color: '#f43f5e', cores: 120, speed: 2.2, angle: 0 },
-        { id: 'boss_2', name: 'âåè¥¿ã®å·¨ç¥ã¯ã­ãã¹â', x: 22000, y: 22000, hp: 2800, maxHp: 2800, radius: 55, color: '#a855f7', cores: 80, speed: 2.0, angle: 0 },
-        { id: 'boss_3', name: 'âåæ±ã®æ©ç²ç«ã¬ã´ã£ã¢â', x: 78000, y: 78000, hp: 3000, maxHp: 3000, radius: 60, color: '#eab308', cores: 90, speed: 2.1, angle: 0 }
+        { id: 'boss_1', name: '★虚空の破壊神ヴォイド★', x: 50000, y: 48000, hp: 3500, maxHp: 3500, radius: 65, color: '#f43f5e', cores: 120, speed: 2.2, angle: 0 },
+        { id: 'boss_2', name: '★北西の巨神クロノス★', x: 22000, y: 22000, hp: 2800, maxHp: 2800, radius: 55, color: '#a855f7', cores: 80, speed: 2.0, angle: 0 },
+        { id: 'boss_3', name: '★南東の機甲竜レヴィア★', x: 78000, y: 78000, hp: 3000, maxHp: 3000, radius: 60, color: '#eab308', cores: 90, speed: 2.1, angle: 0 }
       ];
     }
 
-    /* =========================================================
-       6. ã¹ãªã¼ãã¼é²è¡æ ç¹å»ºç¯ã·ã¹ãã  (ã¿ã¬ããã»éå£ã»ããã)
-       ========================================================= */
-    const STRUCTURE_TEMPLATES = {
-      turret: { name: 'èªåè¿æã¿ã¬ãã', cost: 50, hp: 250, radius: 24, range: 400, color: '#06b6d4', icon: 'fa-crosshairs' },
-      pylon: { name: 'é²è­·éå£ãã¤ã­ã³', cost: 80, hp: 450, radius: 32, domeRadius: 220, color: '#818cf8', icon: 'fa-atom' },
-      trap: { name: 'é»ç£ã·ã§ãã¯ç½ ', cost: 30, hp: 80, radius: 18, damage: 65, color: '#facc15', icon: 'fa-bolt-lightning' },
-      pod: { name: 'é²è¡ã³ã¯ã¼ã³ããã', cost: 100, hp: 800, radius: 36, color: '#10b981', icon: 'fa-capsules' }
-    };
+    // 周囲にスクラップ廃材・鉱石を自然補充
+    function maintainScrapNodes() {
+      if (scrapNodes.length < 40) {
+        scrapNodes.push({
+          id: 'sc_' + Math.random().toString(36).substr(2, 6),
+          x: myPlayer.x + (Math.random() - 0.5) * 2200,
+          y: myPlayer.y + (Math.random() - 0.5) * 2200,
+          radius: 12,
+          amount: Math.floor(Math.random() * 15) + 10
+        });
+      }
+    }
 
+    /* =========================================================
+       6. 拠点防衛建築システム（スクラップコスト必須判定）
+       ========================================================= */
     function buildStructure(type) {
       if (!myPlayer.isAlive) return;
       const tpl = STRUCTURE_TEMPLATES[type];
+      
+      // コスト厳密判定：資材が足りない場合は建造不可
       if (myPlayer.scrap < tpl.cost) {
-        triggerPopup(myPlayer.x, myPlayer.y - 30, 'è³æ(ã¹ã¯ã©ãã)ä¸è¶³!', '#f43f5e');
+        sound.playTone(180, 'sawtooth', 0.15, 0.15);
+        triggerPopup(myPlayer.x, myPlayer.y - 30, `資材不足! (${myPlayer.scrap}/${tpl.cost}材)`, '#f43f5e');
         return;
       }
 
+      // 資材消費
       myPlayer.scrap -= tpl.cost;
       sound.playBuild();
 
@@ -887,8 +897,8 @@
         id: 'st_' + Math.random().toString(36).substr(2, 7),
         ownerName: myPlayer.name,
         type,
-        x: Math.round(myPlayer.x + Math.cos(myPlayer.angle) * 50),
-        y: Math.round(myPlayer.y + Math.sin(myPlayer.angle) * 50),
+        x: Math.round(myPlayer.x + Math.cos(myPlayer.angle) * 55),
+        y: Math.round(myPlayer.y + Math.sin(myPlayer.angle) * 55),
         hp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
         maxHp: tpl.hp * (1 + (myPlayer.upgrades.buildRate || 0) * 0.2),
         radius: tpl.radius,
@@ -901,7 +911,8 @@
       defenseStructures.push(struct);
       saveStructures();
       broadcast({ type: 'build_structure', structure: struct });
-      triggerPopup(struct.x, struct.y - 20, `${tpl.name} å»ºé !`, '#2dd4bf');
+      triggerPopup(struct.x, struct.y - 20, `${tpl.name} 建造! (-${tpl.cost}材)`, '#2dd4bf');
+      updateBuildButtonsState();
     }
 
     function saveStructures() {
@@ -910,13 +921,28 @@
       } catch(e) {}
     }
 
+    function updateBuildButtonsState() {
+      Object.keys(STRUCTURE_TEMPLATES).forEach(type => {
+        const cost = STRUCTURE_TEMPLATES[type].cost;
+        const btnId = type === 'turret' ? 'buildTurret' : type === 'pylon' ? 'buildPylon' : type === 'trap' ? 'buildTrap' : 'buildPod';
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          if (myPlayer.scrap < cost) {
+            btn.classList.add('build-btn-disabled');
+          } else {
+            btn.classList.remove('build-btn-disabled');
+          }
+        }
+      });
+    }
+
     document.getElementById('buildTurret').addEventListener('click', () => buildStructure('turret'));
     document.getElementById('buildPylon').addEventListener('click', () => buildStructure('pylon'));
     document.getElementById('buildTrap').addEventListener('click', () => buildStructure('trap'));
     document.getElementById('buildPod').addEventListener('click', () => buildStructure('pod'));
 
     /* =========================================================
-       7. ã¹ããæä½ (ã¸ã§ã¤ã¹ãã£ãã¯ + æåç´ç·ç§æº)
+       7. スマホ操作 (ジョイスティック + 手動直線照準)
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -936,7 +962,7 @@
 
       if (dist > 5) {
         joyVector = { x: Math.cos(angle) * (bounded / maxR), y: Math.sin(angle) * (bounded / maxR) };
-        myPlayer.angle = angle; // èªæ©ã®åãã¸ãã¤ã¬ã¯ãæå
+        myPlayer.angle = angle;
       } else {
         joyVector = { x: 0, y: 0 };
       }
@@ -975,11 +1001,11 @@
     window.addEventListener('touchcancel', resetJoy);
 
     /* =========================================================
-       8. æåç´ç·æ»æ ï¼ ã¯ã©ã¹ç¹æã¢ã¯ã·ã§ã³ (ãªã¼ãã¨ã¤ã å¨å»)
+       8. 手動直線攻撃 ＆ クラス特有アクション
        ========================================================= */
     function performManualAttack() {
       if (!myPlayer.isAlive) return;
-      const cfg = CLASS_CONFIGS[myPlayer.classType];
+      const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       const now = performance.now();
       if (now - myPlayer.lastAttackTime < cfg.attackRate) return;
       myPlayer.lastAttackTime = now;
@@ -988,9 +1014,8 @@
       const damage = Math.round(cfg.damage * dmgBuff);
 
       if (cfg.isMelee) {
-        // è¿æ¥æç¶æ¬æ (ãã¬ã¼ããã¹ã¿ã¼ / ã¬ã¼ãã£ã¢ã³)
         sound.playSlash();
-        myPlayer.slashAnimation = 12; // ã¢ãã¡ã¼ã·ã§ã³æé
+        myPlayer.slashAnimation = 12;
 
         const slashObj = {
           id: 'sl_' + Math.random().toString(36).substr(2, 6),
@@ -1006,11 +1031,8 @@
         };
         slashes.push(slashObj);
         broadcast({ type: 'attack_slash', ownerId: myPlayer.id, slash: slashObj });
-
-        // æ¬æãããå¤å® (æµã»ã¹ãªã¼ãã¼ã»å¼¾ä¸¸å¼¾ã)
         checkMeleeHits(slashObj, cfg.deflects);
       } else {
-        // ç´ç·æåå°æ (ã¬ã³ãã¼ / ã½ã¼ãµã©ã¼ / ã¢ã«ã±ãã¹ã)
         sound.playShoot();
         const bullet = {
           id: 'b_' + Math.random().toString(36).substr(2, 6),
@@ -1031,26 +1053,23 @@
         broadcast({ type: 'attack_bullet', ownerId: myPlayer.id, bullet });
       }
 
-      // åå
       myPlayer.vx -= Math.cos(myPlayer.angle) * 1.5;
       myPlayer.vy -= Math.sin(myPlayer.angle) * 1.5;
     }
 
     function checkMeleeHits(sl, canDeflect) {
-      // æ¬æã§æµã®å¼¾ä¸¸ãå¼¾ã (ãã¬ã¼ããã¹ã¿ã¼ã®ããã·ã)
       if (canDeflect) {
         for (let i = bullets.length - 1; i >= 0; i--) {
           const b = bullets[i];
           if (b.ownerId !== myPlayer.id && Math.hypot(b.x - sl.x, b.y - sl.y) < sl.range + 20) {
             b.vx = -b.vx * 1.2;
             b.vy = -b.vy * 1.2;
-            b.ownerId = myPlayer.id; // èªåã®å¼¾ã¨ãã¦è·³ã­è¿ã
-            triggerPopup(b.x, b.y, 'å¼¾ãè¿ã!', '#38bdf8');
+            b.ownerId = myPlayer.id;
+            triggerPopup(b.x, b.y, '弾き返し!', '#38bdf8');
           }
         }
       }
 
-      // å¯¾ä»ãã¬ã¤ã¤ã¼
       remotePlayers.forEach(rp => {
         if (!rp.isAlive) return;
         const dist = Math.hypot(rp.x - sl.x, rp.y - sl.y);
@@ -1062,18 +1081,16 @@
         }
       });
 
-      // å¯¾ä¼ç ã¹ãªã¼ãã¼ (èä¹100å)
       sleeperPlayers.forEach(sleeper => {
         const dist = Math.hypot(sleeper.x - sl.x, sleeper.y - sl.y);
         const ang = Math.atan2(sleeper.y - sl.y, sleeper.x - sl.x);
         const diff = Math.abs(normalizeAngle(ang - sl.angle));
         if (dist < sl.range + sleeper.radius && diff < sl.arc / 2) {
-          // é²è­·éå£ãã¼ã åã«ããã¹ãªã¼ãã¼ã¯ç¡æµ
           if (isInForcefield(sleeper.x, sleeper.y)) {
-            triggerPopup(sleeper.x, sleeper.y, 'éå£ã«ããå®å¨é²å¾¡!', '#818cf8');
+            triggerPopup(sleeper.x, sleeper.y, '障壁により完全防御!', '#818cf8');
             return;
           }
-          const sleepDmg = Math.max(1, Math.round(sl.damage * 0.01)); // è¢«ãã¡ã¼ã¸1/100
+          const sleepDmg = Math.max(1, Math.round(sl.damage * 0.01)); // 耐久100倍により1/100
           sleeper.hp -= sleepDmg;
           sound.playHit();
           broadcast({ type: 'damage_sleeper', targetName: sleeper.name, attackerName: myPlayer.name, damage: sleepDmg });
@@ -1085,7 +1102,6 @@
         }
       });
 
-      // å¯¾é²è¡æ§é ç©
       defenseStructures.forEach(st => {
         if (st.ownerName !== myPlayer.name && Math.hypot(st.x - sl.x, st.y - sl.y) < sl.range + st.radius) {
           st.hp -= sl.damage;
@@ -1108,13 +1124,11 @@
       return a;
     }
 
-    // ã¯ã©ã¹ç¹æã¢ã¯ãã£ãã¹ã­ã«
     function activateClassSkill() {
       if (!myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
       myPlayer.skillCooldown = 280;
 
       if (myPlayer.classType === 'blademaster') {
-        // æé¢¨åè»¢æ¬æ (360åº¦å¨æ¹ä½)
         sound.playSlash();
         const spin = {
           id: 'spin_' + Math.random().toString(36).substr(2, 6),
@@ -1123,15 +1137,13 @@
         };
         slashes.push(spin);
         checkMeleeHits(spin, true);
-        triggerPopup(myPlayer.x, myPlayer.y, 'æé¢¨åå£æ¼è!', '#f43f5e');
+        triggerPopup(myPlayer.x, myPlayer.y, '旋風双剣演舞!', '#f43f5e');
       } else if (myPlayer.classType === 'sorcerer') {
-        // ããªã³ã¯ (ç¬éç§»å)
         sound.playWarp();
         myPlayer.x += Math.cos(myPlayer.angle) * 350;
         myPlayer.y += Math.sin(myPlayer.angle) * 350;
-        triggerPopup(myPlayer.x, myPlayer.y, 'ç©ºéè·³èºããªã³ã¯!', '#c084fc');
+        triggerPopup(myPlayer.x, myPlayer.y, '空間跳躍ブリンク!', '#c084fc');
       } else if (myPlayer.classType === 'alchemist') {
-        // èé£æ¯æ²¼ã®ææ²
         sound.playShoot();
         toxicPools.push({
           x: myPlayer.x + Math.cos(myPlayer.angle) * 120,
@@ -1140,12 +1152,11 @@
           life: 240,
           damage: 1.2
         });
-        triggerPopup(myPlayer.x, myPlayer.y, 'èé£æ¯æ²¼å±é!', '#34d399');
+        triggerPopup(myPlayer.x, myPlayer.y, '腐食毒沼展開!', '#34d399');
       } else {
-        // ã·ã¼ã«ãå±é / æçºè¡ææ³¢
         sound.playTone(450, 'sine', 0.2, 0.2);
         myPlayer.shield += 120;
-        triggerPopup(myPlayer.x, myPlayer.y, 'è¦å¡é²å¾¡æå¢!', '#38bdf8');
+        triggerPopup(myPlayer.x, myPlayer.y, '要塞防御態勢!', '#38bdf8');
       }
     }
 
@@ -1166,12 +1177,12 @@
     document.getElementById('btnSkill').addEventListener('click', activateClassSkill);
 
     /* =========================================================
-       9. ç©çæ´æ° ï¼ ç©ºéåå²(Chunk)æé©å
+       9. 物理・採掘・更新ループ
        ========================================================= */
     function update() {
       if (!myPlayer.isAlive) return;
 
-      const cfg = CLASS_CONFIGS[myPlayer.classType];
+      const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
       const speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.06;
       const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
 
@@ -1180,11 +1191,45 @@
       myPlayer.vx *= 0.85;
       myPlayer.vy *= 0.85;
 
-      // 100,000x100,000 ã¯ã¼ã«ãå¢ç
       myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
       myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
 
-      // ã¯ã¼ãã²ã¼ãè¡çªå¤å®
+      // スクラップ鉱石の採掘・回収
+      const magnetRange = 45 + (myPlayer.upgrades.magnet || 0) * 40;
+      for (let i = scrapNodes.length - 1; i >= 0; i--) {
+        const sc = scrapNodes[i];
+        const dist = Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y);
+        if (dist < magnetRange) {
+          myPlayer.scrap += sc.amount;
+          sound.playScrap();
+          triggerPopup(sc.x, sc.y, `+${sc.amount} 廃材スクラップ`, '#2dd4bf');
+          scrapNodes.splice(i, 1);
+          updateBuildButtonsState();
+        }
+      }
+
+      // ドロップコア回収
+      for (let i = dropCores.length - 1; i >= 0; i--) {
+        const c = dropCores[i];
+        if (Math.hypot(c.x - myPlayer.x, c.y - myPlayer.y) < magnetRange) {
+          myPlayer.cores += c.val;
+          myPlayer.exp += c.val * 5;
+          sound.playTone(1200, 'sine', 0.1, 0.1);
+          triggerPopup(c.x, c.y, `+${c.val} コア`, '#facc15');
+          dropCores.splice(i, 1);
+
+          if (myPlayer.exp >= myPlayer.nextExp) {
+            myPlayer.level++;
+            myPlayer.exp -= myPlayer.nextExp;
+            myPlayer.nextExp = Math.round(myPlayer.nextExp * 1.5);
+            myPlayer.sp += 1;
+            triggerPopup(myPlayer.x, myPlayer.y - 40, 'LEVEL UP!', '#38bdf8');
+            recalcStats();
+          }
+        }
+      }
+
+      // ワープゲート衝突判定
       if (myPlayer.warpCooldown > 0) {
         myPlayer.warpCooldown--;
       } else {
@@ -1194,28 +1239,16 @@
             myPlayer.y = g.targetY;
             myPlayer.warpCooldown = 150;
             sound.playWarp();
-            triggerPopup(myPlayer.x, myPlayer.y, `${g.name} è»¢éå®äº!`, g.color);
+            triggerPopup(myPlayer.x, myPlayer.y, `${g.name} 転送完了!`, g.color);
           }
         });
       }
 
-      // ã¢ãããªã¼ã¾ã¼ã³å¤å®
-      anomalyZones.forEach(az => {
-        if (Math.hypot(myPlayer.x - az.x, myPlayer.y - az.y) < az.r) {
-          if (az.type === 'sanctuary') {
-            myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + 0.5);
-          } else if (az.type === 'radiation') {
-            myPlayer.hp -= 0.3;
-          }
-        }
-      });
-
-      // è¨­ç½®åã¿ã¬ããã®èªåè¿æAI
+      // タレット自動迎撃
       defenseStructures.forEach(st => {
         if (st.type === 'turret') {
           const now = performance.now();
           if (now - st.lastShoot > 700) {
-            // æãè¿ãæµã¹ãªã¼ãã¼ã¾ãã¯ä»ãã¬ã¤ã¤ã¼ãç´¢æµ
             let target = null;
             let minDist = st.range;
             remotePlayers.forEach(rp => {
@@ -1238,7 +1271,7 @@
         }
       });
 
-      // æ¬æã»å¼¾ä¸¸ã®æ´æ°
+      // 斬撃・弾丸の寿命
       for (let i = slashes.length - 1; i >= 0; i--) {
         if (--slashes[i].life <= 0) slashes.splice(i, 1);
       }
@@ -1249,23 +1282,19 @@
         b.y += b.vy;
         if (--b.life <= 0) { bullets.splice(i, 1); continue; }
 
-        // å¼¾ä¸¸ã®èªãã¬ã¤ã¤ã¼ã¸ã®è¢«å¼¾
         if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
-          takeDamage(b.damage, b.ownerName || 'ã¿ã¬ãã');
+          takeDamage(b.damage, b.ownerName || '砲台');
           bullets.splice(i, 1);
         }
       }
 
-      // ãªã¸ã§ã & ã¹ã¿ãã & ã¯ã¼ã«ãã¦ã³
       const regenVal = 0.04 + (myPlayer.upgrades.regen || 0) * 0.05;
       if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenVal);
       if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + 0.4);
       if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
       if (myPlayer.slashAnimation > 0) myPlayer.slashAnimation--;
 
-      // èªç¶ã¹ã¯ã©ããåå (ãã£ã¼ã«ãå¾å¾ã§ã¹ã¯ã©ããèªåèç©)
-      if (Math.random() < 0.04) myPlayer.scrap += 1;
-
+      maintainScrapNodes();
       updateHud();
     }
 
@@ -1333,7 +1362,6 @@
       document.getElementById('hudPosX').textContent = Math.round(myPlayer.x);
       document.getElementById('hudPosY').textContent = Math.round(myPlayer.y);
 
-      // ã»ã¯ã¿ã¼è¨ç® (100,000x100,000ã100x100ã°ãªããã«åå²)
       const secX = Math.floor(myPlayer.x / 1000);
       const secY = Math.floor(myPlayer.y / 1000);
       document.getElementById('hudSector').textContent = `[${secX}-${secY}]`;
@@ -1346,7 +1374,7 @@
     }
 
     /* =========================================================
-       10. æç» (100,000x100,000 ç©ºéã«ãªã³ã°æç»)
+       10. 描画 (100,000x100,000 空間描画)
        ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1358,7 +1386,7 @@
       ctx.save();
       ctx.translate(-camX, -camY);
 
-      // ã°ãªããç·
+      // グリッド線
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
       ctx.lineWidth = 1;
       const g = 100;
@@ -1371,7 +1399,7 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // ãã¤ãã¼ã²ã¼ãæç»
+      // ハイパーゲート描画
       hyperGates.forEach(gate => {
         if (Math.hypot(gate.x - myPlayer.x, gate.y - myPlayer.y) < viewR) {
           ctx.beginPath();
@@ -1384,11 +1412,23 @@
         }
       });
 
-      // è¨­ç½®åé²è¡å»ºç¯ (ã¿ã¬ããã»éå£ãã¼ã ã»ç½ ã»ããã)
+      // スクラップ鉱石・廃材ノード描画
+      scrapNodes.forEach(sc => {
+        if (Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y) < viewR) {
+          ctx.fillStyle = '#2dd4bf';
+          ctx.beginPath();
+          ctx.arc(sc.x, sc.y, sc.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#99f6e4';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+
+      // 設置型防衛建築
       defenseStructures.forEach(st => {
         if (Math.hypot(st.x - myPlayer.x, st.y - myPlayer.y) < viewR + 250) {
           if (st.type === 'pylon') {
-            // é²è­·éå£ãã¼ã 
             ctx.beginPath();
             ctx.arc(st.x, st.y, st.domeRadius, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(129, 140, 248, 0.12)';
@@ -1406,7 +1446,6 @@
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // HPãã¼
           ctx.fillStyle = 'rgba(0,0,0,0.6)';
           ctx.fillRect(st.x - 20, st.y - st.radius - 8, 40, 3);
           ctx.fillStyle = '#2dd4bf';
@@ -1414,7 +1453,7 @@
         }
       });
 
-      // ä¼ç ã¹ãªã¼ãã¼ (èä¹100åç³å)
+      // 休眠スリーパー (耐久100倍石像)
       sleeperPlayers.forEach(sl => {
         if (Math.hypot(sl.x - myPlayer.x, sl.y - myPlayer.y) < viewR) {
           ctx.beginPath();
@@ -1428,13 +1467,13 @@
           ctx.font = 'bold 12px sans-serif';
           ctx.fillStyle = '#93c5fd';
           ctx.textAlign = 'center';
-          ctx.fillText('ð¤ [ä¼ç ç³å]', sl.x, sl.y - sl.radius - 16);
+          ctx.fillText('💤 [休眠石像]', sl.x, sl.y - sl.radius - 16);
           ctx.fillStyle = '#ffffff';
           ctx.fillText(`${sl.name} (100x HP)`, sl.x, sl.y - sl.radius - 4);
         }
       });
 
-      // æ¬æã¨ãã§ã¯ã (æç¶ã¢ã¼ã¯æç»)
+      // 斬撃エフェクト
       slashes.forEach(sl => {
         ctx.beginPath();
         ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
@@ -1443,7 +1482,7 @@
         ctx.stroke();
       });
 
-      // å¼¾ä¸¸
+      // 弾丸
       bullets.forEach(b => {
         if (Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < viewR) {
           ctx.beginPath();
@@ -1453,20 +1492,20 @@
         }
       });
 
-      // èªãã¬ã¤ã¤ã¼æç»
+      // 自プレイヤー描画
       if (myPlayer.isAlive) {
         drawCharacter(myPlayer, myPlayer.x, myPlayer.y, myPlayer.angle, true);
         drawAimingGuide(myPlayer);
       }
 
-      // ãªã¢ã¼ããã¬ã¤ã¤ã¼
+      // リモートプレイヤー
       remotePlayers.forEach(rp => {
         if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
           drawCharacter(rp, rp.x, rp.y, rp.angle, false);
         }
       });
 
-      // ãããã¢ãã
+      // ポップアップ
       for (let i = popups.length - 1; i >= 0; i--) {
         const p = popups[i];
         ctx.font = 'bold 13px sans-serif';
@@ -1500,9 +1539,7 @@
       ctx.translate(x, y);
       ctx.rotate(angle);
 
-      // ã¯ã©ã¹ã«å¿ããæ­¦å¨ã®æç»
       if (p.classType === 'blademaster') {
-        // åå£
         ctx.strokeStyle = '#f43f5e';
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -1510,7 +1547,6 @@
         ctx.moveTo(10, 14); ctx.lineTo(34, 18);
         ctx.stroke();
       } else {
-        // éèº«
         ctx.fillStyle = '#64748b';
         ctx.fillRect(8, -5, 24, 10);
       }
@@ -1531,21 +1567,17 @@
       ctx.restore();
     }
 
-    // 100,000x100,000 ããããã
     function renderMiniMap() {
       miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
       const sx = miniCanvas.width / WORLD_WIDTH;
       const sy = miniCanvas.height / WORLD_HEIGHT;
 
-      // ã²ã¼ã
       miniCtx.fillStyle = '#38bdf8';
       hyperGates.forEach(g => miniCtx.fillRect(g.x * sx - 2, g.y * sy - 2, 4, 4));
 
-      // ã¹ãªã¼ãã¼
       miniCtx.fillStyle = '#94a3b8';
       sleeperPlayers.forEach(sl => miniCtx.fillRect(sl.x * sx - 1, sl.y * sy - 1, 2, 2));
 
-      // èªå
       miniCtx.fillStyle = '#f43f5e';
       miniCtx.beginPath();
       miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 3, 0, Math.PI * 2);
@@ -1556,7 +1588,7 @@
       const all = [];
       all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
       remotePlayers.forEach(rp => all.push({ name: rp.name, cores: rp.cores || 0, tag: 'LIVE', color: 'text-cyan-300' }));
-      sleeperPlayers.forEach(sp => all.push({ name: sp.name, cores: sp.cores || 0, tag: 'ð¤', color: 'text-slate-400' }));
+      sleeperPlayers.forEach(sp => all.push({ name: sp.name, cores: sp.cores || 0, tag: '💤', color: 'text-slate-400' }));
       colossusBosses.forEach(b => all.push({ name: b.name, cores: b.cores, tag: 'BOSS', color: 'text-rose-400 font-bold' }));
 
       all.sort((a, b) => b.cores - a.cores);
@@ -1577,18 +1609,79 @@
       const feed = document.getElementById('killFeed');
       const item = document.createElement('div');
       item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> âï¸ <span class="text-slate-300">${victim}</span>`;
+      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
       feed.prepend(item);
       setTimeout(() => item.remove(), 4000);
     }
 
     /* =========================================================
-       11. ã©ã¤ããµã¤ã¯ã« ï¼ ã¤ãã³ã
+       11. 強化モーダル UI 生成 & 処理
+       ========================================================= */
+    function renderUpgradeModal() {
+      document.getElementById('modalSp').textContent = myPlayer.sp;
+      document.getElementById('modalCores').textContent = myPlayer.cores;
+      document.getElementById('modalScrap').textContent = myPlayer.scrap;
+
+      const list = document.getElementById('upgradeStatsList');
+      list.innerHTML = '';
+
+      UPGRADE_TYPES.forEach(up => {
+        const curLv = myPlayer.upgrades[up.id] || 0;
+        const isMax = curLv >= up.maxLv;
+        const canBuy = myPlayer.sp >= up.cost && !isMax;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-xs';
+        row.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-200">${up.name} <span class="text-[10px] text-amber-400 font-mono">Lv.${curLv}/${up.maxLv}</span></div>
+            <div class="text-[10px] text-slate-400">${up.desc}</div>
+          </div>
+          <button class="upgrade-action-btn px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+            isMax ? 'bg-slate-800 text-slate-500 cursor-not-allowed' :
+            canBuy ? 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95' :
+            'bg-slate-800 text-slate-500 cursor-not-allowed'
+          }" data-id="${up.id}">
+            ${isMax ? 'MAX' : `${up.cost} SP`}
+          </button>
+        `;
+        list.appendChild(row);
+      });
+
+      document.querySelectorAll('.upgrade-action-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          const up = UPGRADE_TYPES.find(u => u.id === id);
+          if (up && myPlayer.sp >= up.cost && (myPlayer.upgrades[id] || 0) < up.maxLv) {
+            myPlayer.sp -= up.cost;
+            myPlayer.upgrades[id] = (myPlayer.upgrades[id] || 0) + 1;
+            sound.playBuild();
+            recalcStats();
+            renderUpgradeModal();
+          }
+        });
+      });
+    }
+
+    document.getElementById('btnOpenUpgrade').addEventListener('click', () => {
+      renderUpgradeModal();
+      document.getElementById('upgradeModal').classList.remove('hidden');
+    });
+    document.getElementById('btnCloseUpgrade').addEventListener('click', () => {
+      document.getElementById('upgradeModal').classList.add('hidden');
+    });
+
+    /* =========================================================
+       12. ロビー ＆ イベント初期化
        ========================================================= */
     document.querySelectorAll('.class-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('ring-2', 'ring-rose-400'));
-        btn.classList.add('ring-2', 'ring-rose-400');
+        document.querySelectorAll('.class-btn').forEach(b => {
+          b.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-950/40');
+          b.classList.add('bg-slate-800/50');
+        });
+        btn.classList.add('ring-2', 'ring-rose-400', 'bg-rose-950/40');
+        btn.classList.remove('bg-slate-800/50');
         myPlayer.classType = btn.dataset.class;
       });
     });
@@ -1597,16 +1690,21 @@
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
       const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
-      myPlayer.name = n || 'åè' + Math.floor(Math.random() * 899 + 100);
+      myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
       roomCode = r;
 
-      loadPlayerData();
+      const hasSave = loadPlayerData();
+      if (!hasSave) {
+        const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
+        myPlayer.scrap = cfg.initScrap || 60;
+      }
       recalcStats();
 
       document.getElementById('hudName').textContent = myPlayer.name;
-      document.getElementById('hudClass').textContent = CLASS_CONFIGS[myPlayer.classType].name;
+      document.getElementById('hudClass').textContent = (CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster).name;
 
       initNetwork(roomCode);
+      updateBuildButtonsState();
 
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('gameHud').classList.remove('hidden');
@@ -1618,7 +1716,7 @@
       if (peer) peer.destroy();
       document.getElementById('gameHud').classList.add('hidden');
       document.getElementById('lobbyScreen').classList.remove('hidden');
-      document.getElementById('lobbyNetLog').textContent = 'èä¹100åã®ç³åã¨ãã¦æ ç¹ä¼ç ãã¾ããã';
+      document.getElementById('lobbyNetLog').textContent = '耐久100倍の石像として拠点休眠しました。';
       checkSavedDataPreview();
     });
 
@@ -1639,6 +1737,7 @@
 
     window.onload = function () {
       checkSavedDataPreview();
+      updateBuildButtonsState();
       requestAnimationFrame(loop);
     };
   </script>
