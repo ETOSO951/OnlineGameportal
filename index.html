@@ -51,7 +51,7 @@
     <div class="flex justify-between items-start w-full gap-1">
       
       <!-- 左上: プレイヤー情報 -->
-      <div class="flex flex-col gap-1 max-w-[130px] sm:max-w-[190px] pointer-events-auto">
+      <div class="flex flex-col gap-1 max-w-[135px] sm:max-w-[200px] pointer-events-auto">
         <div class="flex items-center gap-1 flex-wrap">
           <span id="hudName" class="font-black text-[11px] sm:text-xs truncate max-w-[65px] text-amber-300">勇者</span>
           <span id="hudLevelBadge" class="text-[8px] bg-gradient-to-r from-amber-500 to-yellow-400 px-1 py-0.2 rounded-full font-black text-black">Lv.1</span>
@@ -62,19 +62,22 @@
         <div class="relative w-full h-2.5 sm:h-3.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow-inner">
           <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-75"></div>
           <div id="hudShieldFill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-400 opacity-80 w-0 transition-all duration-75"></div>
-          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[7px] sm:text-[9px] font-black text-white drop-shadow">220/220</span>
+          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[7px] sm:text-[9px] font-black text-white drop-shadow">180/180</span>
         </div>
 
-        <!-- コア & 強化ボタン -->
+        <!-- コア & 強化ボタン & スタイル表示 -->
         <div class="flex items-center justify-between text-[9px] font-mono bg-slate-900/85 backdrop-blur px-1.5 py-0.5 rounded-lg border border-slate-800 shadow">
           <div class="flex items-center gap-1 text-amber-300">
             <i class="fa-solid fa-gem text-amber-400 text-[9px]"></i>
             <span id="hudCores" class="font-black">0</span>
           </div>
-          <button id="btnOpenUpgrade" class="flex items-center gap-0.5 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 hover:bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-600">
-            <i class="fa-solid fa-bolt text-emerald-400 text-[8px]"></i>
-            <span class="text-[8px]">強化<b id="hudSp" class="text-white ml-0.5">0</b></span>
-          </button>
+          <div class="flex items-center gap-1">
+            <span id="hudStyleBadge" class="text-[7px] font-sans px-1 rounded bg-slate-800 text-cyan-300 border border-slate-700">通常</span>
+            <button id="btnOpenUpgrade" class="flex items-center gap-0.5 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 hover:bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-600">
+              <i class="fa-solid fa-bolt text-emerald-400 text-[8px]"></i>
+              <span class="text-[8px]">強化<b id="hudSp" class="text-white ml-0.5">0</b></span>
+            </button>
+          </div>
         </div>
 
         <!-- ソウルモジュールスロット -->
@@ -99,9 +102,8 @@
           </button>
         </div>
 
-        <!-- 進行中の脱出プログレス -->
         <div id="escapeProgressBox" class="hidden flex-col items-center bg-slate-900/95 border border-amber-500/80 px-2 py-1 rounded-lg shadow-xl text-center">
-          <div class="text-[8px] font-black text-amber-300">脱出中 (被弾で中断)</div>
+          <div class="text-[8px] font-black text-amber-300">脱出待機中 (被弾で中断)</div>
           <div class="w-24 h-1.5 bg-slate-950 rounded-full border border-slate-700 overflow-hidden mt-0.5">
             <div id="escapeProgressBar" class="h-full bg-amber-400 w-0 transition-all duration-100"></div>
           </div>
@@ -111,10 +113,11 @@
         <div id="killFeed" class="flex flex-col items-center gap-0.5 max-w-[160px] text-center text-[8px] font-medium text-slate-300 pointer-events-none"></div>
       </div>
 
-      <!-- 右上: ミニマップ ＆ ランキング -->
-      <div class="flex flex-col items-end gap-1 pointer-events-auto max-w-[105px] sm:max-w-[125px]">
-        <div class="relative w-14 h-14 sm:w-18 sm:h-18 bg-slate-950/95 rounded-xl border border-slate-700 overflow-hidden shadow">
+      <!-- 右上: 周辺レーダーミニマップ ＆ ランキング -->
+      <div class="flex flex-col items-end gap-1 pointer-events-auto max-w-[110px] sm:max-w-[130px]">
+        <div class="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-950/95 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
+          <div class="absolute bottom-0.5 right-1 text-[6px] font-mono text-cyan-400/80 pointer-events-none">RADAR</div>
         </div>
 
         <div class="bg-slate-900/90 backdrop-blur-md rounded-lg p-1 border border-slate-800 text-[7px] sm:text-[8px] shadow w-full overflow-hidden">
@@ -130,6 +133,17 @@
     <!-- 画面中央通知 -->
     <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none -mt-8">
       <div id="centerAlertText" class="text-lg sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
+    </div>
+
+    <!-- ★ モジュール取得確認インタラクトパネル (誤取得・強制上書き防止) -->
+    <div id="modulePickupPrompt" class="hidden self-center bg-slate-900/95 border border-cyan-500/80 rounded-2xl p-2 px-3 shadow-2xl backdrop-blur flex items-center gap-2.5 pointer-events-auto mb-2 animate-bounce">
+      <div class="flex flex-col text-left">
+        <span id="promptModName" class="text-[10px] font-black text-cyan-300">モジュール名</span>
+        <span id="promptModDesc" class="text-[8px] text-slate-400">効果説明</span>
+      </div>
+      <button id="btnPickModule" class="bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow">
+        取得
+      </button>
     </div>
 
     <!-- 下部操作パネル -->
@@ -169,14 +183,14 @@
       <div class="text-amber-400 font-black text-base flex items-center justify-center gap-1.5">
         <i class="fa-solid fa-crown text-yellow-300"></i> 上位クラス覚醒進化
       </div>
-      <p class="text-[10px] text-slate-300">Lv.10に到達しました！進化先を選択してください。</p>
+      <p class="text-[10px] text-slate-300">Lv.10到達！プレイスタイルに合わせた上位形態を選択してください。</p>
       <div id="evolutionChoices" class="flex flex-col gap-2"></div>
     </div>
   </div>
 
-  <!-- 深層強化ツリーモーダル -->
+  <!-- 深層強化ツリー & オーラスタイル設定モーダル -->
   <div id="upgradeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-col gap-2 max-h-[90vh]">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-col gap-2.5 max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
         <h2 class="text-xs sm:text-sm font-black text-amber-400 flex items-center gap-1.5">
           <i class="fa-solid fa-dna text-cyan-400"></i> キャラクター深層強化ツリー
@@ -186,10 +200,18 @@
         </button>
       </div>
 
+      <!-- ★ 新規強化要素：オーラ・スタイル（微調整枠） -->
+      <div class="bg-slate-950/80 p-2 rounded-2xl border border-slate-800 flex flex-col gap-1">
+        <span class="text-[9px] font-bold text-slate-300 flex items-center gap-1">
+          <i class="fa-solid fa-fire text-amber-400"></i> オーラ・スタイル特化 (1つ選択)
+        </span>
+        <div class="grid grid-cols-2 gap-1.5" id="styleSelectorContainer"></div>
+      </div>
+
       <div class="flex justify-between bg-slate-950/70 p-1.5 rounded-xl border border-slate-800 text-[10px]">
         <div>強化SP: <b id="modalSp" class="text-emerald-400 font-mono">0</b></div>
         <div>所持コア: <b id="modalCores" class="text-amber-400 font-mono">0</b></div>
-        <div>状態: <span id="modalSaveStatus" class="text-amber-400 font-bold">未脱出</span></div>
+        <div>状態: <span id="modalSaveStatus" class="text-amber-400 font-bold">脱出待機</span></div>
       </div>
 
       <div id="upgradeStatsList" class="flex flex-col gap-1.5 overflow-y-auto custom-scroll pr-1 flex-1"></div>
@@ -202,18 +224,18 @@
       
       <div class="text-center">
         <div class="inline-block px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-cyan-500/20 rounded-full border border-cyan-500/40 text-[8px] font-mono text-cyan-300 font-bold mb-1">
-          COLOSSAL ARENA: EVOLUTION
+          ARENA SURVIVAL: BALANCED SECTOR
         </div>
         <h1 class="text-lg sm:text-xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
           ARENA.IO: EVOLUTION
         </h1>
-        <p class="text-[10px] text-slate-400">上位進化・新ギミック・10秒脱出サバイバル</p>
+        <p class="text-[10px] text-slate-400">手動モジュール取得・戦闘スタイル・10秒脱出</p>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[9px] font-semibold text-slate-300 mb-0.5 block">プレイヤー名</label>
-          <input id="inputNickname" type="text" maxlength="12" placeholder="名前" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <input id="inputNickname" type="text" maxlength="12" value="勇者" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
         </div>
         <div>
           <label class="text-[9px] font-semibold text-slate-300 mb-0.5 block">合言葉 (ROOM)</label>
@@ -222,23 +244,23 @@
       </div>
 
       <div id="saveStatusBanner" class="hidden bg-slate-800/90 border border-emerald-500/50 rounded-xl p-2 text-[9px] text-emerald-300 flex items-center justify-between">
-        <div><i class="fa-solid fa-floppy-disk mr-1"></i>脱出データ維持中: <b id="saveStatusDetail">Lv.1</b></div>
-        <span class="text-[8px] text-slate-400">継続プレイ可能</span>
+        <div><i class="fa-solid fa-floppy-disk mr-1"></i>脱出維持データ: <b id="saveStatusDetail">Lv.1</b></div>
+        <span class="text-[8px] text-cyan-300 font-bold">続きからプレイ</span>
       </div>
 
       <div>
         <label class="text-[9px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
-          <span>初期クラス選択（全5種）</span>
+          <span>初期クラス選択</span>
           <span class="text-[8px] text-cyan-400">タップして選択</span>
         </label>
         
-        <div class="flex flex-col gap-1.5 max-h-48 overflow-y-auto custom-scroll pr-1" id="classSelector">
+        <div class="flex flex-col gap-1.5 max-h-44 overflow-y-auto custom-scroll pr-1" id="classSelector">
           <button type="button" data-class="blademaster" class="class-btn p-2 rounded-xl border border-rose-500/60 bg-rose-950/40 text-left flex items-center justify-between ring-2 ring-rose-400 transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-rose-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-khanda text-rose-400"></i> ブレードマスター
               </div>
-              <div class="text-[8px] text-slate-300 mt-0.5">高速近接・弾丸反射・回転斬り (Lv.10で進化)</div>
+              <div class="text-[8px] text-slate-300 mt-0.5">高機動・弾丸反射・近接回転斬撃</div>
             </div>
             <span class="text-[9px] font-mono text-rose-300 font-bold bg-rose-950 px-1.5 py-0.5 rounded border border-rose-500/40">近接</span>
           </button>
@@ -248,7 +270,7 @@
               <div class="text-xs font-black text-cyan-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-crosshairs text-cyan-400"></i> ヘビーガンナー
               </div>
-              <div class="text-[8px] text-slate-300 mt-0.5">長射程砲・直線ノックバック (Lv.10で進化)</div>
+              <div class="text-[8px] text-slate-300 mt-0.5">長射程砲撃・直線牽制射撃</div>
             </div>
             <span class="text-[9px] font-mono text-cyan-300 font-bold bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-500/40">遠隔</span>
           </button>
@@ -258,7 +280,7 @@
               <div class="text-xs font-black text-purple-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> アルケイン魔導士
               </div>
-              <div class="text-[8px] text-slate-300 mt-0.5">誘導ソウル弾・空間跳躍ブリンク (Lv.10で進化)</div>
+              <div class="text-[8px] text-slate-300 mt-0.5">誘導弾・高火力バースト</div>
             </div>
             <span class="text-[9px] font-mono text-purple-300 font-bold bg-purple-950 px-1.5 py-0.5 rounded border border-purple-500/40">魔法</span>
           </button>
@@ -268,7 +290,7 @@
               <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-flask-vial text-emerald-400"></i> バイオ毒工師
               </div>
-              <div class="text-[8px] text-slate-300 mt-0.5">腐食毒弾・残留毒沼生成 (Lv.10で進化)</div>
+              <div class="text-[8px] text-slate-300 mt-0.5">腐食毒・残留スリップダメージ</div>
             </div>
             <span class="text-[9px] font-mono text-emerald-300 font-bold bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/40">毒沼</span>
           </button>
@@ -278,7 +300,7 @@
               <div class="text-xs font-black text-amber-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-shield-halved text-amber-400"></i> スティール城塞守護者
               </div>
-              <div class="text-[8px] text-slate-300 mt-0.5">最高耐久・反射装甲・防御オーラ (Lv.10で進化)</div>
+              <div class="text-[8px] text-slate-300 mt-0.5">最高耐久・ダメージ反射装甲</div>
             </div>
             <span class="text-[9px] font-mono text-amber-300 font-bold bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500/40">防壁</span>
           </button>
@@ -289,7 +311,7 @@
         PLAY (出撃)
       </button>
 
-      <div id="lobbyNetLog" class="text-[8px] text-center text-slate-400 font-mono">合言葉を入力してログイン</div>
+      <div id="lobbyNetLog" class="text-[8px] text-center text-slate-400 font-mono">合言葉を入力して出撃</div>
     </div>
   </div>
 
@@ -297,12 +319,12 @@
   <div id="deathModal" class="absolute inset-0 bg-red-950/90 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
     <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
       <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
-      <h2 class="text-base font-black text-rose-400">脱出失敗・全ロスト</h2>
+      <h2 class="text-base font-black text-rose-400">撃破・全ロスト</h2>
       <p id="deathMessage" class="text-[9px] text-rose-300">脱出できず死亡したため、すべての能力とレベルが消滅しました。</p>
       
       <div class="bg-slate-800/80 rounded-xl p-2 w-full text-left text-[10px] space-y-1 border border-slate-700">
         <div class="flex justify-between text-slate-400"><span>保存データ:</span><span class="font-bold text-rose-400">リセット完了</span></div>
-        <div class="flex justify-between text-slate-400"><span>次回状態:</span><span class="font-bold text-amber-400">Lv.1・初期クラス</span></div>
+        <div class="flex justify-between text-slate-400"><span>次回状態:</span><span class="font-bold text-amber-400">Lv.1・初期状態</span></div>
       </div>
 
       <button id="btnRespawn" class="w-full py-2 bg-gradient-to-r from-rose-600 to-red-700 rounded-xl font-black text-xs active:scale-95 shadow text-white">
@@ -331,9 +353,7 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
       }
-    } catch(e) {
-      console.warn("Firebase初期化待機中:", e);
-    }
+    } catch(e) {}
 
     class SoundFX {
       constructor() { this.ctx = null; }
@@ -344,7 +364,7 @@
         }
         if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
       }
-      playTone(freq, type, dur, gainVal = 0.08) {
+      playTone(freq, type, dur, gainVal = 0.06) {
         if (!this.ctx) return;
         try {
           const now = this.ctx.currentTime;
@@ -360,94 +380,102 @@
           osc.stop(now + dur);
         } catch(e) {}
       }
-      playSlash() { this.playTone(320, 'sawtooth', 0.1, 0.1); }
-      playShoot() { this.playTone(650, 'square', 0.06, 0.08); }
-      playHit() { this.playTone(160, 'triangle', 0.05, 0.12); }
-      playExplode() { this.playTone(80, 'square', 0.25, 0.2); }
-      playEquip() { this.playTone(1100, 'sine', 0.18, 0.15); }
-      playBounce() { this.playTone(480, 'sine', 0.15, 0.15); }
-      playWarp() { this.playTone(720, 'sine', 0.2, 0.15); }
-      playEvolution() { this.playTone(980, 'triangle', 0.5, 0.25); }
-      playEscapeWarning() { this.playTone(440, 'sine', 0.12, 0.1); }
-      playEscapeSuccess() { this.playTone(880, 'triangle', 0.4, 0.2); }
-      playThunder() { this.playTone(120, 'sawtooth', 0.3, 0.2); }
+      playSlash() { this.playTone(300, 'sawtooth', 0.08, 0.08); }
+      playShoot() { this.playTone(600, 'square', 0.05, 0.06); }
+      playHit() { this.playTone(140, 'triangle', 0.06, 0.12); }
+      playExplode() { this.playTone(70, 'square', 0.3, 0.2); }
+      playEquip() { this.playTone(1100, 'sine', 0.18, 0.12); }
+      playBounce() { this.playTone(480, 'sine', 0.15, 0.12); }
+      playWarp() { this.playTone(720, 'sine', 0.2, 0.12); }
+      playEvolution() { this.playTone(980, 'triangle', 0.5, 0.2); }
+      playEscapeWarning() { this.playTone(440, 'sine', 0.12, 0.08); }
+      playEscapeSuccess() { this.playTone(880, 'triangle', 0.4, 0.18); }
+      playThunder() { this.playTone(110, 'sawtooth', 0.3, 0.18); }
     }
     const sound = new SoundFX();
 
-    const WORLD_WIDTH = 100000;
-    const WORLD_HEIGHT = 100000;
+    const WORLD_WIDTH = 50000;
+    const WORLD_HEIGHT = 50000;
 
     const CLASS_CONFIGS = {
-      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 220, speed: 5.5, attackRate: 250, range: 100, arc: Math.PI * 0.75, damage: 45, deflects: true },
-      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 200, speed: 4.6, attackRate: 230, range: 650, damage: 32, bulletSpeed: 17, bulletSize: 7 },
-      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 170, speed: 4.8, attackRate: 280, range: 550, damage: 28, bulletSpeed: 13, homing: true },
-      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 180, speed: 4.9, attackRate: 300, range: 480, damage: 20, isPoison: true },
-      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 350, speed: 4.2, attackRate: 360, range: 80, arc: Math.PI * 0.6, damage: 38, reflectArmor: 0.25 }
+      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 180, speed: 5.2, attackRate: 290, range: 85, arc: Math.PI * 0.7, damage: 32, deflects: true },
+      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 160, speed: 4.4, attackRate: 260, range: 580, damage: 22, bulletSpeed: 15, bulletSize: 6 },
+      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 140, speed: 4.6, attackRate: 310, range: 500, damage: 20, bulletSpeed: 12, homing: true },
+      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 150, speed: 4.7, attackRate: 330, range: 440, damage: 16, bulletSpeed: 12, isPoison: true },
+      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 260, speed: 3.9, attackRate: 380, range: 75, arc: Math.PI * 0.6, damage: 28, reflectArmor: 0.2 }
     };
 
     const EVOLUTIONS = {
       blademaster: [
-        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻撃速度+40%・分身刃射出', damage: 52, attackRate: 160, speed: 6.2, range: 110, isMelee: true, arc: Math.PI * 0.8, deflects: true },
-        { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+150・常時被ダメージ20%カット', damage: 58, attackRate: 270, speed: 5.0, range: 105, maxHpBonus: 150, isMelee: true, arc: Math.PI * 0.75, deflects: true }
+        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻速+30%・分身刃射出', damage: 38, attackRate: 200, speed: 5.8, range: 95, isMelee: true, arc: Math.PI * 0.75, deflects: true },
+        { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+80・常時被ダメ15%カット', damage: 40, attackRate: 300, speed: 4.8, range: 90, maxHpBonus: 80, isMelee: true, arc: Math.PI * 0.7, deflects: true }
       ],
       gunner: [
-        { id: 'railgun_master', name: '電磁砲レールガンマスター', desc: '弾丸貫通・超射程・ダメージ特化', damage: 65, attackRate: 360, speed: 4.4, range: 800, bulletSpeed: 24, bulletSize: 9, isMelee: false },
-        { id: 'gatling_striker', name: '連撃ガトリングストライカー', desc: '超高速連射マシンガン掃射', damage: 24, attackRate: 90, speed: 4.6, range: 550, bulletSpeed: 18, bulletSize: 6, isMelee: false }
+        { id: 'railgun_master', name: '電磁砲レールガンマスター', desc: '弾丸貫通・超射程・高火力', damage: 48, attackRate: 380, speed: 4.2, range: 720, bulletSpeed: 20, bulletSize: 8, isMelee: false },
+        { id: 'gatling_striker', name: '連撃ガトリングストライカー', desc: 'マシンガン連射掃射', damage: 16, attackRate: 110, speed: 4.3, range: 480, bulletSpeed: 16, bulletSize: 5, isMelee: false }
       ],
       sorcerer: [
-        { id: 'chronomancer', name: '時歪術士クロノマンサー', desc: '攻撃ヒット時に敵の足を奪う時間凍結', damage: 38, attackRate: 220, speed: 5.2, range: 600, bulletSpeed: 15, isMelee: false, homing: true, isFreeze: true },
-        { id: 'void_archon', name: '虚空大導師ヴォイドアーコン', desc: '3方向誘導弾・テレポート距離2倍', damage: 42, attackRate: 260, speed: 5.0, range: 580, bulletSpeed: 14, isMelee: false, multiShot: 3, homing: true }
+        { id: 'chronomancer', name: '時歪術士クロノマンサー', desc: '攻撃ヒット時に敵を遅延減速', damage: 28, attackRate: 250, speed: 4.9, range: 540, bulletSpeed: 13, isMelee: false, homing: true, isFreeze: true },
+        { id: 'void_archon', name: '虚空大導師ヴォイドアーコン', desc: '3方向誘導弾・テレポート強化', damage: 30, attackRate: 290, speed: 4.8, range: 520, bulletSpeed: 13, isMelee: false, multiShot: 3, homing: true }
       ],
       alchemist: [
-        { id: 'plague_lord', name: '猛毒王プレイグロード', desc: '致死毒沼が超拡大・継続ダメージ倍加', damage: 30, attackRate: 240, speed: 5.0, range: 500, bulletSpeed: 15, isMelee: false, isPoison: true, poisonAmp: 2.2 },
-        { id: 'bio_mutant', name: '生体変異体バイオミュータント', desc: '被ダメ時に毒トゲ全方位射出＆自己再生+8', damage: 34, attackRate: 260, speed: 5.2, range: 450, bulletSpeed: 14, isMelee: false, isPoison: true, regenBonus: 8 }
+        { id: 'plague_lord', name: '猛毒王プレイグロード', desc: '毒沼拡大・スリップ倍加', damage: 24, attackRate: 270, speed: 4.8, range: 460, bulletSpeed: 13, isMelee: false, isPoison: true, poisonAmp: 1.8 },
+        { id: 'bio_mutant', name: '生体変異体バイオミュータント', desc: '被ダメ時毒トゲ放射＆自己再生+4', damage: 26, attackRate: 290, speed: 4.9, range: 420, bulletSpeed: 13, isMelee: false, isPoison: true, regenBonus: 4 }
       ],
       guardian: [
-        { id: 'titan_colossus', name: '金剛巨神タイタン', desc: 'ノックバック無効・被ダメの40%を周囲に反射', damage: 50, attackRate: 320, speed: 4.3, range: 90, arc: Math.PI * 0.8, maxHpBonus: 220, isMelee: true, reflectArmor: 0.4 },
-        { id: 'dreadnought', name: '突進重甲ドレッドノート', desc: 'ダッシュが超高威力突進攻撃に変化', damage: 56, attackRate: 300, speed: 4.8, range: 85, arc: Math.PI * 0.7, maxHpBonus: 120, isMelee: true, dashRam: true }
+        { id: 'titan_colossus', name: '金剛巨神タイタン', desc: 'ノックバック無効・被ダメ30%反射', damage: 36, attackRate: 350, speed: 4.0, range: 85, arc: Math.PI * 0.75, maxHpBonus: 140, isMelee: true, reflectArmor: 0.3 },
+        { id: 'dreadnought', name: '突進重甲ドレッドノート', desc: 'ダッシュ突進攻撃・最大HP+80', damage: 42, attackRate: 330, speed: 4.5, range: 80, arc: Math.PI * 0.65, maxHpBonus: 80, isMelee: true, dashRam: true }
       ]
     };
 
-    // ★ 敵バリエーション拡張（スライム、ゴーレムを追加）
     const BOT_VARIANTS = {
-      berserker: { typeName: 'バーサーカー', hp: 55, speed: 3.2, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 8, attackRate: 850, cores: 12 },
-      sniper: { typeName: 'スナイパー', hp: 40, speed: 2.6, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 6, bulletSpeed: 10, attackRate: 1400, cores: 10 },
-      tank: { typeName: '重装ドローン', hp: 95, speed: 1.8, range: 160, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 5, bulletSpeed: 7, attackRate: 1600, cores: 16 },
-      assassin: { typeName: 'アサシン', hp: 45, speed: 4.2, range: 70, isMelee: true, color: '#c084fc', border: '#f3e8ff', damage: 12, attackRate: 650, cores: 14 },
-      bomber: { typeName: 'ボマー', hp: 35, speed: 3.8, range: 40, isMelee: true, color: '#f59e0b', border: '#fef3c7', damage: 25, attackRate: 9999, isSuicide: true, cores: 15 },
-      necromancer: { typeName: '死霊術士', hp: 80, speed: 2.2, range: 300, isMelee: false, color: '#6366f1', border: '#c7d2fe', damage: 7, bulletSpeed: 8, attackRate: 2000, isSummoner: true, cores: 25 },
-      slime: { typeName: '増殖スライム', hp: 45, speed: 2.8, range: 50, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 7, attackRate: 700, isSplitter: true, cores: 8 },
-      golem: { typeName: 'ドレッドゴーレム', hp: 200, speed: 1.5, range: 90, isMelee: true, color: '#d97706', border: '#fde68a', damage: 20, attackRate: 1100, radius: 30, cores: 35 },
-      elite_boss: { typeName: 'ヴォイド・イーター', hp: 400, speed: 1.7, range: 260, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 16, bulletSpeed: 9, attackRate: 850, isBoss: true, radius: 36, cores: 60 }
+      berserker: { typeName: 'バーサーカー', hp: 70, speed: 3.5, range: 65, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 14, attackRate: 750, cores: 12 },
+      sniper: { typeName: 'スナイパー', hp: 50, speed: 2.8, range: 450, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 15, bulletSpeed: 14, attackRate: 1100, cores: 10 },
+      tank: { typeName: '重装ドローン', hp: 140, speed: 2.1, range: 180, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 10, bulletSpeed: 9, attackRate: 1300, cores: 16 },
+      assassin: { typeName: 'アサシン', hp: 60, speed: 4.5, range: 75, isMelee: true, color: '#c084fc', border: '#f3e8ff', damage: 22, attackRate: 580, cores: 14 },
+      bomber: { typeName: 'ボマー', hp: 45, speed: 4.2, range: 45, isMelee: true, color: '#f59e0b', border: '#fef3c7', damage: 45, attackRate: 9999, isSuicide: true, cores: 15 },
+      necromancer: { typeName: '死霊術士', hp: 110, speed: 2.4, range: 340, isMelee: false, color: '#6366f1', border: '#c7d2fe', damage: 12, bulletSpeed: 10, attackRate: 1600, isSummoner: true, cores: 25 },
+      slime: { typeName: '増殖スライム', hp: 65, speed: 3.0, range: 55, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 11, attackRate: 650, isSplitter: true, cores: 8 },
+      golem: { typeName: 'ドレッドゴーレム', hp: 280, speed: 1.8, range: 95, isMelee: true, color: '#d97706', border: '#fde68a', damage: 32, attackRate: 950, radius: 32, cores: 35 },
+      elite_boss: { typeName: 'ヴォイド・イーター', hp: 600, speed: 2.0, range: 300, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 26, bulletSpeed: 12, attackRate: 700, isBoss: true, radius: 38, cores: 80 }
     };
 
-    // ★ 強化項目を18種類に拡張
+    // ★ 新要素：オーラ・スタイル特化（一長一短の微調整スタイル）
+    const AURA_STYLES = {
+      none: { name: '無形', desc: '特化なし（標準バランス）' },
+      gale: { name: '疾風の型', desc: 'スタミナ回復+25% / 被ノックバック+20%' },
+      impact: { name: '重撃の型', desc: '攻撃時敵ノックバック付与 / 攻速-10%' },
+      aegis: { name: '鉄壁の型', desc: '被ダメ-8% / 移動速度-5%' },
+      harvester: { name: '収穫の型', desc: 'コア回収時HP+1 / 最大HP-20' }
+    };
+
     const UPGRADE_TYPES = [
-      { id: 'maxHp', name: '最大HP増強', desc: 'HP+50', maxLv: 15, cost: 1 },
-      { id: 'dmg', name: '攻撃力強化', desc: '攻撃・弾丸威力+15%', maxLv: 15, cost: 1 },
-      { id: 'speed', name: '機動推進力', desc: '移動速度+7%', maxLv: 10, cost: 1 },
-      { id: 'regen', name: 'ナノリジェネ', desc: '毎秒HP回復+3', maxLv: 10, cost: 1 },
-      { id: 'armor', name: '複合装甲', desc: '被ダメージ5%軽減', maxLv: 10, cost: 1 },
-      { id: 'crit', name: 'クリティカル精密', desc: '会心率+8% (2倍撃)', maxLv: 8, cost: 1 },
-      { id: 'critDmg', name: '会心倍率増幅', desc: '会心威力+25%', maxLv: 6, cost: 2 },
-      { id: 'vampire', name: 'ライフドレイン', desc: '敵撃破時にHP15回復', maxLv: 5, cost: 2 },
-      { id: 'magnet', name: '強力マグネット', desc: '吸引範囲+50px', maxLv: 8, cost: 1 },
-      { id: 'cdr', name: '冷却短縮', desc: 'スキルCDが10%短縮', maxLv: 6, cost: 2 },
-      { id: 'stamina', name: 'スタミナ効率', desc: 'ダッシュ消費量-20%', maxLv: 5, cost: 1 },
-      { id: 'staminaRegen', name: '心肺機能強化', desc: 'スタミナ回復速度+30%', maxLv: 5, cost: 1 },
-      { id: 'bulletSpeed', name: '加速弾丸加速器', desc: '弾速+15% (遠隔のみ)', maxLv: 5, cost: 1 },
-      { id: 'baseShield', name: '常時シールド生成', desc: 'リスポーン時シールド+50', maxLv: 5, cost: 2 },
-      { id: 'expBoost', name: '学習プロセッサ', desc: '獲得経験値+20%', maxLv: 5, cost: 1 },
-      { id: 'thorns', name: 'トゲ装甲反撃', desc: '近接被ダメの20%を相手に返す', maxLv: 5, cost: 2 },
-      { id: 'knockbackRes', name: '耐衝撃ショック', desc: '被ノックバック40%低減', maxLv: 5, cost: 1 },
-      { id: 'escapeSpeed', name: '脱出支援ビーコン', desc: '脱出必要時間を0.5秒短縮', maxLv: 4, cost: 3 }
+      { id: 'maxHp', name: '最大HP増強', desc: 'HP+25', maxLv: 15, cost: 1 },
+      { id: 'dmg', name: '攻撃力強化', desc: '攻撃・弾丸威力+8%', maxLv: 15, cost: 1 },
+      { id: 'speed', name: '機動推進力', desc: '移動速度+4%', maxLv: 10, cost: 1 },
+      { id: 'regen', name: 'ナノリジェネ', desc: '毎秒HP回復+1.5', maxLv: 10, cost: 1 },
+      { id: 'armor', name: '複合装甲', desc: '被ダメ4%軽減', maxLv: 10, cost: 1 },
+      { id: 'crit', name: 'クリティカル精密', desc: '会心率+5% (1.75倍撃)', maxLv: 8, cost: 1 },
+      { id: 'critDmg', name: '会心倍率増幅', desc: '会心威力+15%', maxLv: 6, cost: 2 },
+      { id: 'vampire', name: 'ライフドレイン', desc: '敵撃破時HP8回復', maxLv: 5, cost: 2 },
+      { id: 'magnet', name: '強力マグネット', desc: '吸引範囲+40px', maxLv: 8, cost: 1 },
+      { id: 'cdr', name: '冷却短縮', desc: 'スキルCDが7%短縮', maxLv: 6, cost: 2 },
+      { id: 'stamina', name: 'スタミナ効率', desc: 'ダッシュ消費量-15%', maxLv: 5, cost: 1 },
+      { id: 'staminaRegen', name: '心肺機能強化', desc: 'スタミナ回復+20%', maxLv: 5, cost: 1 },
+      { id: 'bulletSpeed', name: '弾速加速器', desc: '弾速+10% (遠隔のみ)', maxLv: 5, cost: 1 },
+      { id: 'baseShield', name: '出撃時シールド', desc: '開始時シールド+30', maxLv: 5, cost: 2 },
+      { id: 'expBoost', name: '学習プロセッサ', desc: '獲得経験値+15%', maxLv: 5, cost: 1 },
+      { id: 'thorns', name: 'トゲ装甲反撃', desc: '近接被ダメ15%反射', maxLv: 5, cost: 2 },
+      { id: 'knockbackRes', name: '耐衝撃ショック', desc: '被ノックバック30%低減', maxLv: 5, cost: 1 },
+      { id: 'escapeSpeed', name: '脱出支援ビーコン', desc: '脱出必要時間を0.4秒短縮', maxLv: 4, cost: 3 }
     ];
 
+    // ★ モジュール効果をマイルドに抑制（インフレ抑止）
     const MODULE_DEFINITIONS = {
-      crimson: { name: 'クリムゾン', desc: '攻撃力+25%', color: '#ef4444', icon: '⚔' },
-      aqua: { name: 'アクア', desc: '常時シールド+80', color: '#06b6d4', icon: '🛡' },
-      void: { name: 'ヴォイド', desc: '射程・攻撃範囲+30%', color: '#a855f7', icon: '✦' },
-      vital: { name: 'ヴァイタル', desc: '最大HP+100 & 速度+10%', color: '#10b981', icon: '♥' }
+      crimson: { name: 'クリムゾン', desc: '攻撃力+8%', color: '#ef4444', icon: '⚔' },
+      aqua: { name: 'アクア', desc: '常時シールド+25', color: '#06b6d4', icon: '🛡' },
+      void: { name: 'ヴォイド', desc: '射程・範囲+10%', color: '#a855f7', icon: '✦' },
+      vital: { name: 'ヴァイタル', desc: '最大HP+30 & 速度+3%', color: '#10b981', icon: '♥' }
     };
 
     let isPlaying = false;
@@ -474,23 +502,24 @@
       name: '勇者',
       baseClass: 'blademaster',
       classType: 'blademaster',
+      auraStyle: 'none',
       evolved: false,
       customEvo: null,
-      x: 50000,
-      y: 50000,
+      x: 25000,
+      y: 25000,
       angle: 0,
       vx: 0,
       vy: 0,
-      hp: 220,
-      maxHp: 220,
+      hp: 180,
+      maxHp: 180,
       shield: 0,
       stamina: 100,
       cores: 0,
       sp: 0,
       level: 1,
       exp: 0,
-      nextExp: 40,
-      radius: 26,
+      nextExp: 50,
+      radius: 24,
       isAlive: true,
       isDashing: false,
       inBush: false,
@@ -505,9 +534,12 @@
     let isEscaping = false;
     let escapeTimer = 0;
     let escapeDuration = 10.0;
+    let nearbyModuleToPick = null;
 
     function getSaveKey() {
-      return `arena_save_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`;
+      const n = (document.getElementById('inputNickname').value.trim() || myPlayer.name).toLowerCase();
+      const r = (document.getElementById('inputRoom').value.trim() || roomCode).toUpperCase();
+      return `arena_save_${r}_${n}`;
     }
 
     function saveOnSuccessfulEscape() {
@@ -516,6 +548,7 @@
           name: myPlayer.name,
           baseClass: myPlayer.baseClass,
           classType: myPlayer.classType,
+          auraStyle: myPlayer.auraStyle,
           evolved: myPlayer.evolved,
           customEvo: myPlayer.customEvo,
           level: myPlayer.level,
@@ -541,13 +574,16 @@
         const raw = localStorage.getItem(getSaveKey());
         if (!raw) return false;
         const d = JSON.parse(raw);
+        if (!d.level) return false;
+
         myPlayer.level = d.level || 1;
         myPlayer.exp = d.exp || 0;
-        myPlayer.nextExp = d.nextExp || 40;
+        myPlayer.nextExp = d.nextExp || 50;
         myPlayer.cores = d.cores || 0;
         myPlayer.sp = d.sp || 0;
         myPlayer.baseClass = d.baseClass || myPlayer.baseClass;
         myPlayer.classType = d.classType || myPlayer.baseClass;
+        myPlayer.auraStyle = d.auraStyle || 'none';
         myPlayer.evolved = !!d.evolved;
         myPlayer.customEvo = d.customEvo || null;
         if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
@@ -558,13 +594,6 @@
       }
     }
 
-    window.addEventListener('beforeunload', () => {
-      if (isPlaying) {
-        purgeSaveData();
-        if (myPlayerRef) myPlayerRef.remove();
-      }
-    });
-
     let remotePlayers = new Map();
     let bullets = [];
     let slashes = [];
@@ -573,7 +602,6 @@
     let popups = [];
     let aiBots = [];
     let fieldGimmicks = [];
-
     let lastSyncSendTime = 0;
 
     function initNetwork(rId) {
@@ -581,12 +609,12 @@
       const logEl = document.getElementById('lobbyNetLog');
 
       if (!db) {
-        logEl.textContent = 'Firebase未設定 (ソロ・BOTモードで動作中)';
+        logEl.textContent = 'Firebase未設定 (ソロ・BOT戦モード)';
         updateNetUI(1);
         return;
       }
 
-      logEl.textContent = `[${roomCode}] サーバー接続中...`;
+      logEl.textContent = `[${roomCode}] 接続中...`;
       roomPlayersRef = db.ref(`rooms/${roomCode}/players`);
       myPlayerRef = roomPlayersRef.child(myPlayer.id);
 
@@ -640,7 +668,7 @@
         }
       });
 
-      logEl.textContent = 'オンライン同期中';
+      logEl.textContent = '同期完了';
       updateNetUI(remotePlayers.size + 1);
     }
 
@@ -686,15 +714,14 @@
       updateNetUI(remotePlayers.size + 1);
     }
 
-    // ★ ギミック初期化（マグネットトラップ、ワープポータル含む）
     function initFieldGimmicks() {
       fieldGimmicks = [];
       const types = ['bouncer', 'pulse', 'geyser', 'fountain', 'recharge', 'bush', 'ice', 'storm', 'teleport', 'magnet_hazard'];
 
-      for (let i = 0; i < 180; i++) {
+      for (let i = 0; i < 140; i++) {
         const type = types[Math.floor(Math.random() * types.length)];
-        const gx = 50000 + (Math.random() - 0.5) * 26000;
-        const gy = 50000 + (Math.random() - 0.5) * 26000;
+        const gx = 25000 + (Math.random() - 0.5) * 22000;
+        const gy = 25000 + (Math.random() - 0.5) * 22000;
         
         let color = '#38bdf8';
         if (type === 'bouncer') color = '#f59e0b';
@@ -711,13 +738,13 @@
           type: type,
           x: gx,
           y: gy,
-          targetX: gx + (Math.random() - 0.5) * 3000,
-          targetY: gy + (Math.random() - 0.5) * 3000,
-          radius: type === 'bush' || type === 'ice' ? 70 : (type === 'fountain' ? 65 : (type === 'magnet_hazard' ? 85 : 45)),
-          force: 18,
-          power: 14,
-          dps: 0.6,
-          healRate: 0.4,
+          targetX: gx + (Math.random() - 0.5) * 2400,
+          targetY: gy + (Math.random() - 0.5) * 2400,
+          radius: type === 'bush' || type === 'ice' ? 65 : (type === 'fountain' ? 60 : (type === 'magnet_hazard' ? 75 : 42)),
+          force: 16,
+          power: 12,
+          dps: 1.2,
+          healRate: 0.35,
           color: color,
           angle: Math.random() * Math.PI * 2,
           timer: Math.floor(Math.random() * 100),
@@ -730,13 +757,14 @@
 
     function maintainBots() {
       if (!isPlaying) return;
-      if (aiBots.length < 7) {
+      if (aiBots.length < 8) {
         const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer', 'slime', 'golem'];
-        const isElite = Math.random() < 0.12 && !aiBots.some(b => b.variant === 'elite_boss');
+        const isElite = Math.random() < 0.15 && !aiBots.some(b => b.variant === 'elite_boss');
         const chosenKey = isElite ? 'elite_boss' : types[Math.floor(Math.random() * types.length)];
         const spec = BOT_VARIANTS[chosenKey];
 
-        const spawnDist = 600 + Math.random() * 350;
+        const lvScale = 1 + (myPlayer.level - 1) * 0.08;
+        const spawnDist = 550 + Math.random() * 300;
         const spawnAngle = Math.random() * Math.PI * 2;
 
         aiBots.push({
@@ -749,10 +777,11 @@
           vx: 0,
           vy: 0,
           angle: Math.random() * Math.PI * 2,
-          hp: spec.hp,
-          maxHp: spec.hp,
+          hp: Math.round(spec.hp * lvScale),
+          maxHp: Math.round(spec.hp * lvScale),
           radius: spec.radius || 22,
           speed: spec.speed,
+          damage: Math.round(spec.damage * lvScale),
           cores: spec.cores,
           lastAttack: 0,
           wanderTimer: 0,
@@ -772,9 +801,9 @@
         const spec = bot.spec;
         const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
 
-        if (dist > 1800) {
+        if (dist > 1500) {
           const reAngle = Math.random() * Math.PI * 2;
-          const reDist = 700 + Math.random() * 300;
+          const reDist = 600 + Math.random() * 250;
           bot.x = myPlayer.x + Math.cos(reAngle) * reDist;
           bot.y = myPlayer.y + Math.sin(reAngle) * reDist;
           bot.vx = 0;
@@ -782,7 +811,7 @@
           continue;
         }
         
-        const detectRange = myPlayer.inBush ? 100 : (spec.isBoss ? 650 : 500);
+        const detectRange = myPlayer.inBush ? 90 : (spec.isBoss ? 700 : 520);
         const canSeePlayer = myPlayer.isAlive && dist < detectRange;
 
         if (bot.variant === 'assassin') {
@@ -793,18 +822,18 @@
         }
 
         if (bot.variant === 'necromancer') {
-          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 9) {
-            bot.summonTimer = 240;
+          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 10) {
+            bot.summonTimer = 220;
             sound.playWarp();
-            triggerPopup(bot.x, bot.y, '死霊召喚！', '#818cf8');
+            triggerPopup(bot.x, bot.y, '怨霊召喚！', '#818cf8');
             aiBots.push({
               id: 'bot_minion_' + Math.random().toString(36).substr(2, 5),
               name: '怨念ドローン',
               variant: 'berserker',
-              spec: { typeName: '怨念', hp: 20, speed: 3.8, range: 45, isMelee: true, color: '#818cf8', border: '#e0e7ff', damage: 6, attackRate: 600, cores: 3 },
+              spec: { typeName: '怨念', hp: 25, speed: 4.0, range: 45, isMelee: true, color: '#818cf8', border: '#e0e7ff', damage: 8, attackRate: 500, cores: 3 },
               x: bot.x + (Math.random() - 0.5) * 40,
               y: bot.y + (Math.random() - 0.5) * 40,
-              vx: 0, vy: 0, angle: bot.angle, hp: 20, maxHp: 20, radius: 14, speed: 3.8, cores: 3, lastAttack: 0, wanderTimer: 0
+              vx: 0, vy: 0, angle: bot.angle, hp: 25, maxHp: 25, radius: 14, speed: 4.0, damage: 8, cores: 3, lastAttack: 0, wanderTimer: 0
             });
           }
         }
@@ -826,7 +855,7 @@
             } else if (g.type === 'geyser' && g.active) {
               bot.hp -= g.dps;
             } else if (g.type === 'storm' && g.discharge) {
-              bot.hp -= 15;
+              bot.hp -= 20;
             } else if (g.type === 'fountain') {
               bot.hp = Math.min(bot.maxHp, bot.hp + g.healRate);
             }
@@ -839,24 +868,25 @@
           if (bot.variant === 'bomber' && dist < 45) {
             triggerPopup(bot.x, bot.y, '自爆爆破！', '#f59e0b');
             sound.playExplode();
-            takeDamage(spec.damage, bot.name);
+            takeDamage(bot.damage || spec.damage, bot.name);
             aiBots.splice(i, 1);
             continue;
           }
 
           if (bot.variant === 'sniper' || bot.variant === 'necromancer') {
-            if (dist < 180) {
-              bot.vx -= Math.cos(bot.angle) * bot.speed * 0.12;
-              bot.vy -= Math.sin(bot.angle) * bot.speed * 0.12;
+            if (dist < 190) {
+              bot.vx -= Math.cos(bot.angle) * bot.speed * 0.14;
+              bot.vy -= Math.sin(bot.angle) * bot.speed * 0.14;
             } else if (dist > 280) {
-              bot.vx += Math.cos(bot.angle) * bot.speed * 0.12;
-              bot.vy += Math.sin(bot.angle) * bot.speed * 0.12;
+              bot.vx += Math.cos(bot.angle) * bot.speed * 0.14;
+              bot.vy += Math.sin(bot.angle) * bot.speed * 0.14;
             }
           } else {
-            bot.vx += Math.cos(bot.angle) * bot.speed * 0.14;
-            bot.vy += Math.sin(bot.angle) * bot.speed * 0.14;
+            bot.vx += Math.cos(bot.angle) * bot.speed * 0.16;
+            bot.vy += Math.sin(bot.angle) * bot.speed * 0.16;
           }
 
+          const dmg = bot.damage || spec.damage;
           if (dist <= spec.range && now - bot.lastAttack > spec.attackRate) {
             bot.lastAttack = now;
             if (spec.isMelee) {
@@ -867,7 +897,7 @@
                 ownerName: bot.name,
                 x: bot.x, y: bot.y,
                 angle: bot.angle, arc: Math.PI * 0.6,
-                range: spec.range, damage: spec.damage, life: 6
+                range: spec.range, damage: dmg, life: 6
               };
               slashes.push(sl);
               if (dist < sl.range + myPlayer.radius) takeDamage(sl.damage, bot.name);
@@ -881,7 +911,7 @@
                 y: bot.y + Math.sin(bot.angle) * (bot.radius + 6),
                 vx: Math.cos(bot.angle) * spec.bulletSpeed,
                 vy: Math.sin(bot.angle) * spec.bulletSpeed,
-                damage: spec.damage, radius: 4, life: 55,
+                damage: dmg, radius: 4, life: 55,
                 color: spec.color
               });
             }
@@ -904,37 +934,36 @@
           sound.playExplode();
           dropCoresAt(bot.x, bot.y, bot.cores);
 
-          // スライム分裂ギミック
           if (spec.isSplitter && bot.radius > 16) {
             for (let s = 0; s < 2; s++) {
               aiBots.push({
                 id: 'bot_slime_' + Math.random().toString(36).substr(2, 5),
                 name: '小スライム',
                 variant: 'slime',
-                spec: { typeName: '小スライム', hp: 20, speed: 3.2, range: 40, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 4, attackRate: 600, cores: 4 },
-                x: bot.x + (s === 0 ? -15 : 15),
-                y: bot.y + (s === 0 ? -15 : 15),
-                vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                spec: { typeName: '小スライム', hp: 25, speed: 3.4, range: 40, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 6, attackRate: 600, cores: 4 },
+                x: bot.x + (s === 0 ? -12 : 12),
+                y: bot.y + (s === 0 ? -12 : 12),
+                vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
                 angle: Math.random() * Math.PI * 2,
-                hp: 20, maxHp: 20, radius: 14, speed: 3.2, cores: 4, lastAttack: 0, wanderTimer: 0
+                hp: 25, maxHp: 25, radius: 14, speed: 3.4, damage: 6, cores: 4, lastAttack: 0, wanderTimer: 0
               });
             }
-            triggerPopup(bot.x, bot.y, 'スライム分裂！', '#06b6d4');
+            triggerPopup(bot.x, bot.y, '分裂！', '#06b6d4');
           }
 
-          if (spec.isBoss || Math.random() < 0.3) {
+          if (spec.isBoss || Math.random() < 0.25) {
             spawnRandomModule(bot.x, bot.y);
           }
 
           if (myPlayer.upgrades.vampire > 0) {
-            const healVal = myPlayer.upgrades.vampire * 15;
+            const healVal = myPlayer.upgrades.vampire * 8;
             myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + healVal);
           }
 
           addKillLog(myPlayer.name, bot.name);
           myPlayer.cores += bot.cores;
           
-          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
+          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.15;
           myPlayer.exp += Math.round(bot.cores * 5 * expMult);
 
           aiBots.splice(i, 1);
@@ -950,7 +979,7 @@
         id: 'mod_' + Math.random().toString(36).substr(2, 6),
         type: k,
         x, y,
-        life: 600
+        life: 800
       });
       triggerPopup(x, y - 25, 'モジュール出現!', '#c084fc');
     }
@@ -988,7 +1017,6 @@
       sound.playEvolution();
     }
 
-    // ★ 修正：元クラスの基本数値をベースに合成し、NaNによる停止を防止
     function applyEvolution(evo) {
       myPlayer.evolved = true;
       myPlayer.classType = evo.id;
@@ -1021,12 +1049,12 @@
       isEscaping = true;
       escapeTimer = 0;
       
-      const reduction = (myPlayer.upgrades.escapeSpeed || 0) * 0.5;
+      const reduction = (myPlayer.upgrades.escapeSpeed || 0) * 0.4;
       escapeDuration = Math.max(8.0, 10.0 - reduction);
 
       escapeProgressBox.classList.remove('hidden');
       sound.playEscapeWarning();
-      triggerPopup(myPlayer.x, myPlayer.y - 45, '脱出開始! 10秒耐え抜け!', '#facc15');
+      triggerPopup(myPlayer.x, myPlayer.y - 45, '脱出シークエンス開始! 10秒防衛せよ!', '#facc15');
     });
 
     function cancelEscapeSequence(reason = '被弾により脱出失敗！') {
@@ -1060,16 +1088,43 @@
 
         document.getElementById('gameHud').classList.add('hidden');
         document.getElementById('lobbyScreen').classList.remove('hidden');
-        document.getElementById('lobbyNetLog').textContent = '安全脱出成功！ステータス完全維持。';
+        document.getElementById('lobbyNetLog').textContent = '安全脱出成功！強化＆所持コアを維持。';
 
         checkSavePreview();
       }
+    }
+
+    // ★ スタイルセレクターUIの描画
+    function renderStyleSelector() {
+      const container = document.getElementById('styleSelectorContainer');
+      container.innerHTML = '';
+      Object.keys(AURA_STYLES).forEach(k => {
+        const s = AURA_STYLES[k];
+        const isSelected = myPlayer.auraStyle === k;
+        const btn = document.createElement('button');
+        btn.className = `p-1.5 rounded-xl border text-left flex flex-col transition active:scale-95 ${
+          isSelected ? 'border-amber-400 bg-amber-950/40 text-amber-300 ring-1 ring-amber-400' : 'border-slate-800 bg-slate-900/60 text-slate-400'
+        }`;
+        btn.innerHTML = `
+          <span class="text-[9px] font-bold ${isSelected ? 'text-amber-300' : 'text-slate-200'}">${s.name}</span>
+          <span class="text-[7px] leading-tight text-slate-400 mt-0.5">${s.desc}</span>
+        `;
+        btn.onclick = () => {
+          myPlayer.auraStyle = k;
+          recalcStats();
+          renderStyleSelector();
+          sound.playTone(600, 'sine', 0.1, 0.08);
+        };
+        container.appendChild(btn);
+      });
     }
 
     function renderUpgradeModal() {
       document.getElementById('modalSp').textContent = myPlayer.sp;
       document.getElementById('modalCores').textContent = myPlayer.cores;
       document.getElementById('modalSaveStatus').textContent = isPlaying ? '未脱出' : '脱出維持済';
+
+      renderStyleSelector();
 
       const list = document.getElementById('upgradeStatsList');
       list.innerHTML = '';
@@ -1147,23 +1202,64 @@
       });
     }
 
+    // ★ ステータス計算（オーラスタイル補正含む）
     function recalcStats() {
       let cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
       const u = myPlayer.upgrades;
 
-      let extraHp = (u.maxHp * 50) + ((myPlayer.level - 1) * 15);
-      let extraShield = (u.baseShield || 0) * 50;
+      let extraHp = (u.maxHp * 25) + ((myPlayer.level - 1) * 10);
+      let extraShield = (u.baseShield || 0) * 30;
 
+      // モジュール補正（マイルド）
       myPlayer.modules.forEach(mod => {
         const mult = mod.star || 1;
-        if (mod.type === 'vital') extraHp += 100 * mult;
-        if (mod.type === 'aqua') extraShield += 80 * mult;
+        if (mod.type === 'vital') extraHp += 30 * mult;
+        if (mod.type === 'aqua') extraShield += 25 * mult;
       });
 
-      myPlayer.maxHp = cfg.maxHp + extraHp;
+      // オーラスタイル補正
+      if (myPlayer.auraStyle === 'harvester') extraHp -= 20;
+
+      myPlayer.maxHp = Math.max(80, cfg.maxHp + extraHp);
       myPlayer.shield = Math.max(myPlayer.shield, extraShield);
       if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
+
+      document.getElementById('hudStyleBadge').textContent = AURA_STYLES[myPlayer.auraStyle].name;
     }
+
+    // ★ 手動取得用インタラクト処理
+    function checkModulePickupInteraction() {
+      const promptEl = document.getElementById('modulePickupPrompt');
+      nearbyModuleToPick = null;
+
+      for (let i = 0; i < dropModules.length; i++) {
+        const m = dropModules[i];
+        if (Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 35) {
+          nearbyModuleToPick = { index: i, module: m };
+          break;
+        }
+      }
+
+      if (nearbyModuleToPick) {
+        const def = MODULE_DEFINITIONS[nearbyModuleToPick.module.type];
+        document.getElementById('promptModName').textContent = def.name;
+        document.getElementById('promptModName').style.color = def.color;
+        document.getElementById('promptModDesc').textContent = def.desc;
+        promptEl.classList.remove('hidden');
+      } else {
+        promptEl.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('btnPickModule').addEventListener('click', () => {
+      if (!nearbyModuleToPick) return;
+      const mod = nearbyModuleToPick.module;
+      addOrUpgradeModule(mod.type);
+      dropModules.splice(nearbyModuleToPick.index, 1);
+      nearbyModuleToPick = null;
+      document.getElementById('modulePickupPrompt').classList.add('hidden');
+      sound.playEquip();
+    });
 
     function addOrUpgradeModule(type) {
       const existing = myPlayer.modules.find(m => m.type === type);
@@ -1177,11 +1273,11 @@
       } else {
         if (myPlayer.modules.length < 3) {
           myPlayer.modules.push({ type, star: 1 });
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `モジュール装備: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
+          triggerPopup(myPlayer.x, myPlayer.y - 35, `装備: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
         } else {
           myPlayer.modules.shift();
           myPlayer.modules.push({ type, star: 1 });
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `スロット入替: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
+          triggerPopup(myPlayer.x, myPlayer.y - 35, `入替: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
         }
       }
       recalcStats();
@@ -1212,32 +1308,34 @@
       if (!isPlaying || !myPlayer.isAlive) return;
       const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
       const now = performance.now();
-      if (now - myPlayer.lastAttackTime < cfg.attackRate) return;
+
+      const rateModifier = myPlayer.auraStyle === 'impact' ? 1.1 : 1.0;
+      if (now - myPlayer.lastAttackTime < cfg.attackRate * rateModifier) return;
       myPlayer.lastAttackTime = now;
 
-      let dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.15;
+      let dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.08;
       const crimsonMod = myPlayer.modules.find(m => m.type === 'crimson');
-      if (crimsonMod) dmgBuff += 0.25 * (crimsonMod.star || 1);
+      if (crimsonMod) dmgBuff += 0.08 * (crimsonMod.star || 1);
 
       let isCrit = false;
-      if (Math.random() < (myPlayer.upgrades.crit || 0) * 0.08) {
-        const critMultiplier = 2.0 + (myPlayer.upgrades.critDmg || 0) * 0.25;
+      if (Math.random() < (myPlayer.upgrades.crit || 0) * 0.05) {
+        const critMultiplier = 1.75 + (myPlayer.upgrades.critDmg || 0) * 0.15;
         dmgBuff *= critMultiplier;
         isCrit = true;
       }
       const damage = Math.round(cfg.damage * dmgBuff);
 
       const voidMod = myPlayer.modules.find(m => m.type === 'void');
-      let extraReach = voidMod ? (1 + 0.3 * (voidMod.star || 1)) : 1.0;
+      let extraReach = voidMod ? (1 + 0.1 * (voidMod.star || 1)) : 1.0;
 
       if (cfg.isMelee) {
         sound.playSlash();
-        myPlayer.slashAnimation = 12;
+        myPlayer.slashAnimation = 10;
         const slashObj = {
           id: 'sl_' + Math.random().toString(36).substr(2, 6),
           ownerId: myPlayer.id,
           x: myPlayer.x, y: myPlayer.y,
-          angle: myPlayer.angle, arc: cfg.arc || (Math.PI * 0.75), range: cfg.range * extraReach,
+          angle: myPlayer.angle, arc: cfg.arc || (Math.PI * 0.7), range: cfg.range * extraReach,
           damage, life: 8, isCrit
         };
         slashes.push(slashObj);
@@ -1245,9 +1343,9 @@
       } else {
         sound.playShoot();
         const count = cfg.multiShot || 1;
-        const bSpeed = (cfg.bulletSpeed || 15) * (1 + (myPlayer.upgrades.bulletSpeed || 0) * 0.15);
+        const bSpeed = (cfg.bulletSpeed || 15) * (1 + (myPlayer.upgrades.bulletSpeed || 0) * 0.1);
         for (let i = 0; i < count; i++) {
-          const spreadAngle = myPlayer.angle + (i - (count - 1) / 2) * 0.2;
+          const spreadAngle = myPlayer.angle + (i - (count - 1) / 2) * 0.18;
           const bullet = {
             id: 'b_' + Math.random().toString(36).substr(2, 6),
             ownerId: myPlayer.id,
@@ -1255,7 +1353,7 @@
             y: myPlayer.y + Math.sin(spreadAngle) * (myPlayer.radius + 8),
             vx: Math.cos(spreadAngle) * bSpeed,
             vy: Math.sin(spreadAngle) * bSpeed,
-            damage, radius: isCrit ? 8 : (cfg.bulletSize || 6), life: Math.round(70 * extraReach),
+            damage, radius: isCrit ? 7 : (cfg.bulletSize || 5), life: Math.round(65 * extraReach),
             color: isCrit ? '#facc15' : myPlayer.baseClass === 'sorcerer' ? '#c084fc' : '#38bdf8',
             isCrit,
             isFreeze: cfg.isFreeze
@@ -1273,6 +1371,12 @@
         if (dist < sl.range + bot.radius && diff < sl.arc / 2) {
           bot.hp -= sl.damage;
           sound.playHit();
+
+          if (myPlayer.auraStyle === 'impact') {
+            bot.vx += Math.cos(sl.angle) * 7;
+            bot.vy += Math.sin(sl.angle) * 7;
+          }
+
           triggerPopup(bot.x, bot.y, sl.isCrit ? `CRIT! -${sl.damage}` : `-${sl.damage}`, sl.isCrit ? '#facc15' : '#f43f5e');
         }
       });
@@ -1292,12 +1396,13 @@
         cancelEscapeSequence('被弾により脱出失敗！');
       }
 
-      const armorRed = (myPlayer.upgrades.armor || 0) * 0.05;
+      let armorRed = (myPlayer.upgrades.armor || 0) * 0.04;
+      if (myPlayer.auraStyle === 'aegis') armorRed += 0.08;
+
       dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
 
-      // 反射＆トゲ装甲反撃
       const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass];
-      const reflectPercent = (cfg && cfg.reflectArmor ? cfg.reflectArmor : 0) + (myPlayer.upgrades.thorns || 0) * 0.2;
+      const reflectPercent = (cfg && cfg.reflectArmor ? cfg.reflectArmor : 0) + (myPlayer.upgrades.thorns || 0) * 0.15;
       if (reflectPercent > 0) {
         const refDmg = Math.round(dmg * reflectPercent);
         aiBots.forEach(bot => {
@@ -1411,27 +1516,27 @@
     document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); performManualAttack(); });
     
     document.getElementById('btnDash').addEventListener('click', () => {
-      const staminaCost = Math.max(8, 30 - (myPlayer.upgrades.stamina || 0) * 4);
+      const staminaCost = Math.max(12, 35 - (myPlayer.upgrades.stamina || 0) * 4);
       if (!isPlaying || !myPlayer.isAlive || myPlayer.stamina < staminaCost) return;
       myPlayer.stamina -= staminaCost;
       myPlayer.isDashing = true;
       sound.playTone(320, 'triangle', 0.1, 0.1);
-      myPlayer.vx += Math.cos(myPlayer.angle) * 18;
-      myPlayer.vy += Math.sin(myPlayer.angle) * 18;
+      myPlayer.vx += Math.cos(myPlayer.angle) * 16;
+      myPlayer.vy += Math.sin(myPlayer.angle) * 16;
       setTimeout(() => { myPlayer.isDashing = false; }, 200);
     });
 
     document.getElementById('btnSkill').addEventListener('click', () => {
       if (!isPlaying || !myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
-      const baseCD = 240;
-      const cdReduction = (myPlayer.upgrades.cdr || 0) * 0.1;
+      const baseCD = 260;
+      const cdReduction = (myPlayer.upgrades.cdr || 0) * 0.07;
       myPlayer.skillCooldown = Math.round(baseCD * (1 - cdReduction));
 
       sound.playSlash();
       const spin = {
         id: 'spin_' + Math.random().toString(36).substr(2, 6),
         ownerId: myPlayer.id,
-        x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 130, damage: 70, life: 12, isCrit: true
+        x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 120, damage: 55, life: 10, isCrit: true
       };
       slashes.push(spin);
       checkMeleeHits(spin);
@@ -1448,14 +1553,16 @@
       if (!isPlaying || !myPlayer.isAlive) return;
 
       updateEscapeSequence(dt);
+      checkModulePickupInteraction();
 
       const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
-      let speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.07;
+      let speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.04;
       
       const vitalMod = myPlayer.modules.find(m => m.type === 'vital');
-      if (vitalMod) speedBuff += 0.1 * (vitalMod.star || 1);
+      if (vitalMod) speedBuff += 0.03 * (vitalMod.star || 1);
+      if (myPlayer.auraStyle === 'aegis') speedBuff -= 0.05;
 
-      const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
+      const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.0 : cfg.speed) * speedBuff;
       const friction = myPlayer.onIce ? 0.98 : 0.85;
 
       myPlayer.vx += joyVector.x * curSpeed * (myPlayer.onIce ? 0.15 : 0.28);
@@ -1491,8 +1598,8 @@
           } else if (g.type === 'fountain') {
             myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + g.healRate);
           } else if (g.type === 'recharge') {
-            if (myPlayer.shield < 120) myPlayer.shield += 0.8;
-            if (myPlayer.stamina < 100) myPlayer.stamina += 1.2;
+            if (myPlayer.shield < 80) myPlayer.shield += 0.5;
+            if (myPlayer.stamina < 100) myPlayer.stamina += 0.8;
           } else if (g.type === 'teleport' && g.cooldown <= 0) {
             sound.playWarp();
             myPlayer.x = g.targetX;
@@ -1504,7 +1611,7 @@
           } else if (g.type === 'ice') {
             myPlayer.onIce = true;
           } else if (g.type === 'storm' && g.discharge) {
-            takeDamage(15, '雷雲放電');
+            takeDamage(20, '雷雲放電');
             sound.playThunder();
           }
         }
@@ -1525,15 +1632,19 @@
         }
       });
 
-      // コア回収
-      const magnetRange = 50 + (myPlayer.upgrades.magnet || 0) * 50;
+      const magnetRange = 45 + (myPlayer.upgrades.magnet || 0) * 40;
       for (let i = dropCores.length - 1; i >= 0; i--) {
         const c = dropCores[i];
         if (Math.hypot(c.x - myPlayer.x, c.y - myPlayer.y) < magnetRange) {
           myPlayer.cores += c.val;
-          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
-          myPlayer.exp += Math.round(c.val * 6 * expMult);
-          sound.playTone(1200, 'sine', 0.1, 0.1);
+          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.15;
+          myPlayer.exp += Math.round(c.val * 5 * expMult);
+
+          if (myPlayer.auraStyle === 'harvester') {
+            myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + 1);
+          }
+
+          sound.playTone(1200, 'sine', 0.08, 0.08);
           triggerPopup(c.x, c.y, `+${c.val} コア`, '#facc15');
           dropCores.splice(i, 1);
 
@@ -1550,19 +1661,11 @@
         }
       }
 
-      // ソウルモジュール回収
+      // 放置されたモジュールの自然消滅タイマーのみ更新（自動取得は行わない）
       for (let i = dropModules.length - 1; i >= 0; i--) {
-        const m = dropModules[i];
-        if (Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 18) {
-          sound.playEquip();
-          addOrUpgradeModule(m.type);
-          dropModules.splice(i, 1);
-          continue;
-        }
-        if (--m.life <= 0) dropModules.splice(i, 1);
+        if (--dropModules[i].life <= 0) dropModules.splice(i, 1);
       }
 
-      // 弾丸処理
       for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         b.x += b.vx;
@@ -1570,7 +1673,7 @@
         if (--b.life <= 0) { bullets.splice(i, 1); continue; }
 
         if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
-          takeDamage(b.damage, b.ownerName || 'ボット');
+          takeDamage(b.damage, b.ownerName || '敵');
           bullets.splice(i, 1);
           continue;
         }
@@ -1581,6 +1684,12 @@
             if (Math.hypot(b.x - bot.x, b.y - bot.y) < bot.radius + b.radius) {
               bot.hp -= b.damage;
               sound.playHit();
+
+              if (myPlayer.auraStyle === 'impact') {
+                bot.vx += (b.vx / Math.hypot(b.vx, b.vy)) * 6;
+                bot.vy += (b.vy / Math.hypot(b.vx, b.vy)) * 6;
+              }
+
               if (b.isFreeze) bot.speed = Math.max(1.0, bot.speed * 0.6);
               triggerPopup(bot.x, bot.y, b.isCrit ? `CRIT! -${b.damage}` : `-${b.damage}`, b.isCrit ? '#facc15' : '#f43f5e');
               bullets.splice(i, 1);
@@ -1594,10 +1703,13 @@
         if (--slashes[i].life <= 0) slashes.splice(i, 1);
       }
 
-      const regenVal = 0.05 + (myPlayer.upgrades.regen || 0) * 0.05 + (cfg.regenBonus || 0);
+      const regenVal = 0.03 + (myPlayer.upgrades.regen || 0) * 0.03 + (cfg.regenBonus || 0);
       if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenVal);
 
-      const staminaRegenSpeed = 0.4 * (1 + (myPlayer.upgrades.staminaRegen || 0) * 0.3);
+      let staminaRegenMult = 1 + (myPlayer.upgrades.staminaRegen || 0) * 0.2;
+      if (myPlayer.auraStyle === 'gale') staminaRegenMult += 0.25;
+
+      const staminaRegenSpeed = 0.35 * staminaRegenMult;
       if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + staminaRegenSpeed);
 
       if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
@@ -1651,7 +1763,6 @@
       ctx.save();
       ctx.translate(-camX, -camY);
 
-      // グリッド線
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
       ctx.lineWidth = 1;
       const g = 100;
@@ -1700,7 +1811,7 @@
           ctx.fillStyle = gim.discharge ? 'rgba(234, 179, 8, 0.5)' : 'rgba(234, 179, 8, 0.15)';
           ctx.fill();
           ctx.strokeStyle = '#eab308';
-          ctx.lineWidth = gim.discharge ? 3 : 1.5;
+          ctx.lineWidth = 3;
           ctx.stroke();
         } else {
           ctx.fillStyle = `${gim.color}22`;
@@ -1727,16 +1838,18 @@
         ctx.restore();
       });
 
-      // モジュールオーブ
+      // モジュールオーブ（近づくと枠線が発光）
       dropModules.forEach(m => {
         const def = MODULE_DEFINITIONS[m.type];
+        const isNear = Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 35;
+
         ctx.save();
         ctx.beginPath();
-        ctx.arc(m.x, m.y, 10, 0, Math.PI * 2);
+        ctx.arc(m.x, m.y, 11, 0, Math.PI * 2);
         ctx.fillStyle = def.color;
         ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isNear ? '#38bdf8' : '#ffffff';
+        ctx.lineWidth = isNear ? 3 : 1.5;
         ctx.stroke();
 
         ctx.font = 'bold 9px sans-serif';
@@ -1793,7 +1906,7 @@
           if (rp.inBush) ctx.globalAlpha = 0.35;
 
           ctx.beginPath();
-          ctx.arc(0, 0, 26, 0, Math.PI * 2);
+          ctx.arc(0, 0, 24, 0, Math.PI * 2);
           ctx.fillStyle = rp.isEscaping ? '#fbbf24' : (rp.evolved ? '#f59e0b' : '#10b981');
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
@@ -1804,8 +1917,8 @@
           ctx.font = 'bold 8px sans-serif';
           ctx.fillStyle = rp.isEscaping ? '#fbbf24' : '#a7f3d0';
           ctx.textAlign = 'center';
-          ctx.fillText(rp.name, rp.x, rp.y - 32);
-          drawEntityHealthBar(rp.x, rp.y, 26, rp.hp, rp.maxHp);
+          ctx.fillText(rp.name, rp.x, rp.y - 30);
+          drawEntityHealthBar(rp.x, rp.y, 24, rp.hp, rp.maxHp);
         }
       });
 
@@ -1825,7 +1938,7 @@
         ctx.beginPath();
         ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
         ctx.strokeStyle = sl.isCrit ? '#facc15' : '#f43f5e';
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 5;
         ctx.stroke();
         ctx.restore();
       });
@@ -1881,7 +1994,6 @@
         drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
       }
 
-      // ポップアップテキスト
       for (let i = popups.length - 1; i >= 0; i--) {
         const p = popups[i];
         ctx.save();
@@ -1895,24 +2007,66 @@
       }
 
       ctx.restore();
-      renderMiniMap();
+      renderRadarMiniMap();
     }
 
-    function renderMiniMap() {
+    function renderRadarMiniMap() {
       miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-      const sx = miniCanvas.width / WORLD_WIDTH;
-      const sy = miniCanvas.height / WORLD_HEIGHT;
+      const mw = miniCanvas.width;
+      const mh = miniCanvas.height;
+      const cx = mw / 2;
+      const cy = mh / 2;
+      const radarRange = 2600;
+      const scale = (mw / 2) / radarRange;
 
-      miniCtx.fillStyle = '#a855f7';
-      fieldGimmicks.forEach(g => miniCtx.fillRect(g.x * sx - 1, g.y * sy - 1, 1.5, 1.5));
+      miniCtx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+      miniCtx.lineWidth = 1;
+      miniCtx.beginPath();
+      miniCtx.arc(cx, cy, mw * 0.45, 0, Math.PI * 2);
+      miniCtx.arc(cx, cy, mw * 0.25, 0, Math.PI * 2);
+      miniCtx.stroke();
 
-      miniCtx.fillStyle = '#f43f5e';
-      aiBots.forEach(b => miniCtx.fillRect(b.x * sx - 1, b.y * sy - 1, 2, 2));
+      fieldGimmicks.forEach(g => {
+        const dx = (g.x - myPlayer.x) * scale;
+        const dy = (g.y - myPlayer.y) * scale;
+        if (Math.hypot(dx, dy) < mw / 2 - 3) {
+          miniCtx.fillStyle = g.type === 'fountain' ? '#34d399' : (g.type === 'teleport' ? '#a855f7' : '#64748b');
+          miniCtx.fillRect(cx + dx - 1, cy + dy - 1, 2, 2);
+        }
+      });
+
+      aiBots.forEach(b => {
+        const dx = (b.x - myPlayer.x) * scale;
+        const dy = (b.y - myPlayer.y) * scale;
+        if (Math.hypot(dx, dy) < mw / 2 - 3) {
+          miniCtx.fillStyle = b.spec.isBoss ? '#ec4899' : '#f43f5e';
+          miniCtx.beginPath();
+          miniCtx.arc(cx + dx, cy + dy, b.spec.isBoss ? 3 : 2, 0, Math.PI * 2);
+          miniCtx.fill();
+        }
+      });
+
+      remotePlayers.forEach(rp => {
+        const dx = (rp.x - myPlayer.x) * scale;
+        const dy = (rp.y - myPlayer.y) * scale;
+        if (Math.hypot(dx, dy) < mw / 2 - 3) {
+          miniCtx.fillStyle = '#10b981';
+          miniCtx.beginPath();
+          miniCtx.arc(cx + dx, cy + dy, 2.5, 0, Math.PI * 2);
+          miniCtx.fill();
+        }
+      });
 
       miniCtx.fillStyle = '#38bdf8';
       miniCtx.beginPath();
-      miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 2.5, 0, Math.PI * 2);
+      miniCtx.arc(cx, cy, 3, 0, Math.PI * 2);
       miniCtx.fill();
+
+      miniCtx.strokeStyle = '#38bdf8';
+      miniCtx.beginPath();
+      miniCtx.moveTo(cx, cy);
+      miniCtx.lineTo(cx + Math.cos(myPlayer.angle) * 7, cy + Math.sin(myPlayer.angle) * 7);
+      miniCtx.stroke();
     }
 
     function checkSavePreview() {
@@ -1920,7 +2074,7 @@
       const detail = document.getElementById('saveStatusDetail');
       const hasSave = loadSavedDataIfValid();
       if (hasSave) {
-        detail.textContent = `Lv.${myPlayer.level} (所持コア: ${myPlayer.cores} / SP: ${myPlayer.sp})`;
+        detail.textContent = `Lv.${myPlayer.level} (所持コア:${myPlayer.cores} / SP:${myPlayer.sp})`;
         banner.classList.remove('hidden');
       } else {
         banner.classList.add('hidden');
@@ -1947,26 +2101,25 @@
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
       const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
-      myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
+      myPlayer.name = n || '勇者';
       roomCode = r;
 
       const loaded = loadSavedDataIfValid();
       if (!loaded) {
         myPlayer.level = 1;
         myPlayer.exp = 0;
-        myPlayer.nextExp = 40;
+        myPlayer.nextExp = 50;
         myPlayer.cores = 0;
         myPlayer.sp = 0;
+        myPlayer.auraStyle = 'none';
         myPlayer.evolved = false;
         myPlayer.customEvo = null;
         myPlayer.modules = [];
         myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, knockbackRes: 0, escapeSpeed: 0 };
       }
 
-      purgeSaveData();
-
-      myPlayer.x = 50000 + (Math.random() - 0.5) * 600;
-      myPlayer.y = 50000 + (Math.random() - 0.5) * 600;
+      myPlayer.x = 25000 + (Math.random() - 0.5) * 600;
+      myPlayer.y = 25000 + (Math.random() - 0.5) * 600;
       myPlayer.isAlive = true;
       recalcStats();
       myPlayer.hp = myPlayer.maxHp;
@@ -1991,17 +2144,18 @@
 
       myPlayer.level = 1;
       myPlayer.exp = 0;
-      myPlayer.nextExp = 40;
+      myPlayer.nextExp = 50;
       myPlayer.sp = 0;
       myPlayer.cores = 0;
+      myPlayer.auraStyle = 'none';
       myPlayer.evolved = false;
       myPlayer.customEvo = null;
       myPlayer.classType = myPlayer.baseClass;
       myPlayer.modules = [];
       myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, knockbackRes: 0, escapeSpeed: 0 };
 
-      myPlayer.x = 50000 + (Math.random() - 0.5) * 600;
-      myPlayer.y = 50000 + (Math.random() - 0.5) * 600;
+      myPlayer.x = 25000 + (Math.random() - 0.5) * 600;
+      myPlayer.y = 25000 + (Math.random() - 0.5) * 600;
       myPlayer.isAlive = true;
       recalcStats();
       myPlayer.hp = myPlayer.maxHp;
@@ -2009,7 +2163,7 @@
 
       document.getElementById('deathModal').classList.add('hidden');
       updateLeaderboard();
-      triggerPopup(myPlayer.x, myPlayer.y - 40, 'Lv.1 初期状態で復活', '#38bdf8');
+      triggerPopup(myPlayer.x, myPlayer.y - 40, '初期状態で再出撃', '#38bdf8');
     });
 
     window.onload = () => {
