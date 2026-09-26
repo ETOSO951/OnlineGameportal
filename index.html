@@ -45,7 +45,7 @@
   <!-- ゲーム内 HUD (スマホ最適化) -->
   <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-1.5 sm:p-3 select-none">
     
-    <!-- 上段ヘッダー (スマホ対応：1列にスッキリ収納) -->
+    <!-- 上段ヘッダー -->
     <div class="flex justify-between items-start w-full gap-1">
       
       <!-- 左上: プレイヤー情報 -->
@@ -109,7 +109,7 @@
         <div id="killFeed" class="flex flex-col items-center gap-0.5 max-w-[160px] text-center text-[8px] font-medium text-slate-300 pointer-events-none"></div>
       </div>
 
-      <!-- 右上: 超軽量ミニマップ ＆ はみ出さないランキング -->
+      <!-- 右上: 超軽量ミニマップ ＆ ランキング -->
       <div class="flex flex-col items-end gap-1 pointer-events-auto max-w-[105px] sm:max-w-[125px]">
         <div class="relative w-14 h-14 sm:w-18 sm:h-18 bg-slate-950/95 rounded-xl border border-slate-700 overflow-hidden shadow">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
@@ -351,6 +351,7 @@
       playEvolution() { this.playTone(980, 'triangle', 0.5, 0.25); }
       playEscapeWarning() { this.playTone(440, 'sine', 0.12, 0.1); }
       playEscapeSuccess() { this.playTone(880, 'triangle', 0.4, 0.2); }
+      playThunder() { this.playTone(120, 'sawtooth', 0.3, 0.2); }
     }
     const sound = new SoundFX();
 
@@ -360,7 +361,6 @@
     const WORLD_WIDTH = 100000;
     const WORLD_HEIGHT = 100000;
 
-    // 基本クラス
     const CLASS_CONFIGS = {
       blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 220, speed: 5.5, attackRate: 250, range: 100, arc: Math.PI * 0.75, damage: 45, deflects: true },
       gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 200, speed: 4.6, attackRate: 230, range: 650, damage: 32, bulletSpeed: 17, bulletSize: 7 },
@@ -369,10 +369,9 @@
       guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 350, speed: 4.2, attackRate: 360, range: 80, arc: Math.PI * 0.6, damage: 38, reflectArmor: 0.25 }
     };
 
-    // 上位クラス進化データ (Lv.10到達で覚醒)
     const EVOLUTIONS = {
       blademaster: [
-        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻撃速度+40%・ダッシュ時分身攻撃', damage: 52, attackRate: 160, speed: 6.2, range: 110, isMelee: true, deflects: true },
+        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻撃速度+40%・分身刃射出', damage: 52, attackRate: 160, speed: 6.2, range: 110, isMelee: true, deflects: true },
         { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+150・常時被ダメージ20%カット', damage: 58, attackRate: 270, speed: 5.0, range: 105, maxHpBonus: 150, isMelee: true, deflects: true }
       ],
       gunner: [
@@ -393,17 +392,17 @@
       ]
     };
 
-    // BOTバリエーション (6種 + エリートボス)
+    // BOTバリエーション (強化版：ネクロマンサー & ヴォイドイーター追加)
     const BOT_VARIANTS = {
       berserker: { typeName: 'バーサーカー', hp: 55, speed: 3.2, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 8, attackRate: 850, cores: 12 },
       sniper: { typeName: 'スナイパー', hp: 40, speed: 2.6, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 6, bulletSpeed: 10, attackRate: 1400, cores: 10 },
       tank: { typeName: '重装ドローン', hp: 95, speed: 1.8, range: 160, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 5, bulletSpeed: 7, attackRate: 1600, cores: 16 },
       assassin: { typeName: 'アサシン', hp: 45, speed: 4.2, range: 70, isMelee: true, color: '#c084fc', border: '#f3e8ff', damage: 12, attackRate: 650, cores: 14 },
       bomber: { typeName: 'ボマー', hp: 35, speed: 3.8, range: 40, isMelee: true, color: '#f59e0b', border: '#fef3c7', damage: 25, attackRate: 9999, isSuicide: true, cores: 15 },
-      elite_boss: { typeName: '古代守護巨兵', hp: 320, speed: 1.6, range: 240, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 14, bulletSpeed: 9, attackRate: 900, isBoss: true, radius: 36, cores: 50 }
+      necromancer: { typeName: '死霊術士', hp: 80, speed: 2.2, range: 300, isMelee: false, color: '#6366f1', border: '#c7d2fe', damage: 7, bulletSpeed: 8, attackRate: 2000, isSummoner: true, cores: 25 },
+      elite_boss: { typeName: 'ヴォイド・イーター', hp: 360, speed: 1.7, range: 260, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 15, bulletSpeed: 9, attackRate: 850, isBoss: true, radius: 36, cores: 60 }
     };
 
-    // 強化ツリー（全14種）
     const UPGRADE_TYPES = [
       { id: 'maxHp', name: '最大HP増強', desc: 'HP+50', maxLv: 15, cost: 1 },
       { id: 'dmg', name: '攻撃力強化', desc: '攻撃・弾丸威力+15%', maxLv: 15, cost: 1 },
@@ -421,7 +420,6 @@
       { id: 'escapeSpeed', name: '脱出支援ビーコン', desc: '脱出必要時間を0.5秒短縮', maxLv: 4, cost: 3 }
     ];
 
-    // ソウルモジュール定義 (合成★ランクアップ対応)
     const MODULE_DEFINITIONS = {
       crimson: { name: 'クリムゾン', desc: '攻撃力+25%', color: '#ef4444', icon: '⚔' },
       aqua: { name: 'アクア', desc: '常時シールド+80', color: '#06b6d4', icon: '🛡' },
@@ -480,10 +478,9 @@
       skillCooldown: 0,
       slashAnimation: 0,
       upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, knockbackRes: 0, escapeSpeed: 0 },
-      modules: [] // [{ type: 'crimson', star: 1 }]
+      modules: []
     };
 
-    // 10秒脱出シーケンス
     let isEscaping = false;
     let escapeTimer = 0;
     let escapeDuration = 10.0;
@@ -656,6 +653,7 @@
             exist.name = data.name;
             exist.isEscaping = data.isEscaping;
             exist.inBush = data.inBush;
+            exist.evolved = data.evolved;
             exist.lastSeen = performance.now();
           } else {
             remotePlayers.set(data.id, {
@@ -719,7 +717,8 @@
           maxHp: Math.round(myPlayer.maxHp),
           cores: myPlayer.cores,
           isEscaping: isEscaping,
-          inBush: myPlayer.inBush
+          inBush: myPlayer.inBush,
+          evolved: myPlayer.evolved
         });
       }
 
@@ -735,38 +734,41 @@
     }
 
     /* =========================================================
-       5. 新ギミック & 多彩なBOT群
+       5. 拡張ギミック & BOTスポーン
        ========================================================= */
     function initFieldGimmicks() {
       fieldGimmicks = [
-        // 1. バウンサー
+        // バウンサー
         { id: 'g_b1', type: 'bouncer', x: 50250, y: 50150, radius: 40, force: 18, color: '#f59e0b' },
         { id: 'g_b2', type: 'bouncer', x: 49750, y: 49850, radius: 40, force: 18, color: '#f59e0b' },
-        // 2. 加速パルス
+        // 加速パルス
         { id: 'g_p1', type: 'pulse', x: 50400, y: 49700, radius: 50, angle: Math.PI / 4, power: 14, color: '#38bdf8' },
-        // 3. ブラックホール（弱体化調整済）
+        // 磁場ブラックホール
         { id: 'g_mag1', type: 'magnet_hazard', x: 50100, y: 49600, radius: 95, pull: 1.0, color: '#c084fc', timer: 0, pullActive: false },
-        // 4. 毒間欠泉
+        // 毒間欠泉
         { id: 'g_poi1', type: 'geyser', x: 49800, y: 50400, radius: 60, dps: 0.6, color: '#10b981', active: true, timer: 0 },
-        // 5. 【新】回復の聖泉 (リジェネゾーン)
+        // 回復聖泉
         { id: 'g_heal1', type: 'fountain', x: 50000, y: 50000, radius: 75, healRate: 0.4, color: '#34d399' },
-        // 6. 【新】テレポートポータルペア
+        // テレポート
         { id: 'g_tp1', type: 'teleport', x: 49500, y: 49500, targetX: 50500, targetY: 50500, radius: 36, color: '#a855f7', cooldown: 0 },
         { id: 'g_tp2', type: 'teleport', x: 50500, y: 50500, targetX: 49500, targetY: 49500, radius: 36, color: '#a855f7', cooldown: 0 },
-        // 7. 【新】ブッシュ (身を隠せる煙幕・草むら)
+        // 草むら
         { id: 'g_bush1', type: 'bush', x: 50150, y: 50350, radius: 70, color: '#15803d' },
         { id: 'g_bush2', type: 'bush', x: 49850, y: 49650, radius: 70, color: '#15803d' },
-        // 8. 【新】アイストラック (滑る氷床)
-        { id: 'g_ice1', type: 'ice', x: 50300, y: 49950, radius: 80, color: '#67e8f9' }
+        // 氷床
+        { id: 'g_ice1', type: 'ice', x: 50300, y: 49950, radius: 80, color: '#67e8f9' },
+        // 【新】雷雲ストーム（定期的に落雷放電）
+        { id: 'g_storm1', type: 'storm', x: 49700, y: 50100, radius: 85, color: '#eab308', timer: 0, discharge: false },
+        // 【新】エネルギー充電ステーション（シールド＆スタミナ急速補給）
+        { id: 'g_station1', type: 'recharge', x: 50350, y: 50250, radius: 45, color: '#38bdf8' }
       ];
     }
 
     function maintainBots() {
       if (!isPlaying) return;
-      if (aiBots.length < 4) {
-        const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber'];
-        // 一定確率でエリートボスをスポーン
-        const isElite = Math.random() < 0.15 && !aiBots.some(b => b.variant === 'elite_boss');
+      if (aiBots.length < 5) {
+        const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer'];
+        const isElite = Math.random() < 0.12 && !aiBots.some(b => b.variant === 'elite_boss');
         const chosenKey = isElite ? 'elite_boss' : types[Math.floor(Math.random() * types.length)];
         const spec = BOT_VARIANTS[chosenKey];
 
@@ -791,7 +793,8 @@
           lastAttack: 0,
           wanderTimer: 0,
           stealth: chosenKey === 'assassin',
-          stealthTimer: 180
+          stealthTimer: 180,
+          summonTimer: 120
         });
         updateLeaderboard();
       }
@@ -805,15 +808,31 @@
         const spec = bot.spec;
         const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
         
-        // プレイヤーが草むらに隠れている(inBush)なら索敵距離が大幅激減
         const detectRange = myPlayer.inBush ? 100 : (spec.isBoss ? 600 : 450);
         const canSeePlayer = myPlayer.isAlive && dist < detectRange;
 
-        // アサシンの透明化サイクル
         if (bot.variant === 'assassin') {
           if (--bot.stealthTimer <= 0) {
             bot.stealth = !bot.stealth;
             bot.stealthTimer = bot.stealth ? 180 : 120;
+          }
+        }
+
+        // 死霊術士のミニオン召喚
+        if (bot.variant === 'necromancer') {
+          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 8) {
+            bot.summonTimer = 240;
+            sound.playWarp();
+            triggerPopup(bot.x, bot.y, '死霊召喚！', '#818cf8');
+            aiBots.push({
+              id: 'bot_minion_' + Math.random().toString(36).substr(2, 5),
+              name: '怨念ドローン',
+              variant: 'berserker',
+              spec: { typeName: '怨念', hp: 20, speed: 3.8, range: 45, isMelee: true, color: '#818cf8', border: '#e0e7ff', damage: 6, attackRate: 600, cores: 3 },
+              x: bot.x + (Math.random() - 0.5) * 40,
+              y: bot.y + (Math.random() - 0.5) * 40,
+              vx: 0, vy: 0, angle: bot.angle, hp: 20, maxHp: 20, radius: 14, speed: 3.8, cores: 3, lastAttack: 0, wanderTimer: 0
+            });
           }
         }
 
@@ -830,6 +849,8 @@
               bot.vy += Math.sin(g.angle) * g.power;
             } else if (g.type === 'geyser' && g.active) {
               bot.hp -= g.dps;
+            } else if (g.type === 'storm' && g.discharge) {
+              bot.hp -= 15;
             } else if (g.type === 'fountain') {
               bot.hp = Math.min(bot.maxHp, bot.hp + g.healRate);
             }
@@ -839,16 +860,15 @@
         if (canSeePlayer) {
           bot.angle = Math.atan2(myPlayer.y - bot.y, myPlayer.x - bot.x);
 
-          // 自爆ボマーの挙動
           if (bot.variant === 'bomber' && dist < 45) {
-            triggerPopup(bot.x, bot.y, '自爆自爆！', '#f59e0b');
+            triggerPopup(bot.x, bot.y, '自爆爆破！', '#f59e0b');
             sound.playExplode();
             takeDamage(spec.damage, bot.name);
             aiBots.splice(i, 1);
             continue;
           }
 
-          if (bot.variant === 'sniper') {
+          if (bot.variant === 'sniper' || bot.variant === 'necromancer') {
             if (dist < 180) {
               bot.vx -= Math.cos(bot.angle) * bot.speed * 0.12;
               bot.vy -= Math.sin(bot.angle) * bot.speed * 0.12;
@@ -908,8 +928,7 @@
           sound.playExplode();
           dropCoresAt(bot.x, bot.y, bot.cores);
 
-          // エリートボスはモジュール確定ドロップ、通常は25%
-          if (spec.isBoss || Math.random() < 0.28) {
+          if (spec.isBoss || Math.random() < 0.3) {
             spawnRandomModule(bot.x, bot.y);
           }
 
@@ -1140,7 +1159,6 @@
       let extraHp = (u.maxHp * 50) + ((myPlayer.level - 1) * 15) + (cfg.maxHpBonus || 0);
       let extraShield = 0;
 
-      // モジュール補正 (星ランクによる倍加)
       myPlayer.modules.forEach(mod => {
         const mult = mod.star || 1;
         if (mod.type === 'vital') extraHp += 100 * mult;
@@ -1152,7 +1170,6 @@
       if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
     }
 
-    // 同種モジュールを2つ集めると自動合成 (★2, ★3)
     function addOrUpgradeModule(type) {
       const existing = myPlayer.modules.find(m => m.type === type);
       if (existing) {
@@ -1284,7 +1301,6 @@
       const armorRed = (myPlayer.upgrades.armor || 0) * 0.05;
       dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
 
-      // 城塞反射
       const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass];
       if (cfg && cfg.reflectArmor) {
         const refDmg = Math.round(dmg * cfg.reflectArmor);
@@ -1450,8 +1466,6 @@
       if (vitalMod) speedBuff += 0.1 * (vitalMod.star || 1);
 
       const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.2 : cfg.speed) * speedBuff;
-
-      // 氷床判定 (onIceなら摩擦激減)
       const friction = myPlayer.onIce ? 0.98 : 0.85;
 
       myPlayer.vx += joyVector.x * curSpeed * (myPlayer.onIce ? 0.15 : 0.28);
@@ -1462,7 +1476,6 @@
       myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
       myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
 
-      // ギミック判定リセット
       myPlayer.inBush = false;
       myPlayer.onIce = false;
 
@@ -1483,6 +1496,10 @@
             takeDamage(g.dps, '毒間欠泉');
           } else if (g.type === 'fountain') {
             myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + g.healRate);
+          } else if (g.type === 'recharge') {
+            // ステーション急速充電
+            if (myPlayer.shield < 120) myPlayer.shield += 0.8;
+            if (myPlayer.stamina < 100) myPlayer.stamina += 1.2;
           } else if (g.type === 'teleport' && g.cooldown <= 0) {
             sound.playWarp();
             myPlayer.x = g.targetX;
@@ -1493,6 +1510,9 @@
             myPlayer.inBush = true;
           } else if (g.type === 'ice') {
             myPlayer.onIce = true;
+          } else if (g.type === 'storm' && g.discharge) {
+            takeDamage(15, '雷雲放電');
+            sound.playThunder();
           }
         }
 
@@ -1501,6 +1521,13 @@
           if (++g.timer > 180) {
             g.timer = 0;
             g.active = !g.active;
+          }
+        }
+        if (g.type === 'storm') {
+          if (++g.timer > 160) {
+            g.timer = 0;
+            g.discharge = true;
+            setTimeout(() => g.discharge = false, 300);
           }
         }
       });
@@ -1560,7 +1587,7 @@
             if (Math.hypot(b.x - bot.x, b.y - bot.y) < bot.radius + b.radius) {
               bot.hp -= b.damage;
               sound.playHit();
-              if (b.isFreeze) bot.speed = Math.max(1.0, bot.speed * 0.6); // 減速付与
+              if (b.isFreeze) bot.speed = Math.max(1.0, bot.speed * 0.6);
               triggerPopup(bot.x, bot.y, b.isCrit ? `CRIT! -${b.damage}` : `-${b.damage}`, b.isCrit ? '#facc15' : '#f43f5e');
               bullets.splice(i, 1);
               break;
@@ -1624,6 +1651,9 @@
       ctx.fillRect(barX, barY, barW * ratio, barH);
     }
 
+    /* =========================================================
+       描画ループ（プレイヤー消滅バグ完全修正版）
+       ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (!isPlaying) return;
@@ -1650,6 +1680,7 @@
 
       // 多彩なギミック描画
       fieldGimmicks.forEach(gim => {
+        ctx.save();
         ctx.beginPath();
         ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
 
@@ -1671,6 +1702,18 @@
           ctx.strokeStyle = '#34d399';
           ctx.lineWidth = 2;
           ctx.stroke();
+        } else if (gim.type === 'recharge') {
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+          ctx.fill();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else if (gim.type === 'storm') {
+          ctx.fillStyle = gim.discharge ? 'rgba(234, 179, 8, 0.5)' : 'rgba(234, 179, 8, 0.15)';
+          ctx.fill();
+          ctx.strokeStyle = '#eab308';
+          ctx.lineWidth = gim.discharge ? 3 : 1.5;
+          ctx.stroke();
         } else {
           ctx.fillStyle = `${gim.color}22`;
           ctx.fill();
@@ -1687,10 +1730,13 @@
         if (gim.type === 'magnet_hazard') label = '✦PULL';
         if (gim.type === 'geyser') label = gim.active ? '⚠POISON' : '💤GEYSER';
         if (gim.type === 'fountain') label = '♥HEAL';
+        if (gim.type === 'recharge') label = '⚡STATION';
+        if (gim.type === 'storm') label = gim.discharge ? '⚡STORM' : '☁CLOUD';
         if (gim.type === 'teleport') label = '✦WARP';
         if (gim.type === 'bush') label = '🍃BUSH';
         if (gim.type === 'ice') label = '❄ICE';
         ctx.fillText(label, gim.x, gim.y + 3);
+        ctx.restore();
       });
 
       // モジュールオーブ
@@ -1712,6 +1758,19 @@
         ctx.restore();
       });
 
+      // ドロップコア
+      dropCores.forEach(c => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#facc15';
+        ctx.fill();
+        ctx.strokeStyle = '#ca8a04';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      });
+
       // BOT描画
       aiBots.forEach(bot => {
         if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < viewR) {
@@ -1719,7 +1778,6 @@
           ctx.translate(bot.x, bot.y);
           ctx.rotate(bot.angle);
 
-          // アサシン透明化エフェクト
           if (bot.stealth) ctx.globalAlpha = 0.2;
 
           ctx.beginPath();
@@ -1729,7 +1787,6 @@
           ctx.strokeStyle = bot.spec.border;
           ctx.lineWidth = bot.spec.isBoss ? 4 : 2;
           ctx.stroke();
-
           ctx.restore();
 
           if (!bot.stealth) {
@@ -1749,7 +1806,7 @@
 
           ctx.beginPath();
           ctx.arc(0, 0, 26, 0, Math.PI * 2);
-          ctx.fillStyle = rp.isEscaping ? '#fbbf24' : '#10b981';
+          ctx.fillStyle = rp.isEscaping ? '#fbbf24' : (rp.evolved ? '#f59e0b' : '#10b981');
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 3;
@@ -1766,59 +1823,90 @@
 
       // 弾丸
       bullets.forEach(b => {
+        ctx.save();
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
         ctx.fillStyle = b.color;
         ctx.fill();
+        ctx.restore();
       });
 
       // 斬撃
       slashes.forEach(sl => {
+        ctx.save();
         ctx.beginPath();
         ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
         ctx.strokeStyle = sl.isCrit ? '#facc15' : '#f43f5e';
         ctx.lineWidth = 6;
         ctx.stroke();
+        ctx.restore();
       });
 
-      // 自プレイヤー
+      // ★ 自プレイヤー描画（透過度・スコープ完全リセットで確実に表示）
       if (myPlayer.isAlive) {
         ctx.save();
-        ctx.translate(myPlayer.x, myPlayer.y);
+        ctx.globalAlpha = myPlayer.inBush ? 0.5 : 1.0; // ブッシュ時のみ半透明
 
+        // 脱出中の金色の回転サークル
         if (isEscaping) {
+          ctx.save();
           ctx.beginPath();
-          ctx.arc(0, 0, myPlayer.radius + 8, 0, Math.PI * 2);
+          ctx.arc(myPlayer.x, myPlayer.y, myPlayer.radius + 8, 0, Math.PI * 2);
           ctx.strokeStyle = '#fbbf24';
           ctx.lineWidth = 3;
           ctx.setLineDash([4, 4]);
           ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.restore();
         }
 
-        // ブッシュ潜伏中の半透明化
-        if (myPlayer.inBush) ctx.globalAlpha = 0.45;
+        // 覚醒オーラエフェクト
+        if (myPlayer.evolved) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(myPlayer.x, myPlayer.y, myPlayer.radius + 4, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+          ctx.fill();
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
 
+        ctx.translate(myPlayer.x, myPlayer.y);
         ctx.rotate(myPlayer.angle);
+
+        // プレイヤー本体
         ctx.beginPath();
         ctx.arc(0, 0, myPlayer.radius, 0, Math.PI * 2);
-        ctx.fillStyle = myPlayer.evolved ? '#f59e0b' : '#0ea5e9'; // 覚醒時はゴールド
+        ctx.fillStyle = myPlayer.evolved ? '#d97706' : '#0ea5e9';
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3;
         ctx.stroke();
+
+        // 向きを示すポインタ
+        ctx.beginPath();
+        ctx.moveTo(myPlayer.radius - 2, -5);
+        ctx.lineTo(myPlayer.radius + 8, 0);
+        ctx.lineTo(myPlayer.radius - 2, 5);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
         ctx.restore();
 
+        // 頭上HPバー
         drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
       }
 
       // ポップアップテキスト
       for (let i = popups.length - 1; i >= 0; i--) {
         const p = popups[i];
+        ctx.save();
         ctx.font = 'bold 10px sans-serif';
         ctx.fillStyle = p.color;
         ctx.textAlign = 'center';
         ctx.fillText(p.text, p.x, p.y);
+        ctx.restore();
         p.y -= 0.6;
         if (--p.life <= 0) popups.splice(i, 1);
       }
@@ -1832,15 +1920,12 @@
       const sx = miniCanvas.width / WORLD_WIDTH;
       const sy = miniCanvas.height / WORLD_HEIGHT;
 
-      // ギミック点
       miniCtx.fillStyle = '#a855f7';
       fieldGimmicks.forEach(g => miniCtx.fillRect(g.x * sx - 1, g.y * sy - 1, 2, 2));
 
-      // BOT
       miniCtx.fillStyle = '#f43f5e';
       aiBots.forEach(b => miniCtx.fillRect(b.x * sx - 1, b.y * sy - 1, 2, 2));
 
-      // 自プレイヤー
       miniCtx.fillStyle = '#38bdf8';
       miniCtx.beginPath();
       miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 2.5, 0, Math.PI * 2);
