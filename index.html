@@ -2,11 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Arena.io - 身内オンライン対戦バトル</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Arena.io - スマホマルチプレイバトル</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <!-- WebRTC PeerJS CDN -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
   <style>
     * {
       user-select: none;
@@ -21,7 +23,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #0b0f19;
+      background-color: #050811;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     canvas {
@@ -32,242 +34,231 @@
       height: 100%;
       display: block;
     }
-    /* Pulse and glow animations */
-    @keyframes neonGlow {
-      0%, 100% { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)); }
-      50% { filter: drop-shadow(0 0 16px rgba(147, 51, 234, 0.8)); }
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6)); }
+      50% { filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.9)); }
     }
-    .neon-border {
-      animation: neonGlow 3s infinite alternate;
-    }
-    /* Custom Scrollbar for Kill log */
-    ::-webkit-scrollbar {
-      width: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
+    .neon-box {
+      animation: pulseGlow 3s infinite alternate;
     }
   </style>
 </head>
 <body class="relative bg-slate-950 text-white">
 
+  <!-- ゲーム描画キャンバス -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- In-game HUD -->
-  <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-3 select-none">
-    <!-- Top Bar: Player Stats & Leaderboard & Kill Feed -->
+  <!-- 画面上部/全般 HUD -->
+  <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-2.5 sm:p-4 select-none">
+    
+    <!-- トップバー: ステータス、通信ステータス、ランキング -->
     <div class="flex justify-between items-start w-full">
-      <!-- Left: HP, EXP, Level & Class -->
-      <div class="flex flex-col gap-1 w-44 sm:w-60">
-        <!-- Name & Class badge -->
-        <div class="flex items-center gap-2">
-          <span id="hudName" class="font-bold text-sm sm:text-base drop-shadow tracking-wide truncate max-w-[120px]">Player</span>
-          <span id="hudClass" class="text-[10px] sm:text-xs bg-indigo-600/80 px-2 py-0.5 rounded-full border border-indigo-400 font-semibold uppercase">Gunner</span>
+      <!-- 左上: プレイヤーHP・EXP・レベル -->
+      <div class="flex flex-col gap-1 w-36 sm:w-56">
+        <div class="flex items-center gap-1.5">
+          <span id="hudName" class="font-bold text-xs sm:text-sm drop-shadow tracking-wide truncate max-w-[100px]">Player</span>
+          <span id="hudClass" class="text-[9px] sm:text-[10px] bg-indigo-600/80 px-1.5 py-0.5 rounded-full border border-indigo-400 font-semibold uppercase">Gunner</span>
         </div>
 
-        <!-- HP Bar -->
-        <div class="relative w-full h-3.5 bg-slate-900/80 rounded-full border border-slate-700 overflow-hidden shadow-inner">
-          <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-150"></div>
-          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[9px] font-black tracking-wider text-white drop-shadow">100 / 100</span>
+        <!-- HPバー -->
+        <div class="relative w-full h-3 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow">
+          <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-100"></div>
+          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white drop-shadow">100 / 100</span>
         </div>
 
-        <!-- Boost Stamina Bar -->
-        <div class="relative w-full h-2 bg-slate-900/80 rounded-full border border-slate-700 overflow-hidden shadow-inner">
+        <!-- ブーストバー -->
+        <div class="relative w-full h-1.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow">
           <div id="hudBoostFill" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 w-full transition-all duration-75"></div>
         </div>
 
-        <!-- EXP Bar -->
-        <div class="relative w-full h-2 bg-slate-900/80 rounded-full border border-slate-700 overflow-hidden shadow-inner">
-          <div id="hudExpFill" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-0 transition-all duration-150"></div>
+        <!-- EXPバー -->
+        <div class="relative w-full h-1.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow">
+          <div id="hudExpFill" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-0 transition-all duration-100"></div>
         </div>
-        <div class="flex justify-between text-[10px] text-slate-300 font-mono">
+        <div class="flex justify-between text-[9px] text-slate-300 font-mono">
           <span id="hudLevel">Lv.1</span>
           <span id="hudKills">撃破: 0</span>
         </div>
       </div>
 
-      <!-- Center: Killfeed & Emote Banner -->
-      <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[200px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
+      <!-- 中央上部: 通信状況インジケーター & キルログ -->
+      <div class="flex flex-col items-center gap-1.5">
+        <!-- ネットワーク状態バッジ (スマホ同士が繋がっているか即確認可能) -->
+        <div class="bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-700 shadow-md flex items-center gap-2 text-[10px] pointer-events-auto">
+          <div class="flex items-center gap-1">
+            <span id="netStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="netStatusText" class="font-bold text-amber-300 font-mono">接続待機</span>
+          </div>
+          <span class="text-slate-500">|</span>
+          <div class="text-slate-300 font-mono">
+            <i class="fa-solid fa-users text-cyan-400 mr-1"></i><span id="netPlayerCount" class="font-bold text-white">1</span>人
+          </div>
+          <span class="text-slate-500">|</span>
+          <div class="text-slate-300 font-mono">
+            <span id="netPing">--</span>ms
+          </div>
+        </div>
 
-      <!-- Right: Leaderboard & Minimap container -->
-      <div class="flex flex-col items-end gap-2">
-        <div class="bg-slate-900/80 backdrop-blur-md rounded-xl p-2 border border-slate-800 text-[11px] shadow-lg w-32 sm:w-40 pointer-events-auto">
-          <div class="font-bold border-b border-slate-700 pb-1 text-slate-400 flex items-center justify-between text-[10px]">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-1"></i>ランキング</span>
-            <span id="playerCountBadge" class="bg-indigo-900/60 px-1 rounded text-[9px] text-indigo-200">1人</span>
+        <!-- キルログ表示エリア -->
+        <div id="killFeed" class="flex flex-col items-center gap-1 max-w-[220px] text-center text-[10px] font-medium text-slate-300 pointer-events-none"></div>
+      </div>
+
+      <!-- 右上: ランキングとレーダー -->
+      <div class="flex flex-col items-end gap-1.5">
+        <div class="bg-slate-900/80 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[10px] shadow-lg w-28 sm:w-36 pointer-events-auto">
+          <div class="font-bold border-b border-slate-700/80 pb-0.5 text-slate-400 flex items-center justify-between text-[9px]">
+            <span><i class="fa-solid fa-trophy text-amber-400 mr-1"></i>順位</span>
+            <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded text-[8px] font-mono">ROOM</span>
           </div>
           <ol id="leaderboardList" class="mt-1 space-y-0.5 text-slate-200"></ol>
         </div>
 
-        <!-- Mini-radar Map -->
-        <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-slate-900/90 rounded-lg border border-slate-700 overflow-hidden shadow">
+        <!-- ミニマップ -->
+        <div class="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/90 rounded-lg border border-slate-700 overflow-hidden shadow">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Center Screen Alerts / Emote Display for self -->
+    <!-- 画面中央: アナウンス (レベルアップ等) -->
     <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none">
-      <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_10px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
+      <div id="centerAlertText" class="text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.9)]">LEVEL UP!</div>
     </div>
 
-    <!-- Bottom Controls Overlay (Mobile Friendly Touch Elements) -->
-    <div class="flex justify-between items-end w-full pb-2">
-      <!-- Joystick Anchor / Zone Indicator -->
-      <div id="joystickZone" class="relative w-36 h-36 rounded-full border border-dashed border-white/20 bg-white/5 pointer-events-auto flex items-center justify-center">
-        <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-cyan-500/80 shadow-[0_0_12px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"></div>
+    <!-- 画面下部: スマホ用バーチャルパッド & ボタン -->
+    <div class="flex justify-between items-end w-full pb-1 sm:pb-3 px-1">
+      <!-- バーチャルジョイスティック -->
+      <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border border-dashed border-cyan-400/30 bg-slate-900/40 backdrop-blur-sm pointer-events-auto flex items-center justify-center shadow-lg">
+        <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"></div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex flex-col items-end gap-3 pointer-events-auto">
-        <!-- Quick Emote / Ping Row -->
-        <div class="flex gap-2">
-          <button data-emote="⚔️ 突撃!" class="emote-btn px-2.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-xs active:scale-95 shadow">⚔️ 突撃</button>
-          <button data-emote="🆘 たすけて!" class="emote-btn px-2.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-xs active:scale-95 shadow">🆘 救援</button>
-          <button data-emote="🤝 同盟?" class="emote-btn px-2.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-xs active:scale-95 shadow">🤝 同盟</button>
-          <button data-emote="✨ ナイス!" class="emote-btn px-2.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-xs active:scale-95 shadow">✨ ナイス</button>
+      <!-- 右側ボタン群 -->
+      <div class="flex flex-col items-end gap-2 pointer-events-auto">
+        <!-- 定型文エモート -->
+        <div class="flex gap-1.5">
+          <button data-emote="⚔️ 突撃!" class="emote-btn px-2 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] active:scale-90 text-amber-200 shadow">⚔️突撃</button>
+          <button data-emote="🆘 救援!" class="emote-btn px-2 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] active:scale-90 text-rose-300 shadow">🆘救援</button>
+          <button data-emote="🤝 同盟?" class="emote-btn px-2 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] active:scale-90 text-emerald-300 shadow">🤝同盟</button>
+          <button data-emote="✨ ナイス!" class="emote-btn px-2 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-[10px] active:scale-90 text-cyan-200 shadow">✨ナイス</button>
         </div>
 
-        <!-- Big Attack & Dash Buttons -->
-        <div class="flex items-center gap-4">
-          <!-- Dash / Boost Button -->
-          <button id="btnDash" class="w-16 h-16 rounded-full bg-amber-600 active:bg-amber-500 border-2 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)] flex flex-col items-center justify-center active:scale-95 select-none transition-transform">
+        <div class="flex items-center gap-3">
+          <!-- ダッシュボタン -->
+          <button id="btnDash" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-600 active:bg-amber-500 border-2 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)] flex flex-col items-center justify-center active:scale-90 transition-transform">
             <i class="fa-solid fa-bolt text-lg text-white"></i>
-            <span class="text-[9px] font-bold mt-0.5 text-amber-100">DASH</span>
+            <span class="text-[8px] font-bold text-amber-100">DASH</span>
           </button>
 
-          <!-- Main Shoot / Attack Button -->
-          <button id="btnAttack" class="w-20 h-20 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 active:to-red-400 border-3 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] flex flex-col items-center justify-center active:scale-95 select-none transition-transform">
+          <!-- 攻撃/発射ボタン -->
+          <button id="btnAttack" class="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 active:to-red-400 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition-transform p-3">
             <i class="fa-solid fa-crosshairs text-2xl text-white"></i>
-            <span class="text-[10px] font-black tracking-wider text-rose-100 mt-1">FIRE</span>
+            <span class="text-[9px] font-black text-rose-100">FIRE</span>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-40">
-    <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-3xl shadow-2xl neon-border flex flex-col gap-4">
+  <!-- 参加ロビー画面 -->
+  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-40 overflow-y-auto">
+    <div class="w-full max-w-sm bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-2xl neon-box flex flex-col gap-3.5 my-auto">
       <div class="text-center">
-        <h1 class="text-3xl font-black italic bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
-          ARENA.IO
+        <h1 class="text-2xl sm:text-3xl font-black italic bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
+          ARENA.IO ONLINE
         </h1>
-        <p class="text-xs text-slate-400 mt-1">仲間約10人でバチバチ戦うリアルタイムバトル</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">身内10人でリアルタイム対戦 & 協力</p>
       </div>
 
-      <!-- Player Name -->
+      <!-- プレイヤー名 -->
       <div>
-        <label class="text-xs font-semibold text-slate-300 mb-1 block">プレイヤー名</label>
-        <input id="inputNickname" type="text" maxlength="10" placeholder="なまえ（例: ぽん太）" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition">
+        <label class="text-[11px] font-semibold text-slate-300 mb-1 block">プレイヤー名</label>
+        <input id="inputNickname" type="text" maxlength="10" placeholder="名前を入力 (例: たろう)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400">
       </div>
 
-      <!-- Room Code -->
+      <!-- ルームID (合言葉) -->
       <div>
-        <label class="text-xs font-semibold text-slate-300 mb-1 flex justify-between">
+        <label class="text-[11px] font-semibold text-slate-300 mb-1 flex justify-between">
           <span>ルームID (合言葉)</span>
-          <span class="text-[10px] text-indigo-400">同じ部屋名で合流!</span>
+          <span class="text-[9px] text-cyan-400">同じ文字で同じ部屋に合流!</span>
         </label>
-        <input id="inputRoom" type="text" maxlength="12" value="FRIENDS" placeholder="例: minna-room" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white uppercase font-mono tracking-wider focus:outline-none focus:border-cyan-400 transition">
+        <input id="inputRoom" type="text" maxlength="10" value="ARENA10" placeholder="例: ARENA10" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono uppercase focus:outline-none focus:border-cyan-400">
       </div>
 
-      <!-- Team Select -->
+      <!-- チーム選択 -->
       <div>
-        <label class="text-xs font-semibold text-slate-300 mb-1.5 block">チーム設定</label>
+        <label class="text-[11px] font-semibold text-slate-300 mb-1 block">チーム選択</label>
         <div class="grid grid-cols-3 gap-2" id="teamSelector">
-          <button type="button" data-team="solo" class="team-btn py-2 px-3 rounded-xl border border-cyan-500/50 bg-cyan-950/40 text-cyan-300 text-xs font-bold text-center active:scale-95 transition ring-2 ring-cyan-400">
-            👑 個人戦 (FFA)
+          <button type="button" data-team="solo" class="team-btn py-1.5 px-1 rounded-xl border border-cyan-500/50 bg-cyan-950/40 text-cyan-300 text-xs font-bold text-center ring-2 ring-cyan-400">
+            👑 バトロワ
           </button>
-          <button type="button" data-team="red" class="team-btn py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-950/20 text-rose-300 text-xs font-bold text-center active:scale-95 transition">
+          <button type="button" data-team="red" class="team-btn py-1.5 px-1 rounded-xl border border-rose-500/30 bg-rose-950/20 text-rose-300 text-xs font-bold text-center">
             🔴 赤チーム
           </button>
-          <button type="button" data-team="blue" class="team-btn py-2 px-3 rounded-xl border border-blue-500/30 bg-blue-950/20 text-blue-300 text-xs font-bold text-center active:scale-95 transition">
+          <button type="button" data-team="blue" class="team-btn py-1.5 px-1 rounded-xl border border-blue-500/30 bg-blue-950/20 text-blue-300 text-xs font-bold text-center">
             🔵 青チーム
           </button>
         </div>
       </div>
 
-      <!-- Class Evolution preview -->
+      <!-- クラス選択 -->
       <div>
-        <label class="text-xs font-semibold text-slate-300 mb-1.5 block">初期スタイル</label>
+        <label class="text-[11px] font-semibold text-slate-300 mb-1 block">兵種タイプ</label>
         <div class="grid grid-cols-3 gap-2" id="classSelector">
-          <button type="button" data-class="gunner" class="class-btn py-2 px-2 rounded-xl border border-indigo-500 bg-indigo-950/40 text-indigo-300 text-xs font-bold flex flex-col items-center ring-2 ring-indigo-400">
-            <i class="fa-solid fa-crosshairs text-base mb-1"></i>
+          <button type="button" data-class="gunner" class="class-btn py-2 px-1 rounded-xl border border-indigo-500 bg-indigo-950/40 text-indigo-300 text-xs font-bold flex flex-col items-center ring-2 ring-indigo-400">
+            <i class="fa-solid fa-crosshairs mb-0.5"></i>
             <span>ガンナー</span>
-            <span class="text-[9px] text-slate-400 font-normal">バランス型</span>
+            <span class="text-[8px] text-slate-400">標準連射</span>
           </button>
-          <button type="button" data-class="shotgun" class="class-btn py-2 px-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-xs font-bold flex flex-col items-center">
-            <i class="fa-solid fa-explosion text-base mb-1"></i>
-            <span>散弾銃</span>
-            <span class="text-[9px] text-slate-400 font-normal">近接拡散</span>
+          <button type="button" data-class="shotgun" class="class-btn py-2 px-1 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-xs font-bold flex flex-col items-center">
+            <i class="fa-solid fa-burst mb-0.5"></i>
+            <span>ショットガン</span>
+            <span class="text-[8px] text-slate-400">近接3連</span>
           </button>
-          <button type="button" data-class="sniper" class="class-btn py-2 px-2 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-xs font-bold flex flex-col items-center">
-            <i class="fa-solid fa-bullseye text-base mb-1"></i>
+          <button type="button" data-class="sniper" class="class-btn py-2 px-1 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-300 text-xs font-bold flex flex-col items-center">
+            <i class="fa-solid fa-bullseye mb-0.5"></i>
             <span>スナイパー</span>
-            <span class="text-[9px] text-slate-400 font-normal">長距離高威力</span>
+            <span class="text-[8px] text-slate-400">長射程高威力</span>
           </button>
         </div>
       </div>
 
-      <!-- Sound toggle & Join Button -->
-      <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800">
-        <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-          <input type="checkbox" id="checkSound" checked class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-0">
-          <span>サウンド効果 (BGM/SE)</span>
-        </label>
-      </div>
-
-      <button id="btnJoin" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500 rounded-2xl font-black text-base tracking-wider hover:opacity-95 active:scale-[0.98] shadow-lg shadow-indigo-500/30 transition">
-        アリーナに参戦する！
+      <!-- 接続ボタン -->
+      <button id="btnJoin" class="w-full py-3 bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500 rounded-xl font-black text-sm tracking-wider shadow-lg active:scale-95 transition">
+        アリーナに接続する
       </button>
+
+      <!-- 接続状況ログ -->
+      <div id="lobbyNetLog" class="text-[10px] text-center text-slate-400 font-mono">ルーム合言葉を入力して参戦</div>
     </div>
   </div>
 
+  <!-- リスポーンモーダル -->
   <div id="deathModal" class="absolute inset-0 bg-red-950/80 backdrop-blur-md hidden flex flex-col items-center justify-center p-4 z-50">
-    <div class="w-full max-w-xs bg-slate-900/90 border border-red-500/50 p-6 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-3">
-      <div class="text-4xl text-rose-500 animate-bounce">
+    <div class="w-full max-w-xs bg-slate-900/90 border border-red-500/50 p-5 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2.5">
+      <div class="text-3xl text-rose-500 animate-bounce">
         <i class="fa-solid fa-skull"></i>
       </div>
-      <h2 class="text-2xl font-black text-rose-400">撃破されました...</h2>
-      <p id="deathMessage" class="text-xs text-slate-300">敵の弾幕に倒れた！</p>
+      <h2 class="text-xl font-black text-rose-400">撃破されました！</h2>
+      <p id="deathMessage" class="text-[11px] text-slate-300">敵の弾幕に倒れた！</p>
       
-      <div class="bg-slate-800/80 rounded-xl p-3 w-full my-1 border border-slate-700 text-left text-xs space-y-1">
-        <div class="flex justify-between text-slate-400"><span>最終スコア:</span><span id="finalScore" class="font-bold text-cyan-400">0</span></div>
+      <div class="bg-slate-800/80 rounded-xl p-2.5 w-full text-left text-[11px] space-y-1">
+        <div class="flex justify-between text-slate-400"><span>獲得スコア:</span><span id="finalScore" class="font-bold text-cyan-400">0</span></div>
         <div class="flex justify-between text-slate-400"><span>撃破数:</span><span id="finalKills" class="font-bold text-amber-400">0</span></div>
       </div>
 
-      <button id="btnRespawn" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl font-black text-sm tracking-wider hover:opacity-95 active:scale-95 shadow-lg shadow-teal-500/30 transition">
+      <button id="btnRespawn" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl font-black text-xs tracking-wider active:scale-95 transition">
         今すぐ復活 (リスポーン)
       </button>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'arena-io-game';
-    let db = null;
-    let auth = null;
-    let currentUser = null;
-    let isFirebaseReady = false;
-
-    try {
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-      }
-    } catch (e) {
-      console.warn("Firebase config fallback to local emulation", e);
-    }
-
-    class SoundEngine {
+  <script>
+    /* =========================================================
+       1. WEB AUDIO サウンドエンジン
+       ========================================================= */
+    class SoundFX {
       constructor() {
         this.ctx = null;
-        this.enabled = true;
       }
       init() {
         if (!this.ctx) {
@@ -278,30 +269,30 @@
           this.ctx.resume();
         }
       }
-      playShoot(pitch = 600) {
-        if (!this.enabled || !this.ctx) return;
+      playShoot(freq = 550) {
+        if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(pitch, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.1);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.12);
+        osc.stop(now + 0.1);
       }
       playHit() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'square';
-        osc.frequency.setValueAtTime(220, now);
-        osc.frequency.linearRampToValueAtTime(100, now + 0.08);
-        gain.gain.setValueAtTime(0.2, now);
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.linearRampToValueAtTime(90, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -309,95 +300,84 @@
         osc.stop(now + 0.08);
       }
       playGem() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.09);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.09);
+        osc.stop(now + 0.08);
       }
       playDash() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(300, now);
-        osc.frequency.linearRampToValueAtTime(600, now + 0.15);
-        gain.gain.setValueAtTime(0.18, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.linearRampToValueAtTime(600, now + 0.12);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + 0.12);
       }
-      playExplosion() {
-        if (!this.enabled || !this.ctx) return;
+      playExplode() {
+        if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'square';
-        osc.frequency.setValueAtTime(120, now);
-        osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.frequency.setValueAtTime(130, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.35);
-      }
-      playLevelUp() {
-        if (!this.enabled || !this.ctx) return;
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-          const now = this.ctx.currentTime + (i * 0.08);
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.15, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.2);
-        });
+        osc.stop(now + 0.3);
       }
     }
-    const sound = new SoundEngine();
+    const sound = new SoundFX();
 
-    const WORLD_WIDTH = 2600;
-    const WORLD_HEIGHT = 2600;
-    const TOTAL_GEMS = 180;
+    /* =========================================================
+       2. ワールド設定とプレイヤーステータス
+       ========================================================= */
+    const WORLD_WIDTH = 2500;
+    const WORLD_HEIGHT = 2500;
+    const GEMS_COUNT = 150;
+
+    const CLASS_CONFIG = {
+      gunner: { name: 'ガンナー', reload: 180, speed: 4.8, bulletSpeed: 14, bulletDmg: 20, bulletSize: 6, maxHp: 110, count: 1, spread: 0 },
+      shotgun: { name: 'ショットガン', reload: 450, speed: 4.5, bulletSpeed: 12, bulletDmg: 15, bulletSize: 5, maxHp: 130, count: 3, spread: 0.3 },
+      sniper: { name: 'スナイパー', reload: 650, speed: 4.3, bulletSpeed: 22, bulletDmg: 60, bulletSize: 7, maxHp: 90, count: 1, spread: 0.02 }
+    };
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const miniCanvas = document.getElementById('miniMapCanvas');
     const miniCtx = miniCanvas.getContext('2d');
 
-    function resizeCanvas() {
+    function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       miniCanvas.width = miniCanvas.parentElement.clientWidth;
       miniCanvas.height = miniCanvas.parentElement.clientHeight;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', resize);
+    resize();
 
-    const CLASS_CONFIG = {
-      gunner: { name: 'ガンナー', reload: 190, speed: 4.8, bulletSpeed: 13, bulletDmg: 20, bulletSize: 6, maxHp: 110, count: 1, spread: 0 },
-      shotgun: { name: '散弾銃', reload: 450, speed: 4.5, bulletSpeed: 11, bulletDmg: 16, bulletSize: 5, maxHp: 130, count: 4, spread: 0.35 },
-      sniper: { name: 'スナイパー', reload: 650, speed: 4.4, bulletSpeed: 21, bulletDmg: 60, bulletSize: 7, maxHp: 90, count: 1, spread: 0.02 }
-    };
-
-    let localPlayer = {
-      id: 'p_' + Math.random().toString(36).substring(2, 9),
+    // 自プレイヤー
+    const myId = 'p_' + Math.random().toString(36).substr(2, 7);
+    let myPlayer = {
+      id: myId,
       name: 'Player',
       team: 'solo',
       classType: 'gunner',
@@ -406,7 +386,6 @@
       angle: 0,
       vx: 0,
       vy: 0,
-      radius: 24,
       hp: 110,
       maxHp: 110,
       stamina: 100,
@@ -415,139 +394,360 @@
       level: 1,
       exp: 0,
       nextExp: 50,
-      lastFireTime: 0,
-      lastDashTime: 0,
-      isDashing: false,
+      radius: 23,
       isAlive: true,
+      isDashing: false,
+      lastShootTime: 0,
       emote: null,
       emoteTimer: 0
     };
 
-    let remotePlayers = new Map();
-    let localBullets = [];
-    let remoteBullets = [];
+    // リモートプレイヤーマップ (Key: peerId or playerId)
+    const remotePlayers = new Map();
+    // 弾丸リスト
+    let bullets = [];
+    // オーブ
     let gems = [];
+    // パーティクル & エフェクト
     let particles = [];
-    let floatingTexts = [];
-    let obstacles = [];
-    let bushes = [];
-    let killLogs = [];
+    let popups = [];
+    // 障害物
+    const obstacles = [
+      { x: 700, y: 700, r: 85 }, { x: 1800, y: 700, r: 85 },
+      { x: 700, y: 1800, r: 85 }, { x: 1800, y: 1800, r: 85 },
+      { x: 1250, y: 750, r: 65 }, { x: 1250, y: 1750, r: 65 },
+      { x: 750, y: 1250, r: 65 }, { x: 1750, y: 1250, r: 65 }
+    ];
 
-    let currentRoomId = 'FRIENDS';
-    let lastNetworkSync = 0;
-    const SYNC_INTERVAL = 85; // 85ms network tick rate
+    /* =========================================================
+       3. WebRTC (PeerJS) リアルタイムP2P通信システム
+       - 部屋ID (合言葉) ごとにホスト・クライアントでメッシュ接続
+       - 10人規模のスマホで即座にデータチャネル通信
+       ========================================================= */
+    let peer = null;
+    let isHost = false;
+    let hostConn = null; // クライアント時のホスト宛てコネクション
+    const peerConnections = new Map(); // ホスト時の全クライアント宛て
+    let roomCode = 'ARENA10';
+    let lastPingSend = 0;
+    let currentPing = 0;
 
-    function initMapFeatures() {
-      obstacles = [];
-      bushes = [];
-      // Fixed obstacles with rocks
-      const obsPositions = [
-        { x: 700, y: 700, r: 80 }, { x: 1900, y: 700, r: 80 },
-        { x: 700, y: 1900, r: 80 }, { x: 1900, y: 1900, r: 80 },
-        { x: 1300, y: 800, r: 60 }, { x: 1300, y: 1800, r: 60 },
-        { x: 800, y: 1300, r: 60 }, { x: 1800, y: 1300, r: 60 }
-      ];
-      obsPositions.forEach(p => obstacles.push(p));
-
-      // Hiding bushes (ambush zones)
-      const bushPositions = [
-        { x: 500, y: 1300, r: 120 }, { x: 2100, y: 1300, r: 120 },
-        { x: 1300, y: 500, r: 120 }, { x: 1300, y: 2100, r: 120 },
-        { x: 1000, y: 1000, r: 100 }, { x: 1600, y: 1600, r: 100 }
-      ];
-      bushPositions.forEach(b => bushes.push(b));
-
-      // Initial Gems
-      gems = [];
-      for (let i = 0; i < TOTAL_GEMS; i++) {
-        spawnGem(i);
-      }
+    function getHostPeerId(roomId) {
+      return `arena_io_room_${roomId.toLowerCase().trim()}_host`;
     }
 
-    function spawnGem(id) {
-      // High reward closer to center
-      const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * (WORLD_WIDTH / 2 - 100);
-      const isGold = Math.random() < 0.15;
-      gems.push({
-        id: id ?? ('g_' + Math.random().toString(36).substr(2, 6)),
-        x: WORLD_WIDTH / 2 + Math.cos(angle) * dist,
-        y: WORLD_HEIGHT / 2 + Math.sin(angle) * dist,
-        val: isGold ? 25 : 10,
-        color: isGold ? '#fbbf24' : '#06b6d4',
-        r: isGold ? 9 : 6
+    function initNetwork(roomId) {
+      roomCode = roomId;
+      const hostId = getHostPeerId(roomCode);
+      const logEl = document.getElementById('lobbyNetLog');
+      logEl.textContent = `ルーム [${roomCode}] へ接続確認中...`;
+
+      // まず自身がホストとしてID取得を試みる
+      peer = new Peer(hostId, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      });
+
+      peer.on('open', (id) => {
+        isHost = true;
+        logEl.textContent = `ホストとしてルーム作成成功! 参加者を待機中...`;
+        updateNetStatusUI(true, 1);
+        setupHostHandlers();
+        initGems();
+      });
+
+      peer.on('error', (err) => {
+        // ホストIDが既に使われている場合は参加者 (Client) として接続
+        if (err.type === 'unavailable-id') {
+          peer.destroy();
+          connectAsClient(hostId);
+        } else {
+          logEl.textContent = `接続エラー: ${err.type}。再試行してください`;
+        }
       });
     }
 
-    initMapFeatures();
+    function connectAsClient(hostId) {
+      const logEl = document.getElementById('lobbyNetLog');
+      logEl.textContent = `ホスト発見! 接続しています...`;
 
+      // クライアント用ランダムID
+      peer = new Peer(`arena_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      });
+
+      peer.on('open', (myPeerId) => {
+        hostConn = peer.connect(hostId, { reliable: false });
+        setupClientHandlers();
+      });
+
+      peer.on('error', (err) => {
+        logEl.textContent = `接続再試行中... (${err.type})`;
+      });
+    }
+
+    // ホスト側の通信ハンドラ
+    function setupHostHandlers() {
+      peer.on('connection', (conn) => {
+        conn.on('open', () => {
+          peerConnections.set(conn.peer, conn);
+          updateNetStatusUI(true, peerConnections.size + 1);
+
+          // 新規参加者へ初期マップ情報 (Gems) を送信
+          conn.send({
+            type: 'init_gems',
+            gems: gems
+          });
+        });
+
+        conn.on('data', (data) => {
+          handleIncomingNetworkData(data, conn.peer);
+          // 受信データを他の全クライアントへ中継 (ブロードキャスト)
+          peerConnections.forEach((otherConn, pid) => {
+            if (pid !== conn.peer && otherConn.open) {
+              otherConn.send(data);
+            }
+          });
+        });
+
+        conn.on('close', () => {
+          peerConnections.delete(conn.peer);
+          remotePlayers.delete(conn.peer);
+          updateNetStatusUI(true, peerConnections.size + 1);
+          broadcast({ type: 'player_leave', peerId: conn.peer });
+        });
+      });
+    }
+
+    // クライアント側の通信ハンドラ
+    function setupClientHandlers() {
+      hostConn.on('open', () => {
+        isHost = false;
+        document.getElementById('lobbyNetLog').textContent = `ルーム接続完了!`;
+        updateNetStatusUI(false, 2);
+
+        // Ping測定定期送信
+        setInterval(() => {
+          if (hostConn && hostConn.open) {
+            lastPingSend = performance.now();
+            hostConn.send({ type: 'ping', t: lastPingSend });
+          }
+        }, 2000);
+      });
+
+      hostConn.on('data', (data) => {
+        handleIncomingNetworkData(data);
+      });
+
+      hostConn.on('close', () => {
+        updateNetStatusUI(false, 1, '切断されました');
+      });
+    }
+
+    // メッセージのブロードキャスト送信
+    function broadcast(payload) {
+      if (isHost) {
+        peerConnections.forEach(conn => {
+          if (conn.open) conn.send(payload);
+        });
+      } else if (hostConn && hostConn.open) {
+        hostConn.send(payload);
+      }
+    }
+
+    // 受信パケットの処理
+    function handleIncomingNetworkData(data, senderPeerId) {
+      if (!data) return;
+
+      switch (data.type) {
+        case 'ping':
+          if (isHost && senderPeerId) {
+            const sender = peerConnections.get(senderPeerId);
+            if (sender && sender.open) sender.send({ type: 'pong', t: data.t });
+          }
+          break;
+
+        case 'pong':
+          currentPing = Math.round(performance.now() - data.t);
+          document.getElementById('netPing').textContent = currentPing;
+          break;
+
+        case 'sync_state':
+          // 他プレイヤーの位置・ステータス更新
+          if (data.id === myPlayer.id) return;
+          remotePlayers.set(data.id, {
+            ...data,
+            lastSeen: performance.now()
+          });
+          updateLeaderboard();
+          break;
+
+        case 'shoot':
+          // 敵の弾丸生成
+          if (data.ownerId === myPlayer.id) return;
+          bullets.push(data.bullet);
+          sound.playShoot();
+          break;
+
+        case 'hit':
+          // ダメージ通知
+          if (data.targetId === myPlayer.id) {
+            takeDamage(data.damage, data.attackerName);
+          }
+          break;
+
+        case 'gem_eaten':
+          // 誰かがオーブを取得
+          const gIdx = gems.findIndex(g => g.id === data.gemId);
+          if (gIdx !== -1) {
+            gems.splice(gIdx, 1);
+            if (isHost) {
+              setTimeout(() => spawnSingleGem(), 4000);
+            }
+          }
+          break;
+
+        case 'init_gems':
+          gems = data.gems || [];
+          break;
+
+        case 'gem_spawn':
+          gems.push(data.gem);
+          break;
+
+        case 'kill_broadcast':
+          addKillLog(data.killer, data.victim);
+          break;
+
+        case 'player_leave':
+          remotePlayers.delete(data.peerId);
+          updateLeaderboard();
+          break;
+      }
+    }
+
+    function updateNetStatusUI(asHost, count, customText) {
+      const dot = document.getElementById('netStatusDot');
+      const text = document.getElementById('netStatusText');
+      const countEl = document.getElementById('netPlayerCount');
+      
+      dot.classList.remove('bg-amber-400', 'bg-emerald-400', 'bg-rose-500');
+      if (customText) {
+        dot.classList.add('bg-rose-500');
+        text.textContent = customText;
+        text.className = 'font-bold text-rose-400 font-mono';
+      } else {
+        dot.classList.add('bg-emerald-400');
+        text.textContent = asHost ? '👑 HOST' : '🟢 CLIENT';
+        text.className = 'font-bold text-emerald-400 font-mono';
+      }
+      countEl.textContent = count;
+      document.getElementById('roomCodeBadge').textContent = roomCode;
+    }
+
+    function initGems() {
+      gems = [];
+      for (let i = 0; i < GEMS_COUNT; i++) {
+        spawnSingleGem();
+      }
+    }
+
+    function spawnSingleGem() {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * (WORLD_WIDTH / 2 - 120);
+      const isGold = Math.random() < 0.15;
+      const gem = {
+        id: 'g_' + Math.random().toString(36).substr(2, 7),
+        x: Math.round(WORLD_WIDTH / 2 + Math.cos(angle) * dist),
+        y: Math.round(WORLD_HEIGHT / 2 + Math.sin(angle) * dist),
+        val: isGold ? 25 : 10,
+        color: isGold ? '#fbbf24' : '#06b6d4',
+        r: isGold ? 8 : 5
+      };
+      gems.push(gem);
+
+      if (isHost) {
+        broadcast({ type: 'gem_spawn', gem: gem });
+      }
+    }
+
+    /* =========================================================
+       4. スマホタッチ操作 (ジョイスティック / 各種ボタン)
+       ========================================================= */
     let joyTouchId = null;
-    let joyStart = { x: 0, y: 0 };
-    let joyMove = { x: 0, y: 0 };
+    let joyCenter = { x: 0, y: 0 };
     let joyVector = { x: 0, y: 0 };
     const joyZone = document.getElementById('joystickZone');
     const joyKnob = document.getElementById('joystickKnob');
 
-    function updateJoystickPosition(currentX, currentY) {
-      const dx = currentX - joyStart.x;
-      const dy = currentY - joyStart.y;
+    function updateJoystick(clientX, clientY) {
+      const dx = clientX - joyCenter.x;
+      const dy = clientY - joyCenter.y;
       const dist = Math.hypot(dx, dy);
-      const maxDist = 55;
+      const maxR = 50;
       const angle = Math.atan2(dy, dx);
-      const boundedDist = Math.min(dist, maxDist);
+      const bounded = Math.min(dist, maxR);
 
-      const offsetX = Math.cos(angle) * boundedDist;
-      const offsetY = Math.sin(angle) * boundedDist;
+      joyKnob.style.transform = `translate(calc(-50% + ${Math.cos(angle) * bounded}px), calc(-50% + ${Math.sin(angle) * bounded}px))`;
 
-      joyKnob.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
-      joyVector = {
-        x: dist > 5 ? Math.cos(angle) * (boundedDist / maxDist) : 0,
-        y: dist > 5 ? Math.sin(angle) * (boundedDist / maxDist) : 0
-      };
-
-      if (dist > 8) {
-        localPlayer.angle = angle;
+      if (dist > 6) {
+        joyVector = {
+          x: Math.cos(angle) * (bounded / maxR),
+          y: Math.sin(angle) * (bounded / maxR)
+        };
+        myPlayer.angle = angle;
+      } else {
+        joyVector = { x: 0, y: 0 };
       }
-    }
-
-    function resetJoystick() {
-      joyTouchId = null;
-      joyVector = { x: 0, y: 0 };
-      joyKnob.style.transform = `translate(-50%, -50%)`;
     }
 
     joyZone.addEventListener('touchstart', (e) => {
       e.preventDefault();
       if (joyTouchId !== null) return;
-      const touch = e.changedTouches[0];
-      joyTouchId = touch.identifier;
-      const rect = joyZone.getBoundingClientRect();
-      joyStart = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      updateJoystickPosition(touch.clientX, touch.clientY);
+      const t = e.changedTouches[0];
+      joyTouchId = t.identifier;
+      const r = joyZone.getBoundingClientRect();
+      joyCenter = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      updateJoystick(t.clientX, t.clientY);
     }, { passive: false });
 
     window.addEventListener('touchmove', (e) => {
       if (joyTouchId === null) return;
       for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        if (touch.identifier === joyTouchId) {
-          updateJoystickPosition(touch.clientX, touch.clientY);
+        if (e.changedTouches[i].identifier === joyTouchId) {
+          updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
           break;
         }
       }
     }, { passive: false });
 
+    function resetJoy() {
+      joyTouchId = null;
+      joyVector = { x: 0, y: 0 };
+      joyKnob.style.transform = `translate(-50%, -50%)`;
+    }
     window.addEventListener('touchend', (e) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === joyTouchId) {
-          resetJoystick();
+          resetJoy();
           break;
         }
       }
     });
+    window.addEventListener('touchcancel', resetJoy);
 
-    window.addEventListener('touchcancel', () => resetJoystick());
-
+    // キーボード操作対応 (PCデバッグ用)
     const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.key.toLowerCase()] = true;
@@ -558,40 +758,43 @@
       keys[e.key.toLowerCase()] = false;
     });
 
-    function getClosestTargetAngle() {
-      let closest = null;
-      let minDistance = 550;
+    /* =========================================================
+       5. 攻撃、ダッシュ、ダメージ処理
+       ========================================================= */
+    // 最も近い敵を自動索敵
+    function getAutoAimAngle() {
+      let nearest = null;
+      let minD = 550;
 
       remotePlayers.forEach((rp) => {
         if (!rp.isAlive) return;
-        // Avoid auto-aiming at same teammates
-        if (localPlayer.team !== 'solo' && localPlayer.team === rp.team) return;
+        // 同一チームは索敵除外
+        if (myPlayer.team !== 'solo' && myPlayer.team === rp.team) return;
 
-        const dist = Math.hypot(rp.x - localPlayer.x, rp.y - localPlayer.y);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closest = rp;
+        const d = Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y);
+        if (d < minD) {
+          minD = d;
+          nearest = rp;
         }
       });
 
-      if (closest) {
-        return Math.atan2(closest.y - localPlayer.y, closest.x - localPlayer.x);
+      if (nearest) {
+        return Math.atan2(nearest.y - myPlayer.y, nearest.x - myPlayer.x);
       }
-      return localPlayer.angle;
+      return myPlayer.angle;
     }
 
     function shootWeapon() {
-      if (!localPlayer.isAlive) return;
-      const cfg = CLASS_CONFIG[localPlayer.classType];
+      if (!myPlayer.isAlive) return;
+      const cfg = CLASS_CONFIG[myPlayer.classType];
       const now = performance.now();
-      if (now - localPlayer.lastFireTime < cfg.reload) return;
+      if (now - myPlayer.lastShootTime < cfg.reload) return;
 
-      localPlayer.lastFireTime = now;
-      sound.playShoot(localPlayer.classType === 'sniper' ? 880 : 540);
+      myPlayer.lastShootTime = now;
+      sound.playShoot(myPlayer.classType === 'sniper' ? 880 : 540);
 
-      // Aim towards closest enemy or player movement direction
-      const aimAngle = getClosestTargetAngle();
-      localPlayer.angle = aimAngle;
+      const aimAngle = getAutoAimAngle();
+      myPlayer.angle = aimAngle;
 
       for (let i = 0; i < cfg.count; i++) {
         let spreadAngle = aimAngle;
@@ -601,336 +804,248 @@
           spreadAngle += (Math.random() - 0.5) * cfg.spread;
         }
 
-        const b = {
+        const bullet = {
           id: 'b_' + Math.random().toString(36).substr(2, 7),
-          ownerId: localPlayer.id,
-          team: localPlayer.team,
-          color: getPlayerColor(localPlayer),
-          x: localPlayer.x + Math.cos(spreadAngle) * (localPlayer.radius + 6),
-          y: localPlayer.y + Math.sin(spreadAngle) * (localPlayer.radius + 6),
+          ownerId: myPlayer.id,
+          ownerName: myPlayer.name,
+          team: myPlayer.team,
+          color: getPlayerColor(myPlayer),
+          x: myPlayer.x + Math.cos(spreadAngle) * (myPlayer.radius + 6),
+          y: myPlayer.y + Math.sin(spreadAngle) * (myPlayer.radius + 6),
           vx: Math.cos(spreadAngle) * cfg.bulletSpeed,
           vy: Math.sin(spreadAngle) * cfg.bulletSpeed,
           damage: cfg.bulletDmg,
           radius: cfg.bulletSize,
           life: 80
         };
-        localBullets.push(b);
+
+        bullets.push(bullet);
+
+        // 他プレイヤーへ弾丸共有
+        broadcast({
+          type: 'shoot',
+          ownerId: myPlayer.id,
+          bullet: bullet
+        });
       }
 
-      // Small recoil
-      localPlayer.vx -= Math.cos(aimAngle) * 1.5;
-      localPlayer.vy -= Math.sin(aimAngle) * 1.5;
+      // 反動
+      myPlayer.vx -= Math.cos(aimAngle) * 1.8;
+      myPlayer.vy -= Math.sin(aimAngle) * 1.8;
     }
 
     function triggerDash() {
-      if (!localPlayer.isAlive) return;
-      if (localPlayer.stamina < 35) return;
-      localPlayer.stamina -= 35;
-      localPlayer.isDashing = true;
+      if (!myPlayer.isAlive || myPlayer.stamina < 30) return;
+      myPlayer.stamina -= 30;
+      myPlayer.isDashing = true;
       sound.playDash();
 
-      const speedBoost = 15;
-      localPlayer.vx += Math.cos(localPlayer.angle) * speedBoost;
-      localPlayer.vy += Math.sin(localPlayer.angle) * speedBoost;
+      const boost = 14;
+      myPlayer.vx += Math.cos(myPlayer.angle) * boost;
+      myPlayer.vy += Math.sin(myPlayer.angle) * boost;
 
-      // Dash particle trail
-      for (let i = 0; i < 8; i++) {
+      // ダッシュ軌跡パーティクル
+      for (let i = 0; i < 6; i++) {
         particles.push({
-          x: localPlayer.x,
-          y: localPlayer.y,
+          x: myPlayer.x,
+          y: myPlayer.y,
           vx: (Math.random() - 0.5) * 4,
           vy: (Math.random() - 0.5) * 4,
           color: '#38bdf8',
-          size: Math.random() * 5 + 3,
+          size: 4,
           alpha: 1,
-          decay: 0.05
+          decay: 0.06
         });
       }
-
-      setTimeout(() => { localPlayer.isDashing = false; }, 200);
+      setTimeout(() => { myPlayer.isDashing = false; }, 200);
     }
 
-    function sendEmote(text) {
-      if (!localPlayer.isAlive) return;
-      localPlayer.emote = text;
-      localPlayer.emoteTimer = 160;
-      floatingTexts.push({
-        x: localPlayer.x,
-        y: localPlayer.y - 35,
-        text: text,
+    function takeDamage(dmg, attackerName) {
+      if (!myPlayer.isAlive) return;
+      sound.playHit();
+      myPlayer.hp -= dmg;
+
+      popups.push({
+        x: myPlayer.x + (Math.random() - 0.5) * 20,
+        y: myPlayer.y - 25,
+        text: `-${dmg}`,
+        color: '#f43f5e',
+        size: 16,
+        life: 40,
+        dy: -1
+      });
+
+      if (myPlayer.hp <= 0) {
+        myPlayer.isAlive = false;
+        sound.playExplode();
+        document.getElementById('deathMessage').textContent = `${attackerName || '敵'} に撃破された！`;
+        document.getElementById('finalScore').textContent = myPlayer.score;
+        document.getElementById('finalKills').textContent = myPlayer.kills;
+        document.getElementById('deathModal').classList.remove('hidden');
+
+        broadcast({
+          type: 'kill_broadcast',
+          killer: attackerName || 'Enemy',
+          victim: myPlayer.name
+        });
+      }
+    }
+
+    function sendEmote(txt) {
+      if (!myPlayer.isAlive) return;
+      myPlayer.emote = txt;
+      myPlayer.emoteTimer = 140;
+      popups.push({
+        x: myPlayer.x,
+        y: myPlayer.y - 35,
+        text: txt,
         color: '#fef08a',
         size: 16,
         life: 60,
-        dy: -0.8
+        dy: -0.6
       });
-      syncLocalPlayerToRoom();
+      syncMyState();
     }
 
-    const btnAttack = document.getElementById('btnAttack');
-    btnAttack.addEventListener('touchstart', (e) => { e.preventDefault(); shootWeapon(); });
-    btnAttack.addEventListener('mousedown', (e) => { e.preventDefault(); shootWeapon(); });
+    // ボタンのイベント紐付け
+    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); shootWeapon(); });
+    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); shootWeapon(); });
+    document.getElementById('btnDash').addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
+    document.getElementById('btnDash').addEventListener('mousedown', (e) => { e.preventDefault(); triggerDash(); });
 
-    const btnDash = document.getElementById('btnDash');
-    btnDash.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
-    btnDash.addEventListener('mousedown', (e) => { e.preventDefault(); triggerDash(); });
-
-    document.querySelectorAll('.emote-btn').forEach(btn => {
-      btn.addEventListener('click', () => sendEmote(btn.dataset.emote));
+    document.querySelectorAll('.emote-btn').forEach(b => {
+      b.addEventListener('click', () => sendEmote(b.dataset.emote));
     });
 
+    /* =========================================================
+       6. ロビー設定 & リスポーン
+       ========================================================= */
     let selectedTeam = 'solo';
     let selectedClass = 'gunner';
 
-    document.querySelectorAll('.team-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        document.querySelectorAll('.team-btn').forEach(btn => {
-          btn.classList.remove('ring-2', 'ring-cyan-400', 'ring-rose-400', 'ring-blue-400');
-        });
-        selectedTeam = b.dataset.team;
-        if (selectedTeam === 'solo') b.classList.add('ring-2', 'ring-cyan-400');
-        if (selectedTeam === 'red') b.classList.add('ring-2', 'ring-rose-400');
-        if (selectedTeam === 'blue') b.classList.add('ring-2', 'ring-blue-400');
+    document.querySelectorAll('.team-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('ring-2', 'ring-cyan-400', 'ring-rose-400', 'ring-blue-400'));
+        selectedTeam = btn.dataset.team;
+        if (selectedTeam === 'solo') btn.classList.add('ring-2', 'ring-cyan-400');
+        if (selectedTeam === 'red') btn.classList.add('ring-2', 'ring-rose-400');
+        if (selectedTeam === 'blue') btn.classList.add('ring-2', 'ring-blue-400');
       });
     });
 
-    document.querySelectorAll('.class-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        document.querySelectorAll('.class-btn').forEach(btn => {
-          btn.classList.remove('ring-2', 'ring-indigo-400');
-          btn.classList.remove('border-indigo-500');
-          btn.classList.add('border-slate-700');
+    document.querySelectorAll('.class-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.class-btn').forEach(b => {
+          b.classList.remove('ring-2', 'ring-indigo-400', 'border-indigo-500');
+          b.classList.add('border-slate-700');
         });
-        selectedClass = b.dataset.class;
-        b.classList.add('ring-2', 'ring-indigo-400', 'border-indigo-500');
+        selectedClass = btn.dataset.class;
+        btn.classList.add('ring-2', 'ring-indigo-400', 'border-indigo-500');
       });
-    });
-
-    document.getElementById('checkSound').addEventListener('change', (e) => {
-      sound.enabled = e.target.checked;
     });
 
     document.getElementById('btnJoin').addEventListener('click', () => {
       sound.init();
-      const nameInput = document.getElementById('inputNickname').value.trim();
-      const roomInput = document.getElementById('inputRoom').value.trim().toUpperCase() || 'FRIENDS';
+      const n = document.getElementById('inputNickname').value.trim();
+      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'ARENA10';
 
-      localPlayer.name = nameInput || '名無しファイター';
-      localPlayer.team = selectedTeam;
-      localPlayer.classType = selectedClass;
-      currentRoomId = roomInput;
-
+      myPlayer.name = n || '勇者' + Math.floor(Math.random() * 900 + 100);
+      myPlayer.team = selectedTeam;
+      myPlayer.classType = selectedClass;
       applyClassStats();
+
+      document.getElementById('hudName').textContent = myPlayer.name;
+      document.getElementById('hudClass').textContent = CLASS_CONFIG[myPlayer.classType].name;
+
+      initNetwork(r);
 
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('gameHud').classList.remove('hidden');
-
-      document.getElementById('hudName').textContent = localPlayer.name;
-      document.getElementById('hudClass').textContent = CLASS_CONFIG[localPlayer.classType].name;
-
-      initFirestoreRoomSync();
     });
 
     document.getElementById('btnRespawn').addEventListener('click', () => {
-      respawnPlayer();
+      applyClassStats();
+      myPlayer.x = WORLD_WIDTH / 2 + (Math.random() - 0.5) * 600;
+      myPlayer.y = WORLD_HEIGHT / 2 + (Math.random() - 0.5) * 600;
+      myPlayer.vx = 0;
+      myPlayer.vy = 0;
+      myPlayer.isAlive = true;
+      myPlayer.stamina = 100;
+      document.getElementById('deathModal').classList.add('hidden');
+      syncMyState();
     });
 
     function applyClassStats() {
-      const cfg = CLASS_CONFIG[localPlayer.classType];
-      localPlayer.maxHp = cfg.maxHp + (localPlayer.level - 1) * 12;
-      localPlayer.hp = localPlayer.maxHp;
-      localPlayer.radius = 23 + (localPlayer.level - 1) * 1.2;
+      const cfg = CLASS_CONFIG[myPlayer.classType];
+      myPlayer.maxHp = cfg.maxHp + (myPlayer.level - 1) * 15;
+      myPlayer.hp = myPlayer.maxHp;
+      myPlayer.radius = 23 + (myPlayer.level - 1) * 1.2;
     }
 
-    function respawnPlayer() {
-      applyClassStats();
-      localPlayer.x = WORLD_WIDTH / 2 + (Math.random() - 0.5) * 600;
-      localPlayer.y = WORLD_HEIGHT / 2 + (Math.random() - 0.5) * 600;
-      localPlayer.vx = 0;
-      localPlayer.vy = 0;
-      localPlayer.isAlive = true;
-      localPlayer.stamina = 100;
-      document.getElementById('deathModal').classList.add('hidden');
-      syncLocalPlayerToRoom();
+    function addKillLog(killer, victim) {
+      const feed = document.getElementById('killFeed');
+      const item = document.createElement('div');
+      item.className = 'bg-slate-900/80 px-2 py-0.5 rounded-full border border-slate-700 animate-pulse text-[10px] text-white shadow';
+      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> 💥 <span class="text-slate-400">${victim}</span>`;
+      feed.prepend(item);
+      setTimeout(() => item.remove(), 4000);
     }
 
-    let roomUnsubscribe = null;
+    function updateLeaderboard() {
+      const all = [myPlayer, ...Array.from(remotePlayers.values())];
+      all.sort((a, b) => (b.score || 0) - (a.score || 0));
 
-    async function initFirestoreRoomSync() {
-      if (!db || !auth) {
-        console.warn("Operating in standalone offline sandbox (simulated peers)");
-        spawnSimulatedFriends();
-        return;
-      }
-
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        currentUser = auth.currentUser;
-        if (!currentUser) return;
-        localPlayer.id = currentUser.uid;
-
-        // Path Rule: /artifacts/{appId}/public/data/{collectionName}
-        const playersCollection = collection(db, 'artifacts', appId, 'public', 'data', `arena_room_${currentRoomId}`);
-
-        // Listen to active players
-        roomUnsubscribe = onSnapshot(playersCollection, (snapshot) => {
-          const now = Date.now();
-          snapshot.docChanges().forEach((change) => {
-            const data = change.doc.data();
-            const id = change.doc.id;
-
-            if (id === localPlayer.id) return; // Ignore self
-
-            if (change.type === 'removed') {
-              remotePlayers.delete(id);
-            } else {
-              // Only consider players updated within last 15 seconds
-              if (!data.lastUpdated || (now - data.lastUpdated < 15000)) {
-                remotePlayers.set(id, data);
-              } else {
-                remotePlayers.delete(id);
-              }
-            }
-          });
-          updateLeaderboardAndCount();
-        }, (error) => {
-          console.error("Firestore snapshot error:", error);
-        });
-
-        // Cleanup before unload
-        window.addEventListener('beforeunload', () => {
-          if (currentUser) {
-            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', `arena_room_${currentRoomId}`, localPlayer.id));
-          }
-        });
-
-      } catch (err) {
-        console.error("Authentication/Sync error:", err);
-        spawnSimulatedFriends();
-      }
-    }
-
-    async function syncLocalPlayerToRoom() {
-      if (!db || !auth || !auth.currentUser) return;
-
-      try {
-        const playerDocRef = doc(db, 'artifacts', appId, 'public', 'data', `arena_room_${currentRoomId}`, localPlayer.id);
-        await setDoc(playerDocRef, {
-          id: localPlayer.id,
-          name: localPlayer.name,
-          team: localPlayer.team,
-          classType: localPlayer.classType,
-          x: Math.round(localPlayer.x),
-          y: Math.round(localPlayer.y),
-          angle: Number(localPlayer.angle.toFixed(2)),
-          hp: Math.round(localPlayer.hp),
-          maxHp: Math.round(localPlayer.maxHp),
-          score: localPlayer.score,
-          kills: localPlayer.kills,
-          level: localPlayer.level,
-          isAlive: localPlayer.isAlive,
-          emote: localPlayer.emote,
-          lastUpdated: Date.now()
-        }, { merge: true });
-      } catch (err) {
-        // Soft fail
-      }
-    }
-
-    function spawnSimulatedFriends() {
-      const botNames = ['たかし', 'さくら', 'Ken', 'Yuki', 'アキラ', 'モブマスター', 'ダイキ', 'ミオ'];
-      const teams = ['solo', 'red', 'blue'];
-      const classes = ['gunner', 'shotgun', 'sniper'];
-
-      botNames.forEach((bname, idx) => {
-        const id = 'bot_' + idx;
-        remotePlayers.set(id, {
-          id: id,
-          name: bname,
-          team: teams[idx % teams.length],
-          classType: classes[idx % classes.length],
-          x: WORLD_WIDTH / 2 + (Math.random() - 0.5) * 900,
-          y: WORLD_HEIGHT / 2 + (Math.random() - 0.5) * 900,
-          angle: Math.random() * Math.PI * 2,
-          hp: 110,
-          maxHp: 110,
-          score: Math.floor(Math.random() * 150),
-          kills: Math.floor(Math.random() * 3),
-          level: Math.floor(Math.random() * 2) + 1,
-          isAlive: true,
-          emote: null,
-          isBot: true,
-          vx: 0,
-          vy: 0,
-          lastShoot: performance.now() + Math.random() * 1000
-        });
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      all.slice(0, 5).forEach((p, i) => {
+        const li = document.createElement('li');
+        const isMe = p.id === myPlayer.id;
+        li.className = `flex justify-between items-center ${isMe ? 'text-amber-300 font-bold' : 'text-slate-300'}`;
+        let icon = '👑';
+        if (p.team === 'red') icon = '🔴';
+        if (p.team === 'blue') icon = '🔵';
+        li.innerHTML = `<span class="truncate max-w-[85px]">${i + 1}.${icon} ${p.name}</span><span class="font-mono text-[9px]">${p.score || 0}</span>`;
+        list.appendChild(li);
       });
-      updateLeaderboardAndCount();
+      document.getElementById('netPlayerCount').textContent = all.length;
     }
 
     function getPlayerColor(p) {
       if (p.team === 'red') return '#f43f5e';
       if (p.team === 'blue') return '#3b82f6';
-      return '#10b981'; // solo emerald
+      return '#10b981';
     }
 
-    function updateLeaderboardAndCount() {
-      const allPlayers = [localPlayer, ...Array.from(remotePlayers.values())];
-      allPlayers.sort((a, b) => (b.score || 0) - (a.score || 0));
+    /* =========================================================
+       7. ゲームループ (物理演算・判定・描画)
+       ========================================================= */
+    let lastNetworkTick = 0;
+    const NETWORK_TICK_RATE = 50; // 50ms (秒間20回同期待ち)
 
-      const countBadge = document.getElementById('playerCountBadge');
-      if (countBadge) countBadge.textContent = `${allPlayers.length}人`;
-
-      const listEl = document.getElementById('leaderboardList');
-      if (listEl) {
-        listEl.innerHTML = '';
-        allPlayers.slice(0, 6).forEach((p, idx) => {
-          const li = document.createElement('li');
-          const isSelf = p.id === localPlayer.id;
-          li.className = `flex justify-between items-center ${isSelf ? 'text-amber-300 font-bold' : 'text-slate-300'}`;
-          
-          let teamIcon = '👑';
-          if (p.team === 'red') teamIcon = '🔴';
-          if (p.team === 'blue') teamIcon = '🔵';
-
-          li.innerHTML = `
-            <span class="truncate max-w-[90px]">${idx + 1}. ${teamIcon} ${p.name || 'Fighter'}</span>
-            <span class="font-mono text-[10px]">${p.score || 0}</span>
-          `;
-          listEl.appendChild(li);
-        });
-      }
+    function syncMyState() {
+      broadcast({
+        type: 'sync_state',
+        id: myPlayer.id,
+        name: myPlayer.name,
+        team: myPlayer.team,
+        classType: myPlayer.classType,
+        x: Math.round(myPlayer.x),
+        y: Math.round(myPlayer.y),
+        angle: Number(myPlayer.angle.toFixed(2)),
+        hp: Math.round(myPlayer.hp),
+        maxHp: Math.round(myPlayer.maxHp),
+        score: myPlayer.score,
+        kills: myPlayer.kills,
+        level: myPlayer.level,
+        isAlive: myPlayer.isAlive,
+        emote: myPlayer.emote
+      });
     }
 
-    function addKillFeed(killerName, victimName) {
-      const feed = document.getElementById('killFeed');
-      if (!feed) return;
-      const item = document.createElement('div');
-      item.className = 'bg-slate-900/80 px-2 py-1 rounded-full border border-slate-700 animate-pulse text-[10px] text-white';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killerName}</span> 💥 <span class="text-slate-400">${victimName}</span>`;
-      feed.prepend(item);
-      setTimeout(() => item.remove(), 4000);
-    }
+    function update() {
+      if (!myPlayer.isAlive) return;
 
-    function triggerLevelAlert(txt) {
-      const alertBox = document.getElementById('centerAlert');
-      const alertText = document.getElementById('centerAlertText');
-      alertText.textContent = txt;
-      alertBox.classList.remove('opacity-0');
-      sound.playLevelUp();
-      setTimeout(() => alertBox.classList.add('opacity-0'), 1500);
-    }
-
-    let lastTime = performance.now();
-
-    function update(dt) {
-      if (!localPlayer.isAlive) return;
-
-      // 1. Desktop Keyboard movement
+      // キーボード移動入力補助
       if (keys['w'] || keys['arrowup']) joyVector.y = -1;
       else if (keys['s'] || keys['arrowdown']) joyVector.y = 1;
       else if (joyTouchId === null && !keys['w'] && !keys['s']) joyVector.y = 0;
@@ -939,267 +1054,136 @@
       else if (keys['d'] || keys['arrowright']) joyVector.x = 1;
       else if (joyTouchId === null && !keys['a'] && !keys['d']) joyVector.x = 0;
 
-      // 2. Local Player Velocity & Speed
-      const classCfg = CLASS_CONFIG[localPlayer.classType];
-      const baseSpeed = classCfg.speed;
-      const speed = localPlayer.isDashing ? baseSpeed * 2.2 : baseSpeed;
+      // 速度計算
+      const cfg = CLASS_CONFIG[myPlayer.classType];
+      const speed = myPlayer.isDashing ? cfg.speed * 2.1 : cfg.speed;
 
-      localPlayer.vx += joyVector.x * speed * 0.25;
-      localPlayer.vy += joyVector.y * speed * 0.25;
+      myPlayer.vx += joyVector.x * speed * 0.28;
+      myPlayer.vy += joyVector.y * speed * 0.28;
 
-      // Friction
-      localPlayer.vx *= 0.84;
-      localPlayer.vy *= 0.84;
+      myPlayer.vx *= 0.82;
+      myPlayer.vy *= 0.82;
 
-      localPlayer.x += localPlayer.vx;
-      localPlayer.y += localPlayer.vy;
+      myPlayer.x += myPlayer.vx;
+      myPlayer.y += myPlayer.vy;
 
-      // World Boundary Collision
-      localPlayer.x = Math.max(localPlayer.radius, Math.min(WORLD_WIDTH - localPlayer.radius, localPlayer.x));
-      localPlayer.y = Math.max(localPlayer.radius, Math.min(WORLD_HEIGHT - localPlayer.radius, localPlayer.y));
+      // ワールド境界制限
+      myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x));
+      myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y));
 
-      // Obstacle Collision
+      // 障害物コリジョン
       obstacles.forEach(obs => {
-        const dx = localPlayer.x - obs.x;
-        const dy = localPlayer.y - obs.y;
+        const dx = myPlayer.x - obs.x;
+        const dy = myPlayer.y - obs.y;
         const dist = Math.hypot(dx, dy);
-        const minDist = localPlayer.radius + obs.r;
+        const minDist = myPlayer.radius + obs.r;
         if (dist < minDist) {
           const overlap = minDist - dist;
-          const nx = dx / dist;
-          const ny = dy / dist;
-          localPlayer.x += nx * overlap;
-          localPlayer.y += ny * overlap;
+          myPlayer.x += (dx / dist) * overlap;
+          myPlayer.y += (dy / dist) * overlap;
         }
       });
 
-      // Stamina Recharge
-      if (localPlayer.stamina < 100) {
-        localPlayer.stamina = Math.min(100, localPlayer.stamina + 0.35);
+      // スタミナ回復
+      if (myPlayer.stamina < 100) {
+        myPlayer.stamina = Math.min(100, myPlayer.stamina + 0.4);
       }
 
-      // Emote Timer
-      if (localPlayer.emoteTimer > 0) {
-        localPlayer.emoteTimer--;
-        if (localPlayer.emoteTimer <= 0) localPlayer.emote = null;
+      // エモートタイマー
+      if (myPlayer.emoteTimer > 0) {
+        myPlayer.emoteTimer--;
+        if (myPlayer.emoteTimer <= 0) myPlayer.emote = null;
       }
 
-      // 3. Gem Pickups
+      // オーブ収集判定
       for (let i = gems.length - 1; i >= 0; i--) {
         const g = gems[i];
-        const dist = Math.hypot(localPlayer.x - g.x, localPlayer.y - g.y);
-        // Gem magnet effect
-        if (dist < 120) {
-          g.x += (localPlayer.x - g.x) * 0.15;
-          g.y += (localPlayer.y - g.y) * 0.15;
+        const dist = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
+        if (dist < 100) {
+          g.x += (myPlayer.x - g.x) * 0.15;
+          g.y += (myPlayer.y - g.y) * 0.15;
         }
-        if (dist < localPlayer.radius + g.r) {
-          localPlayer.exp += g.val;
-          localPlayer.score += g.val;
+        if (dist < myPlayer.radius + g.r) {
+          myPlayer.exp += g.val;
+          myPlayer.score += g.val;
           sound.playGem();
 
-          // Particle burst
-          for (let p = 0; p < 4; p++) {
-            particles.push({
-              x: g.x,
-              y: g.y,
-              vx: (Math.random() - 0.5) * 5,
-              vy: (Math.random() - 0.5) * 5,
-              color: g.color,
-              size: 3,
-              alpha: 1,
-              decay: 0.05
-            });
-          }
-
+          broadcast({ type: 'gem_eaten', gemId: g.id });
           gems.splice(i, 1);
-          setTimeout(() => spawnGem(), 4000); // Respawn after 4s
 
-          // Level Up Check
-          if (localPlayer.exp >= localPlayer.nextExp) {
-            localPlayer.level++;
-            localPlayer.exp -= localPlayer.nextExp;
-            localPlayer.nextExp = Math.round(localPlayer.nextExp * 1.5);
+          // レベルアップ
+          if (myPlayer.exp >= myPlayer.nextExp) {
+            myPlayer.level++;
+            myPlayer.exp -= myPlayer.nextExp;
+            myPlayer.nextExp = Math.round(myPlayer.nextExp * 1.5);
             applyClassStats();
-            triggerLevelAlert(`LEVEL UP! Lv.${localPlayer.level}`);
+            document.getElementById('centerAlert').classList.remove('opacity-0');
+            setTimeout(() => document.getElementById('centerAlert').classList.add('opacity-0'), 1500);
           }
         }
       }
 
-      // 4. Update Bullets (Local and Simulation)
-      for (let i = localBullets.length - 1; i >= 0; i--) {
-        const b = localBullets[i];
+      // 弾丸の更新と当たり判定
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
         b.x += b.vx;
         b.y += b.vy;
         b.life--;
 
-        // Obstacle Bullet Hit
-        let hitObs = false;
+        // 障害物衝突
+        let hitObstacle = false;
         for (const obs of obstacles) {
           if (Math.hypot(b.x - obs.x, b.y - obs.y) < obs.r + b.radius) {
-            hitObs = true;
+            hitObstacle = true;
             break;
           }
         }
 
-        if (hitObs || b.life <= 0) {
-          localBullets.splice(i, 1);
+        if (hitObstacle || b.life <= 0) {
+          bullets.splice(i, 1);
           continue;
         }
 
-        // Check Hit Against Remote Players / Bots
-        remotePlayers.forEach((rp, rId) => {
-          if (!rp.isAlive) return;
-          if (localPlayer.team !== 'solo' && localPlayer.team === rp.team) return; // Friendly fire off
+        // 自分が撃った弾が相手に当たったか判定
+        if (b.ownerId === myPlayer.id) {
+          remotePlayers.forEach((rp, rId) => {
+            if (!rp.isAlive) return;
+            if (myPlayer.team !== 'solo' && myPlayer.team === rp.team) return;
 
-          const dist = Math.hypot(b.x - rp.x, b.y - rp.y);
-          const targetRadius = 24 + ((rp.level || 1) - 1) * 1.2;
+            const dist = Math.hypot(b.x - rp.x, b.y - rp.y);
+            const targetR = 23 + ((rp.level || 1) - 1) * 1.2;
 
-          if (dist < targetRadius + b.radius) {
-            sound.playHit();
-            rp.hp -= b.damage;
+            if (dist < targetR + b.radius) {
+              sound.playHit();
+              bullets.splice(i, 1);
 
-            // Damage text
-            floatingTexts.push({
-              x: rp.x + (Math.random() - 0.5) * 20,
-              y: rp.y - 20,
-              text: `-${b.damage}`,
-              color: '#f87171',
-              size: 14,
-              life: 45,
-              dy: -1
-            });
-
-            // Particles
-            for (let k = 0; k < 5; k++) {
-              particles.push({
-                x: b.x,
-                y: b.y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                color: '#ef4444',
-                size: 3,
-                alpha: 1,
-                decay: 0.08
+              // 相手へダメージ送信
+              broadcast({
+                type: 'hit',
+                targetId: rp.id,
+                attackerName: myPlayer.name,
+                damage: b.damage
               });
-            }
 
-            localBullets.splice(i, 1);
-
-            // Defeat remote player/bot
-            if (rp.hp <= 0 && rp.isAlive) {
-              rp.isAlive = false;
-              sound.playExplosion();
-              localPlayer.kills++;
-              localPlayer.score += 150;
-              addKillFeed(localPlayer.name, rp.name);
-
-              // Spawn extra gems at death spot
-              for (let g = 0; g < 6; g++) {
-                gems.push({
-                  id: 'dg_' + Math.random(),
-                  x: rp.x + (Math.random() - 0.5) * 60,
-                  y: rp.y + (Math.random() - 0.5) * 60,
-                  val: 20,
-                  color: '#fbbf24',
-                  r: 8
+              // パーティクル
+              for (let p = 0; p < 4; p++) {
+                particles.push({
+                  x: b.x,
+                  y: b.y,
+                  vx: (Math.random() - 0.5) * 5,
+                  vy: (Math.random() - 0.5) * 5,
+                  color: '#ef4444',
+                  size: 3,
+                  alpha: 1,
+                  decay: 0.08
                 });
               }
-
-              if (rp.isBot) {
-                setTimeout(() => {
-                  rp.isAlive = true;
-                  rp.hp = rp.maxHp || 110;
-                  rp.x = WORLD_WIDTH / 2 + (Math.random() - 0.5) * 800;
-                  rp.y = WORLD_HEIGHT / 2 + (Math.random() - 0.5) * 800;
-                }, 4000);
-              }
             }
-          }
-        });
-      }
-
-      // 5. Update Simulated Bots (Movement & Action)
-      const now = performance.now();
-      remotePlayers.forEach((rp) => {
-        if (!rp.isBot || !rp.isAlive) return;
-
-        // Simple wandering and target tracking
-        const targetDx = localPlayer.x - rp.x;
-        const targetDy = localPlayer.y - rp.y;
-        const distToPlayer = Math.hypot(targetDx, targetDy);
-
-        if (distToPlayer < 450 && (localPlayer.team === 'solo' || localPlayer.team !== rp.team)) {
-          rp.angle = Math.atan2(targetDy, targetDx);
-          rp.x += Math.cos(rp.angle) * 1.8;
-          rp.y += Math.sin(rp.angle) * 1.8;
-
-          // Bot shoot at local player
-          if (now - (rp.lastShoot || 0) > 1300) {
-            rp.lastShoot = now;
-            const b = {
-              x: rp.x + Math.cos(rp.angle) * 28,
-              y: rp.y + Math.sin(rp.angle) * 28,
-              vx: Math.cos(rp.angle) * 9,
-              vy: Math.sin(rp.angle) * 9,
-              damage: 15,
-              radius: 5,
-              life: 70,
-              color: getPlayerColor(rp)
-            };
-            remoteBullets.push(b);
-          }
-        } else {
-          rp.angle += (Math.random() - 0.5) * 0.1;
-          rp.x += Math.cos(rp.angle) * 1.4;
-          rp.y += Math.sin(rp.angle) * 1.4;
-        }
-
-        rp.x = Math.max(40, Math.min(WORLD_WIDTH - 40, rp.x));
-        rp.y = Math.max(40, Math.min(WORLD_HEIGHT - 40, rp.y));
-      });
-
-      // 6. Update Remote Bullets hitting Local Player
-      for (let i = remoteBullets.length - 1; i >= 0; i--) {
-        const b = remoteBullets[i];
-        b.x += b.vx;
-        b.y += b.vy;
-        b.life--;
-
-        if (b.life <= 0) {
-          remoteBullets.splice(i, 1);
-          continue;
-        }
-
-        const dist = Math.hypot(b.x - localPlayer.x, b.y - localPlayer.y);
-        if (dist < localPlayer.radius + b.radius) {
-          sound.playHit();
-          localPlayer.hp -= b.damage;
-          remoteBullets.splice(i, 1);
-
-          floatingTexts.push({
-            x: localPlayer.x + (Math.random() - 0.5) * 20,
-            y: localPlayer.y - 20,
-            text: `-${b.damage}`,
-            color: '#ef4444',
-            size: 15,
-            life: 45,
-            dy: -1
           });
-
-          if (localPlayer.hp <= 0 && localPlayer.isAlive) {
-            localPlayer.isAlive = false;
-            sound.playExplosion();
-            document.getElementById('deathMessage').textContent = '撃破されました！仲間とリベンジしよう！';
-            document.getElementById('finalScore').textContent = localPlayer.score;
-            document.getElementById('finalKills').textContent = localPlayer.kills;
-            document.getElementById('deathModal').classList.remove('hidden');
-            syncLocalPlayerToRoom();
-          }
         }
       }
 
-      // 7. Update Particles & Floating Text
+      // パーティクル & ポップアップ更新
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -1207,132 +1191,109 @@
         p.alpha -= p.decay;
         if (p.alpha <= 0) particles.splice(i, 1);
       }
-
-      for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        const ft = floatingTexts[i];
-        ft.y += ft.dy;
-        ft.life--;
-        if (ft.life <= 0) floatingTexts.splice(i, 1);
+      for (let i = popups.length - 1; i >= 0; i--) {
+        const pop = popups[i];
+        pop.y += pop.dy;
+        pop.life--;
+        if (pop.life <= 0) popups.splice(i, 1);
       }
 
-      // 8. Update In-Game HUD Elements
-      const hpPct = Math.max(0, Math.min(100, (localPlayer.hp / localPlayer.maxHp) * 100));
+      // HUD反映
+      const hpPct = Math.max(0, Math.min(100, (myPlayer.hp / myPlayer.maxHp) * 100));
       document.getElementById('hudHpFill').style.width = `${hpPct}%`;
-      document.getElementById('hudHpText').textContent = `${Math.ceil(localPlayer.hp)} / ${localPlayer.maxHp}`;
-      document.getElementById('hudBoostFill').style.width = `${localPlayer.stamina}%`;
-      document.getElementById('hudExpFill').style.width = `${(localPlayer.exp / localPlayer.nextExp) * 100}%`;
-      document.getElementById('hudLevel').textContent = `Lv.${localPlayer.level}`;
-      document.getElementById('hudKills').textContent = `撃破: ${localPlayer.kills}`;
+      document.getElementById('hudHpText').textContent = `${Math.ceil(myPlayer.hp)} / ${myPlayer.maxHp}`;
+      document.getElementById('hudBoostFill').style.width = `${myPlayer.stamina}%`;
+      document.getElementById('hudExpFill').style.width = `${(myPlayer.exp / myPlayer.nextExp) * 100}%`;
+      document.getElementById('hudLevel').textContent = `Lv.${myPlayer.level}`;
+      document.getElementById('hudKills').textContent = `撃破: ${myPlayer.kills}`;
 
-      // 9. Periodic Firebase Sync
-      if (now - lastNetworkSync > SYNC_INTERVAL) {
-        lastNetworkSync = now;
-        syncLocalPlayerToRoom();
+      // リアルタイムP2P位置同期 (20Hz)
+      const now = performance.now();
+      if (now - lastNetworkTick > NETWORK_TICK_RATE) {
+        lastNetworkTick = now;
+        syncMyState();
       }
     }
 
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Camera centered on local player
-      const cameraX = localPlayer.x - canvas.width / 2;
-      const cameraY = localPlayer.y - canvas.height / 2;
+      const camX = myPlayer.x - canvas.width / 2;
+      const camY = myPlayer.y - canvas.height / 2;
 
       ctx.save();
-      ctx.translate(-cameraX, -cameraY);
+      ctx.translate(-camX, -camY);
 
-      // Draw Grid Background
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      // グリッド線描画
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
-      const gridSize = 60;
-      const startX = Math.floor(cameraX / gridSize) * gridSize;
-      const startY = Math.floor(cameraY / gridSize) * gridSize;
+      const grid = 60;
+      const startX = Math.floor(camX / grid) * grid;
+      const startY = Math.floor(camY / grid) * grid;
 
-      for (let x = startX; x < cameraX + canvas.width + gridSize; x += gridSize) {
+      for (let x = startX; x < camX + canvas.width + grid; x += grid) {
         ctx.beginPath();
-        ctx.moveTo(x, cameraY);
-        ctx.lineTo(x, cameraY + canvas.height);
+        ctx.moveTo(x, camY);
+        ctx.lineTo(x, camY + canvas.height);
         ctx.stroke();
       }
-      for (let y = startY; y < cameraY + canvas.height + gridSize; y += gridSize) {
+      for (let y = startY; y < camY + canvas.height + grid; y += grid) {
         ctx.beginPath();
-        ctx.moveTo(cameraX, y);
-        ctx.lineTo(cameraX + canvas.width, y);
+        ctx.moveTo(camX, y);
+        ctx.lineTo(camX + canvas.width, y);
         ctx.stroke();
       }
 
-      // Draw Arena Center Circle (Hot Zone)
-      ctx.beginPath();
-      ctx.arc(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 280, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(244, 63, 94, 0.05)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Draw Arena Outer Boundaries
+      // 外周ボーダー
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 8;
       ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-      // Draw Obstacles (Rocks/Blocks)
+      // 障害物
       obstacles.forEach(obs => {
         ctx.beginPath();
         ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#334155';
+        ctx.fillStyle = '#1e293b';
         ctx.fill();
         ctx.lineWidth = 4;
-        ctx.strokeStyle = '#475569';
+        ctx.strokeStyle = '#334155';
         ctx.stroke();
       });
 
-      // Draw Gems
+      // オーブ描画
       gems.forEach(g => {
         ctx.beginPath();
         ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
         ctx.fillStyle = g.color;
         ctx.shadowColor = g.color;
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // Draw Bullets (Local & Remote)
-      [...localBullets, ...remoteBullets].forEach(b => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fillStyle = b.color || '#38bdf8';
-        ctx.shadowColor = b.color || '#38bdf8';
         ctx.shadowBlur = 6;
         ctx.fill();
         ctx.shadowBlur = 0;
       });
 
-      // Draw Remote Players
-      remotePlayers.forEach(p => {
-        if (!p.isAlive) return;
-        drawCharacter(p, p.x, p.y, p.angle, false);
+      // 弾丸描画
+      bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fillStyle = b.color;
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = 5;
+        ctx.fill();
+        ctx.shadowBlur = 0;
       });
 
-      // Draw Local Player
-      if (localPlayer.isAlive) {
-        drawCharacter(localPlayer, localPlayer.x, localPlayer.y, localPlayer.angle, true);
+      // 他プレイヤー描画
+      remotePlayers.forEach(rp => {
+        if (!rp.isAlive) return;
+        drawCharacter(rp, rp.x, rp.y, rp.angle, false);
+      });
+
+      // 自プレイヤー描画
+      if (myPlayer.isAlive) {
+        drawCharacter(myPlayer, myPlayer.x, myPlayer.y, myPlayer.angle, true);
       }
 
-      // Draw Bushes (Hiding Zones - Over players for ambush feeling)
-      bushes.forEach(b => {
-        const dist = Math.hypot(localPlayer.x - b.x, localPlayer.y - b.y);
-        const inside = dist < b.r;
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = inside ? 'rgba(34, 197, 94, 0.4)' : 'rgba(22, 163, 74, 0.85)';
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#15803d';
-        ctx.stroke();
-      });
-
-      // Draw Particle Effects
+      // パーティクル
       particles.forEach(p => {
         ctx.save();
         ctx.globalAlpha = p.alpha;
@@ -1343,82 +1304,70 @@
         ctx.restore();
       });
 
-      // Draw Floating Combat Texts & Emotes
-      floatingTexts.forEach(ft => {
-        ctx.font = `bold ${ft.size}px sans-serif`;
-        ctx.fillStyle = ft.color;
+      // ダメージポップアップ & エモート
+      popups.forEach(pop => {
+        ctx.font = `bold ${pop.size}px sans-serif`;
+        ctx.fillStyle = pop.color;
         ctx.textAlign = 'center';
         ctx.shadowColor = 'rgba(0,0,0,0.8)';
         ctx.shadowBlur = 4;
-        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.fillText(pop.text, pop.x, pop.y);
         ctx.shadowBlur = 0;
       });
 
       ctx.restore();
 
-      // Render Radar Mini-map
+      // ミニマップ更新
       renderMiniMap();
     }
 
     function drawCharacter(p, x, y, angle, isSelf) {
-      const radius = p.radius || 24;
+      const r = p.radius || 23;
       const color = getPlayerColor(p);
 
       ctx.save();
       ctx.translate(x, y);
 
-      // Gun Barrel / Turret
+      // 砲塔
       ctx.save();
       ctx.rotate(angle);
       ctx.fillStyle = '#64748b';
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 2;
-
-      if (p.classType === 'shotgun') {
-        ctx.fillRect(radius * 0.4, -9, radius * 0.9, 18);
-        ctx.strokeRect(radius * 0.4, -9, radius * 0.9, 18);
-      } else if (p.classType === 'sniper') {
-        ctx.fillRect(radius * 0.4, -4, radius * 1.5, 8);
-        ctx.strokeRect(radius * 0.4, -4, radius * 1.5, 8);
-      } else {
-        // Standard Gunner
-        ctx.fillRect(radius * 0.4, -6, radius * 1.1, 12);
-        ctx.strokeRect(radius * 0.4, -6, radius * 1.1, 12);
-      }
+      ctx.fillRect(r * 0.4, -6, r * 1.1, 12);
+      ctx.strokeRect(r * 0.4, -6, r * 1.1, 12);
       ctx.restore();
 
-      // Body Circle
+      // 本体円
       ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.lineWidth = isSelf ? 3.5 : 2;
-      ctx.strokeStyle = isSelf ? '#ffffff' : 'rgba(0, 0, 0, 0.4)';
+      ctx.lineWidth = isSelf ? 3 : 2;
+      ctx.strokeStyle = isSelf ? '#ffffff' : '#000000';
       ctx.stroke();
 
-      // Name & HP Bar above head
+      // プレイヤー名
       ctx.font = 'bold 11px sans-serif';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
-      ctx.fillText(p.name || 'Player', 0, -radius - 14);
+      ctx.fillText(p.name || 'Fighter', 0, -r - 12);
 
-      // HP Bar above head
-      const hpWidth = 36;
-      const hpHeight = 5;
+      // HPバー
+      const barW = 34;
+      const barH = 4;
       const maxHp = p.maxHp || 100;
       const hp = Math.max(0, p.hp || 0);
-      const hpPercent = Math.min(1, hp / maxHp);
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-      ctx.fillRect(-hpWidth / 2, -radius - 10, hpWidth, hpHeight);
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(-barW / 2, -r - 8, barW, barH);
       ctx.fillStyle = color;
-      ctx.fillRect(-hpWidth / 2, -radius - 10, hpWidth * hpPercent, hpHeight);
+      ctx.fillRect(-barW / 2, -r - 8, barW * (hp / maxHp), barH);
 
-      // Emote Cloud above player
+      // エモートバルーン
       if (p.emote) {
-        ctx.font = 'bold 13px sans-serif';
+        ctx.font = 'bold 14px sans-serif';
         ctx.fillStyle = '#fef08a';
-        ctx.fillText(p.emote, 0, -radius - 28);
+        ctx.fillText(p.emote, 0, -r - 24);
       }
 
       ctx.restore();
@@ -1426,43 +1375,37 @@
 
     function renderMiniMap() {
       miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-      const scaleX = miniCanvas.width / WORLD_WIDTH;
-      const scaleY = miniCanvas.height / WORLD_HEIGHT;
+      const sx = miniCanvas.width / WORLD_WIDTH;
+      const sy = miniCanvas.height / WORLD_HEIGHT;
 
-      // Draw border
-      miniCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      miniCtx.strokeRect(0, 0, miniCanvas.width, miniCanvas.height);
+      miniPlayersDraw(sx, sy);
+    }
 
-      // Remote players on minimap
+    function miniPlayersDraw(sx, sy) {
       remotePlayers.forEach(p => {
         if (!p.isAlive) return;
         miniCtx.beginPath();
-        miniCtx.arc(p.x * scaleX, p.y * scaleY, 2.5, 0, Math.PI * 2);
+        miniCtx.arc(p.x * sx, p.y * sy, 2.5, 0, Math.PI * 2);
         miniCtx.fillStyle = getPlayerColor(p);
         miniCtx.fill();
       });
 
-      // Local player on minimap
-      if (localPlayer.isAlive) {
+      if (myPlayer.isAlive) {
         miniCtx.beginPath();
-        miniCtx.arc(localPlayer.x * scaleX, localPlayer.y * scaleY, 3.5, 0, Math.PI * 2);
+        miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 3.5, 0, Math.PI * 2);
         miniCtx.fillStyle = '#ffffff';
         miniCtx.fill();
       }
     }
 
-    function gameLoop(time) {
-      const dt = (time - lastTime) / 1000;
-      lastTime = time;
-
-      update(dt);
+    function loop() {
+      update();
       render();
-
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(loop);
     }
 
     window.onload = function () {
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(loop);
     };
   </script>
 </body>
