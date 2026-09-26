@@ -122,7 +122,7 @@
 
         <div class="bg-slate-900/90 backdrop-blur-md rounded-xl p-1.5 border border-slate-800 text-[9px] shadow w-36 sm:w-44">
           <div class="font-bold border-b border-slate-800 pb-0.5 text-slate-400 flex items-center justify-between text-[8px]">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>順位 (生/💤/ボス)</span>
+            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>順位 (生/💤/BOT)</span>
             <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono font-bold">ROOM</span>
           </div>
           <ol id="leaderboardList" class="mt-0.5 space-y-0.5 text-slate-200"></ol>
@@ -135,7 +135,7 @@
       <div id="centerAlertText" class="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
     </div>
 
-    <!-- 下部操作パネル (ジョイスティック + 拠点防衛建築バー + アクションボタン) -->
+    <!-- 下部操作パネル (ジョイスティック + 折りたたみ式防衛建築バー + アクションボタン) -->
     <div class="flex justify-between items-end w-full pb-2 px-1">
       <!-- 移動＆照準ジョイスティック -->
       <div id="joystickZone" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-cyan-400/40 bg-slate-900/50 backdrop-blur pointer-events-auto flex items-center justify-center">
@@ -144,27 +144,36 @@
         </div>
       </div>
 
-      <!-- 中央下: スリーパー防衛拠点建築ドック（スクラップコスト必須） -->
-      <div class="pointer-events-auto flex gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 shadow-2xl mb-1">
-        <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="50" title="自動迎撃タレット">
-          <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
-          <span class="font-bold text-slate-200">タレット</span>
-          <span class="text-[7px] text-teal-300 font-mono">50材</span>
-        </button>
-        <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="80" title="防護障壁パイロン(無敵ドーム)">
-          <i class="fa-solid fa-atom text-indigo-400 text-sm"></i>
-          <span class="font-bold text-slate-200">障壁ドーム</span>
-          <span class="text-[7px] text-teal-300 font-mono">80材</span>
-        </button>
-        <button id="buildTrap" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="30" title="感応電磁トラップ">
-          <i class="fa-solid fa-bolt-lightning text-yellow-400 text-sm"></i>
-          <span class="font-bold text-slate-200">電磁罠</span>
-          <span class="text-[7px] text-teal-300 font-mono">30材</span>
-        </button>
-        <button id="buildPod" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="100" title="休眠防衛コクーンポッド">
-          <i class="fa-solid fa-capsules text-emerald-400 text-sm"></i>
-          <span class="font-bold text-slate-200">防衛ポッド</span>
-          <span class="text-[7px] text-teal-300 font-mono">100材</span>
+      <!-- 中央下: 折りたたみ式 拠点防衛建築ドック -->
+      <div class="flex flex-col items-center gap-1.5 pointer-events-auto mb-1">
+        <!-- 展開される建築パレット（初期状態は非表示） -->
+        <div id="buildDock" class="hidden flex gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 shadow-2xl transition-all">
+          <button id="buildTurret" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="50" title="自動迎撃タレット">
+            <i class="fa-solid fa-crosshairs text-cyan-400 text-sm"></i>
+            <span class="font-bold text-slate-200">タレット</span>
+            <span class="text-[7px] text-teal-300 font-mono">50材</span>
+          </button>
+          <button id="buildPylon" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="80" title="防護障壁パイロン">
+            <i class="fa-solid fa-atom text-indigo-400 text-sm"></i>
+            <span class="font-bold text-slate-200">障壁ドーム</span>
+            <span class="text-[7px] text-teal-300 font-mono">80材</span>
+          </button>
+          <button id="buildTrap" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="30" title="感応電磁トラップ">
+            <i class="fa-solid fa-bolt-lightning text-yellow-400 text-sm"></i>
+            <span class="font-bold text-slate-200">電磁罠</span>
+            <span class="text-[7px] text-teal-300 font-mono">30材</span>
+          </button>
+          <button id="buildPod" class="build-btn flex flex-col items-center p-1.5 rounded-xl bg-slate-800 border border-slate-600 active:scale-90 text-[8px] transition" data-cost="100" title="休眠防衛コクーンポッド">
+            <i class="fa-solid fa-capsules text-emerald-400 text-sm"></i>
+            <span class="font-bold text-slate-200">防衛ポッド</span>
+            <span class="text-[7px] text-teal-300 font-mono">100材</span>
+          </button>
+        </div>
+
+        <!-- 建築メニュー開閉トグルボタン -->
+        <button id="btnToggleBuild" class="flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 border border-teal-500/50 text-teal-300 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg active:scale-95 transition">
+          <i class="fa-solid fa-wrench text-xs"></i>
+          <span id="toggleBuildLabel">防衛設置</span>
         </button>
       </div>
 
@@ -216,7 +225,7 @@
     </div>
   </div>
 
-  <!-- 出撃・クラス選択ロビー画面（全クラス表示・レスポンシブスクロール対応） -->
+  <!-- 出撃・クラス選択ロビー画面 -->
   <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex items-center justify-center p-3 z-40 overflow-y-auto">
     <div class="w-full max-w-lg bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col gap-3 my-auto max-h-[95vh] overflow-y-auto custom-scroll">
       
@@ -227,7 +236,7 @@
         <h1 class="text-xl sm:text-2xl font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
           ARENA.IO OMNIVERSE
         </h1>
-        <p class="text-[11px] text-slate-400">斬撃・拠点防衛・100倍耐久スリーパー略奪戦</p>
+        <p class="text-[11px] text-slate-400">斬撃・拠点防衛・自律ボット＆ギミック討伐戦</p>
       </div>
 
       <!-- プレイヤー名 ＆ 合言葉 -->
@@ -242,15 +251,7 @@
         </div>
       </div>
 
-      <!-- 休眠スリーパー検知通知 -->
-      <div id="savedDataNotice" class="hidden bg-slate-800/90 border border-cyan-500/40 rounded-xl p-2 text-[10px] text-cyan-200">
-        <div class="font-bold flex items-center gap-1 text-cyan-300">
-          <i class="fa-solid fa-bed"></i> 構築済みの拠点または休眠体を検知！
-        </div>
-        <div id="saveDataDetails" class="text-slate-300 text-[9px]">前回の座標・レベル・所持資材から目覚めます。</div>
-      </div>
-
-      <!-- 全5大出撃クラス選択（完全にスクロール＆視認可能） -->
+      <!-- 出撃クラス選択 -->
       <div>
         <label class="text-[10px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
           <span>出撃クラス選択（全5種）</span>
@@ -258,62 +259,55 @@
         </label>
         
         <div class="flex flex-col gap-1.5 max-h-56 sm:max-h-64 overflow-y-auto custom-scroll pr-1" id="classSelector">
-          
-          <!-- 1. ブレードマスター -->
           <button type="button" data-class="blademaster" class="class-btn p-2 rounded-xl border border-rose-500/60 bg-rose-950/40 text-left flex items-center justify-between ring-2 ring-rose-400 transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-rose-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-khanda text-rose-400"></i> ブレードマスター (斬撃/近接双剣)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">高速移動・扇状近接斬撃・敵の弾丸を弾く・360度旋風斬撃スキル</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">高速移動・扇状近接斬撃・敵弾丸跳ね返し・全方位回転斬り</div>
             </div>
             <span class="text-[10px] font-mono text-rose-300 font-bold bg-rose-950 px-2 py-0.5 rounded border border-rose-500/40">近接</span>
           </button>
 
-          <!-- 2. ヘビーガンナー -->
           <button type="button" data-class="gunner" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-cyan-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-crosshairs text-cyan-400"></i> ヘビーガンナー (重火器砲手)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">超長距離キャノン砲・高弾速・直線ノックバック・遠距離牽制</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">超長距離キャノン砲・高弾速・直線ノックバック</div>
             </div>
             <span class="text-[10px] font-mono text-cyan-300 font-bold bg-cyan-950 px-2 py-0.5 rounded border border-cyan-500/40">遠隔</span>
           </button>
 
-          <!-- 3. アルケインソーサラー -->
           <button type="button" data-class="sorcerer" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-purple-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> アルケイン魔導士 (魔法術士)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">誘導ソウル弾・空間跳躍ブリンクスキル・高い殲滅機動力</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">誘導ソウル弾・空間跳躍ブリンクスキル</div>
             </div>
             <span class="text-[10px] font-mono text-purple-300 font-bold bg-purple-950 px-2 py-0.5 rounded border border-purple-500/40">魔法</span>
           </button>
 
-          <!-- 4. バイオ毒工師 -->
           <button type="button" data-class="alchemist" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-flask-vial text-emerald-400"></i> バイオ毒工師 (状態異常)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">腐食毒弾・残留毒沼生成スキル・敵スリーパーの耐久を継続削り</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">腐食毒弾・残留毒沼生成スキル</div>
             </div>
             <span class="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/40">毒沼</span>
           </button>
 
-          <!-- 5. スティール城塞守護者 -->
           <button type="button" data-class="guardian" class="class-btn p-2 rounded-xl border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
             <div class="flex-1 pr-2">
               <div class="text-xs font-black text-amber-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-shield-halved text-amber-400"></i> スティール城塞守護者 (タンク)
               </div>
-              <div class="text-[9px] text-slate-300 mt-0.5">最高耐久・被ダメージ反射装甲・城塞シールド展開・初期資材ボーナス</div>
+              <div class="text-[9px] text-slate-300 mt-0.5">最高耐久・被ダメージ反射装甲・城塞シールド展開</div>
             </div>
             <span class="text-[10px] font-mono text-amber-300 font-bold bg-amber-950 px-2 py-0.5 rounded border border-amber-500/40">防壁</span>
           </button>
-
         </div>
       </div>
 
@@ -325,7 +319,7 @@
     </div>
   </div>
 
-  <!-- リスポーン・強奪被害モーダル -->
+  <!-- リスポーンモーダル -->
   <div id="deathModal" class="absolute inset-0 bg-red-950/85 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
     <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
       <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
@@ -379,11 +373,12 @@
       playWarp() { this.playTone(720, 'sine', 0.25, 0.16); }
       playExplode() { this.playTone(80, 'square', 0.35, 0.25); }
       playScrap() { this.playTone(900, 'sine', 0.08, 0.12); }
+      playBounce() { this.playTone(480, 'sine', 0.18, 0.2); }
     }
     const sound = new SoundFX();
 
     /* =========================================================
-       2. 100,000 x 100,000 超巨大マップ ＆ 空間設定
+       2. ワールド設定・定数
        ========================================================= */
     const WORLD_WIDTH = 100000;
     const WORLD_HEIGHT = 100000;
@@ -396,72 +391,12 @@
       { id: 'gate_sw', x: 20000, y: 80000, targetX: 50000, targetY: 50000, name: '南西ゲート', color: '#a855f7' }
     ];
 
-    const anomalyZones = [
-      { x: 35000, y: 35000, r: 1800, type: 'radiation', name: '酸性放射能ゾーン', color: '#22c55e' },
-      { x: 65000, y: 65000, r: 1800, type: 'antigrav', name: '反重力アノマリー', color: '#06b6d4' },
-      { x: 50000, y: 50000, r: 1500, type: 'sanctuary', name: 'プライム聖域の泉', color: '#f59e0b' }
-    ];
-
     const CLASS_CONFIGS = {
-      blademaster: {
-        name: 'ブレードマスター',
-        isMelee: true,
-        maxHp: 200,
-        speed: 5.5,
-        attackRate: 260,
-        range: 95,
-        arc: Math.PI * 0.75,
-        damage: 48,
-        deflects: true,
-        initScrap: 60
-      },
-      gunner: {
-        name: 'ヘビーガンナー',
-        isMelee: false,
-        maxHp: 180,
-        speed: 4.6,
-        attackRate: 240,
-        range: 650,
-        damage: 32,
-        bulletSpeed: 17,
-        bulletSize: 7,
-        initScrap: 60
-      },
-      sorcerer: {
-        name: 'アルケイン魔導士',
-        isMelee: false,
-        maxHp: 150,
-        speed: 4.8,
-        attackRate: 300,
-        range: 550,
-        damage: 28,
-        bulletSpeed: 13,
-        homing: true,
-        initScrap: 60
-      },
-      alchemist: {
-        name: 'バイオ毒工師',
-        isMelee: false,
-        maxHp: 160,
-        speed: 4.9,
-        attackRate: 320,
-        range: 480,
-        damage: 18,
-        isPoison: true,
-        initScrap: 80
-      },
-      guardian: {
-        name: 'スティール城塞守護者',
-        isMelee: true,
-        maxHp: 320,
-        speed: 4.2,
-        attackRate: 380,
-        range: 75,
-        arc: Math.PI * 0.6,
-        damage: 35,
-        reflectArmor: 0.25,
-        initScrap: 130
-      }
+      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 200, speed: 5.5, attackRate: 260, range: 95, arc: Math.PI * 0.75, damage: 48, deflects: true, initScrap: 60 },
+      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 180, speed: 4.6, attackRate: 240, range: 650, damage: 32, bulletSpeed: 17, bulletSize: 7, initScrap: 60 },
+      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 150, speed: 4.8, attackRate: 300, range: 550, damage: 28, bulletSpeed: 13, homing: true, initScrap: 60 },
+      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 160, speed: 4.9, attackRate: 320, range: 480, damage: 18, isPoison: true, initScrap: 80 },
+      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 320, speed: 4.2, attackRate: 380, range: 75, arc: Math.PI * 0.6, damage: 35, reflectArmor: 0.25, initScrap: 130 }
     };
 
     const STRUCTURE_TEMPLATES = {
@@ -482,7 +417,7 @@
     ];
 
     /* =========================================================
-       3. プレイヤー状態 ＆ 永続セーブ・スリーパー拠点管理
+       3. プレイヤー・エンティティ状態
        ========================================================= */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -515,7 +450,7 @@
       shield: 0,
       stamina: 100,
       cores: 0,
-      scrap: 60, // 建築用資材（自然増殖しない）
+      scrap: 60,
       sp: 0,
       level: 1,
       exp: 0,
@@ -533,7 +468,7 @@
     let remotePlayers = new Map();
     let sleeperPlayers = [];
     let defenseStructures = [];
-    let scrapNodes = []; // 自然湧きスクラップ鉱石・廃材
+    let scrapNodes = [];
     let bullets = [];
     let slashes = [];
     let dropCores = [];
@@ -542,6 +477,179 @@
     let particles = [];
     let popups = [];
 
+    // 新規要素: ボット & ギミック
+    let aiBots = [];
+    let fieldGimmicks = [];
+
+    /* =========================================================
+       4. ギミック & ボットの管理システム
+       ========================================================= */
+    function initFieldGimmicks() {
+      fieldGimmicks = [
+        // バウンドトラップ（接触すると大きく反発）
+        { id: 'g_b1', type: 'bouncer', x: 50200, y: 50100, radius: 45, force: 22, color: '#f59e0b' },
+        { id: 'g_b2', type: 'bouncer', x: 49800, y: 49900, radius: 45, force: 22, color: '#f59e0b' },
+        // 移動加速パルス（踏むと高速で移動方向に押し流される）
+        { id: 'g_p1', type: 'pulse', x: 50500, y: 49800, radius: 60, angle: Math.PI / 4, power: 12, color: '#38bdf8' }
+      ];
+    }
+
+    function maintainBots() {
+      // プレイヤーの周囲に自律AIボットを常時4〜6体維持
+      if (aiBots.length < 5) {
+        const botClasses = ['blademaster', 'gunner', 'sorcerer'];
+        const chosenClass = botClasses[Math.floor(Math.random() * botClasses.length)];
+        const cfg = CLASS_CONFIGS[chosenClass];
+        aiBots.push({
+          id: 'bot_' + Math.random().toString(36).substr(2, 6),
+          name: 'BOT-' + Math.floor(Math.random() * 900 + 100),
+          classType: chosenClass,
+          x: myPlayer.x + (Math.random() - 0.5) * 2000,
+          y: myPlayer.y + (Math.random() - 0.5) * 2000,
+          vx: 0,
+          vy: 0,
+          angle: Math.random() * Math.PI * 2,
+          hp: cfg.maxHp,
+          maxHp: cfg.maxHp,
+          radius: 24,
+          speed: cfg.speed * 0.7,
+          cores: Math.floor(Math.random() * 15) + 5,
+          lastAttack: 0,
+          attackRate: cfg.attackRate * 1.5,
+          range: cfg.isMelee ? 80 : 350
+        });
+      }
+    }
+
+    function updateBots() {
+      const now = performance.now();
+      for (let i = aiBots.length - 1; i >= 0; i--) {
+        const bot = aiBots[i];
+        const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
+        bot.angle = Math.atan2(myPlayer.y - bot.y, myPlayer.x - bot.x);
+
+        // 索敵行動: 接近時は追尾、遠いときは適度にランダム徘徊
+        if (dist < 700 && myPlayer.isAlive) {
+          if (dist > bot.range * 0.7) {
+            bot.vx += Math.cos(bot.angle) * bot.speed * 0.2;
+            bot.vy += Math.sin(bot.angle) * bot.speed * 0.2;
+          }
+          // 攻撃処理
+          if (dist <= bot.range && now - bot.lastAttack > bot.attackRate) {
+            bot.lastAttack = now;
+            if (CLASS_CONFIGS[bot.classType].isMelee) {
+              sound.playSlash();
+              const sl = {
+                id: 'sl_' + Math.random().toString(36).substr(2, 6),
+                ownerId: bot.id,
+                ownerName: bot.name,
+                x: bot.x, y: bot.y,
+                angle: bot.angle, arc: Math.PI * 0.6,
+                range: 75, damage: 16, life: 6
+              };
+              slashes.push(sl);
+              if (dist < sl.range + myPlayer.radius) takeDamage(sl.damage, bot.name);
+            } else {
+              sound.playShoot();
+              bullets.push({
+                id: 'b_' + Math.random().toString(36).substr(2, 6),
+                ownerId: bot.id,
+                ownerName: bot.name,
+                x: bot.x + Math.cos(bot.angle) * 25,
+                y: bot.y + Math.sin(bot.angle) * 25,
+                vx: Math.cos(bot.angle) * 11,
+                vy: Math.sin(bot.angle) * 11,
+                damage: 14, radius: 5, life: 60,
+                color: '#f87171'
+              });
+            }
+          }
+        } else {
+          bot.vx += Math.cos(bot.angle) * bot.speed * 0.05;
+          bot.vy += Math.sin(bot.angle) * bot.speed * 0.05;
+        }
+
+        bot.vx *= 0.85;
+        bot.vy *= 0.85;
+        bot.x += bot.vx;
+        bot.y += bot.vy;
+
+        // ギミックとの接触判定（ボット）
+        fieldGimmicks.forEach(g => {
+          const gd = Math.hypot(bot.x - g.x, bot.y - g.y);
+          if (gd < bot.radius + g.radius) {
+            const ga = Math.atan2(bot.y - g.y, bot.x - g.x);
+            bot.vx += Math.cos(ga) * (g.force || g.power);
+            bot.vy += Math.sin(ga) * (g.force || g.power);
+          }
+        });
+
+        // 死亡判定
+        if (bot.hp <= 0) {
+          sound.playExplode();
+          dropCoresAt(bot.x, bot.y, bot.cores);
+          triggerPopup(bot.x, bot.y, 'BOT撃破!', '#38bdf8');
+          addKillLog(myPlayer.name, bot.name);
+          aiBots.splice(i, 1);
+        }
+      }
+    }
+
+    /* =========================================================
+       5. 建築UI トグル開閉の実装
+       ========================================================= */
+    const buildDock = document.getElementById('buildDock');
+    const btnToggleBuild = document.getElementById('btnToggleBuild');
+    const toggleBuildLabel = document.getElementById('toggleBuildLabel');
+
+    btnToggleBuild.addEventListener('click', () => {
+      const isClosed = buildDock.classList.contains('hidden');
+      if (isClosed) {
+        buildDock.classList.remove('hidden');
+        toggleBuildLabel.textContent = '閉じる ✕';
+        btnToggleBuild.classList.add('bg-slate-800', 'border-rose-500/50', 'text-rose-300');
+        btnToggleBuild.classList.remove('border-teal-500/50', 'text-teal-300');
+      } else {
+        buildDock.classList.add('hidden');
+        toggleBuildLabel.textContent = '防衛設置';
+        btnToggleBuild.classList.remove('bg-slate-800', 'border-rose-500/50', 'text-rose-300');
+        btnToggleBuild.classList.add('border-teal-500/50', 'text-teal-300');
+      }
+    });
+
+    /* =========================================================
+       6. 描画補助: 頭上HPバー（割合表示）
+       ========================================================= */
+    function drawEntityHealthBar(x, y, radius, curHp, maxHp, isShield = false) {
+      const barW = Math.max(34, radius * 1.6);
+      const barH = 4;
+      const barX = x - barW / 2;
+      const barY = y - radius - 10;
+      const ratio = Math.max(0, Math.min(1, curHp / maxHp));
+
+      // 背景
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+
+      // HPゲージ色（割合でグラデーション変化: 緑 -> 黄 -> 赤）
+      let fillColor = '#22c55e';
+      if (ratio < 0.3) fillColor = '#ef4444';
+      else if (ratio < 0.6) fillColor = '#eab308';
+      if (isShield) fillColor = '#38bdf8';
+
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(barX, barY, barW * ratio, barH);
+
+      // 割合パーセント表記
+      ctx.font = 'bold 8px monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${Math.round(ratio * 100)}%`, x, barY - 3);
+    }
+
+    /* =========================================================
+       7. 建築・プレイヤー・戦闘制御
+       ========================================================= */
     function getSaveKey() { return `arena_omni_${roomCode.toUpperCase()}_${myPlayer.name.trim()}`; }
     function getSleeperKey() { return `arena_omni_sleepers_${roomCode.toUpperCase()}`; }
     function getBaseKey() { return `arena_omni_bases_${roomCode.toUpperCase()}`; }
@@ -549,19 +657,11 @@
     function savePlayerData() {
       try {
         const data = {
-          name: myPlayer.name,
-          classType: myPlayer.classType,
-          x: Math.round(myPlayer.x),
-          y: Math.round(myPlayer.y),
-          level: myPlayer.level,
-          exp: myPlayer.exp,
-          nextExp: myPlayer.nextExp,
-          cores: myPlayer.cores,
-          scrap: myPlayer.scrap,
-          sp: myPlayer.sp,
-          upgrades: myPlayer.upgrades,
-          hp: Math.round(myPlayer.hp),
-          maxHp: Math.round(myPlayer.maxHp)
+          name: myPlayer.name, classType: myPlayer.classType,
+          x: Math.round(myPlayer.x), y: Math.round(myPlayer.y),
+          level: myPlayer.level, exp: myPlayer.exp, nextExp: myPlayer.nextExp,
+          cores: myPlayer.cores, scrap: myPlayer.scrap, sp: myPlayer.sp,
+          upgrades: myPlayer.upgrades, hp: Math.round(myPlayer.hp), maxHp: Math.round(myPlayer.maxHp)
         };
         localStorage.setItem(getSaveKey(), JSON.stringify(data));
       } catch (e) {}
@@ -579,77 +679,11 @@
         myPlayer.scrap = d.scrap !== undefined ? d.scrap : 60;
         myPlayer.sp = d.sp || 0;
         if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
-        if (d.x && d.y) {
-          myPlayer.x = d.x;
-          myPlayer.y = d.y;
-        }
+        if (d.x && d.y) { myPlayer.x = d.x; myPlayer.y = d.y; }
         if (d.classType) myPlayer.classType = d.classType;
-        removeMySleeperRecord();
         return true;
-      } catch (e) {
-        return false;
-      }
+      } catch (e) { return false; }
     }
-
-    function registerAsSleeper() {
-      try {
-        const sKey = getSleeperKey();
-        const raw = localStorage.getItem(sKey);
-        let list = raw ? JSON.parse(raw) : [];
-        list = list.filter(item => item.name !== myPlayer.name);
-
-        const newSleeper = {
-          id: 'sleep_' + myPlayer.name,
-          name: myPlayer.name,
-          classType: myPlayer.classType,
-          x: Math.round(myPlayer.x),
-          y: Math.round(myPlayer.y),
-          level: myPlayer.level,
-          cores: myPlayer.cores,
-          maxHp: myPlayer.maxHp * 100, // 耐久100倍
-          hp: myPlayer.maxHp * 100,
-          radius: myPlayer.radius + 6,
-          isSleeper: true
-        };
-        list.push(newSleeper);
-        localStorage.setItem(sKey, JSON.stringify(list));
-        sleeperPlayers = list;
-        broadcast({ type: 'sleeper_created', sleeper: newSleeper });
-      } catch (e) {}
-    }
-
-    function removeMySleeperRecord() {
-      try {
-        const sKey = getSleeperKey();
-        const raw = localStorage.getItem(sKey);
-        if (!raw) return;
-        let list = JSON.parse(raw);
-        list = list.filter(item => item.name !== myPlayer.name);
-        localStorage.setItem(sKey, JSON.stringify(list));
-        sleeperPlayers = list;
-        broadcast({ type: 'sleeper_awaken', name: myPlayer.name });
-      } catch (e) {}
-    }
-
-    function checkSavedDataPreview() {
-      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
-      const n = document.getElementById('inputNickname').value.trim();
-      const notice = document.getElementById('savedDataNotice');
-      if (!n) {
-        notice.classList.add('hidden');
-        return;
-      }
-      const raw = localStorage.getItem(`arena_omni_${r}_${n}`);
-      if (raw) {
-        const d = JSON.parse(raw);
-        document.getElementById('saveDataDetails').textContent = `Lv.${d.level || 1} / 所持コア: ${d.cores || 0} / スクラップ: ${d.scrap || 0} / 座標: (${d.x}, ${d.y})`;
-        notice.classList.remove('hidden');
-      } else {
-        notice.classList.add('hidden');
-      }
-    }
-    document.getElementById('inputRoom').addEventListener('input', checkSavedDataPreview);
-    document.getElementById('inputNickname').addEventListener('input', checkSavedDataPreview);
 
     function recalcStats() {
       const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
@@ -659,237 +693,14 @@
       savePlayerData();
     }
 
-    /* =========================================================
-       4. リアルタイム通信 (PeerJS P2P メッシュ)
-       ========================================================= */
-    let peer = null;
-    let isHost = false;
-    let hostConn = null;
-    const peerConnections = new Map();
-
-    function initNetwork(rId) {
-      roomCode = rId;
-      const hostId = `arena_omni_${roomCode.toLowerCase()}_host`;
-      const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = `合言葉 [${roomCode}] サーバー接続試行中...`;
-
-      try {
-        const sRaw = localStorage.getItem(getSleeperKey());
-        if (sRaw) sleeperPlayers = JSON.parse(sRaw);
-        const bRaw = localStorage.getItem(getBaseKey());
-        if (bRaw) defenseStructures = JSON.parse(bRaw);
-      } catch(e) {}
-
-      peer = new Peer(hostId, {
-        debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-      });
-
-      peer.on('open', () => {
-        isHost = true;
-        logEl.textContent = '100,000x100,000 ホストワールド開通！';
-        updateNetUI(true, 1);
-        setupHostNet();
-        initWorldEcosystem();
-      });
-
-      peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          peer.destroy();
-          connectClient(hostId);
-        } else {
-          logEl.textContent = `接続状態: ${err.type}`;
-        }
-      });
-    }
-
-    function connectClient(hostId) {
-      const logEl = document.getElementById('lobbyNetLog');
-      logEl.textContent = 'ワールドに参入中...';
-      peer = new Peer(`omni_${roomCode}_c_${Math.random().toString(36).substr(2, 6)}`, {
-        debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-      });
-
-      peer.on('open', () => {
-        hostConn = peer.connect(hostId, { reliable: false });
-        setupClientNet();
-      });
-    }
-
-    function setupHostNet() {
-      peer.on('connection', (conn) => {
-        conn.on('open', () => {
-          peerConnections.set(conn.peer, conn);
-          updateNetUI(true, peerConnections.size + 1);
-
-          conn.send({
-            type: 'init_world_full',
-            sleeperPlayers,
-            defenseStructures,
-            colossusBosses
-          });
-        });
-
-        conn.on('data', (d) => {
-          handleNetData(d);
-          peerConnections.forEach((other, pid) => {
-            if (pid !== conn.peer && other.open) other.send(d);
-          });
-        });
-
-        conn.on('close', () => {
-          peerConnections.delete(conn.peer);
-          remotePlayers.delete(conn.peer);
-          updateNetUI(true, peerConnections.size + 1);
-        });
-      });
-    }
-
-    function setupClientNet() {
-      hostConn.on('open', () => {
-        isHost = false;
-        updateNetUI(false, 2);
-      });
-      hostConn.on('data', handleNetData);
-      hostConn.on('close', () => updateNetUI(false, 1, '切断されました'));
-    }
-
-    function broadcast(payload) {
-      if (isHost) {
-        peerConnections.forEach(c => { if (c.open) c.send(payload); });
-      } else if (hostConn && hostConn.open) {
-        hostConn.send(payload);
-      }
-    }
-
-    function handleNetData(data) {
-      if (!data) return;
-      switch (data.type) {
-        case 'sync_state':
-          if (data.id === myPlayer.id) return;
-          remotePlayers.set(data.id, { ...data, lastSeen: performance.now() });
-          updateLeaderboard();
-          break;
-
-        case 'attack_slash':
-          if (data.ownerId === myPlayer.id) return;
-          slashes.push(data.slash);
-          sound.playSlash();
-          break;
-
-        case 'attack_bullet':
-          if (data.ownerId === myPlayer.id) return;
-          bullets.push(data.bullet);
-          sound.playShoot();
-          break;
-
-        case 'build_structure':
-          defenseStructures.push(data.structure);
-          sound.playBuild();
-          break;
-
-        case 'damage_structure':
-          const st = defenseStructures.find(s => s.id === data.structureId);
-          if (st) {
-            st.hp -= data.damage;
-            if (st.hp <= 0) {
-              defenseStructures = defenseStructures.filter(s => s.id !== st.id);
-              triggerExplosion(st.x, st.y);
-            }
-          }
-          break;
-
-        case 'damage_sleeper':
-          const sl = sleeperPlayers.find(s => s.name === data.targetName);
-          if (sl) {
-            sl.hp -= data.damage;
-            sound.playHit();
-            if (sl.hp <= 0) {
-              sleeperPlayers = sleeperPlayers.filter(s => s.name !== sl.name);
-              localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
-              addKillLog(data.attackerName, `${sl.name} [休眠石像]`);
-            }
-          }
-          break;
-
-        case 'sleeper_created':
-          sleeperPlayers = sleeperPlayers.filter(s => s.name !== data.sleeper.name);
-          sleeperPlayers.push(data.sleeper);
-          updateLeaderboard();
-          break;
-
-        case 'sleeper_awaken':
-          sleeperPlayers = sleeperPlayers.filter(s => s.name !== data.name);
-          updateLeaderboard();
-          break;
-
-        case 'init_world_full':
-          sleeperPlayers = data.sleeperPlayers || [];
-          defenseStructures = data.defenseStructures || [];
-          colossusBosses = data.colossusBosses || [];
-          break;
-
-        case 'kill_broadcast':
-          addKillLog(data.killer, data.victim);
-          break;
-      }
-    }
-
-    function updateNetUI(asHost, count, err) {
-      const dot = document.getElementById('netStatusDot');
-      const text = document.getElementById('netStatusText');
-      const countEl = document.getElementById('netPlayerCount');
-      if (err) {
-        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
-        text.textContent = err;
-      } else {
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        text.textContent = asHost ? '👑 HOST' : '🟢 CLIENT';
-      }
-      countEl.textContent = count;
-      document.getElementById('roomCodeBadge').textContent = roomCode;
-    }
-
-    /* =========================================================
-       5. 100,000x100,000 生態系 & スクラップ鉱石ノード
-       ========================================================= */
-    function initWorldEcosystem() {
-      colossusBosses = [
-        { id: 'boss_1', name: '★虚空の破壊神ヴォイド★', x: 50000, y: 48000, hp: 3500, maxHp: 3500, radius: 65, color: '#f43f5e', cores: 120, speed: 2.2, angle: 0 },
-        { id: 'boss_2', name: '★北西の巨神クロノス★', x: 22000, y: 22000, hp: 2800, maxHp: 2800, radius: 55, color: '#a855f7', cores: 80, speed: 2.0, angle: 0 },
-        { id: 'boss_3', name: '★南東の機甲竜レヴィア★', x: 78000, y: 78000, hp: 3000, maxHp: 3000, radius: 60, color: '#eab308', cores: 90, speed: 2.1, angle: 0 }
-      ];
-    }
-
-    // 周囲にスクラップ廃材・鉱石を自然補充
-    function maintainScrapNodes() {
-      if (scrapNodes.length < 40) {
-        scrapNodes.push({
-          id: 'sc_' + Math.random().toString(36).substr(2, 6),
-          x: myPlayer.x + (Math.random() - 0.5) * 2200,
-          y: myPlayer.y + (Math.random() - 0.5) * 2200,
-          radius: 12,
-          amount: Math.floor(Math.random() * 15) + 10
-        });
-      }
-    }
-
-    /* =========================================================
-       6. 拠点防衛建築システム（スクラップコスト必須判定）
-       ========================================================= */
     function buildStructure(type) {
       if (!myPlayer.isAlive) return;
       const tpl = STRUCTURE_TEMPLATES[type];
-      
-      // コスト厳密判定：資材が足りない場合は建造不可
       if (myPlayer.scrap < tpl.cost) {
         sound.playTone(180, 'sawtooth', 0.15, 0.15);
         triggerPopup(myPlayer.x, myPlayer.y - 30, `資材不足! (${myPlayer.scrap}/${tpl.cost}材)`, '#f43f5e');
         return;
       }
-
-      // 資材消費
       myPlayer.scrap -= tpl.cost;
       sound.playBuild();
 
@@ -909,16 +720,8 @@
       };
 
       defenseStructures.push(struct);
-      saveStructures();
-      broadcast({ type: 'build_structure', structure: struct });
       triggerPopup(struct.x, struct.y - 20, `${tpl.name} 建造! (-${tpl.cost}材)`, '#2dd4bf');
       updateBuildButtonsState();
-    }
-
-    function saveStructures() {
-      try {
-        localStorage.setItem(getBaseKey(), JSON.stringify(defenseStructures));
-      } catch(e) {}
     }
 
     function updateBuildButtonsState() {
@@ -927,11 +730,8 @@
         const btnId = type === 'turret' ? 'buildTurret' : type === 'pylon' ? 'buildPylon' : type === 'trap' ? 'buildTrap' : 'buildPod';
         const btn = document.getElementById(btnId);
         if (btn) {
-          if (myPlayer.scrap < cost) {
-            btn.classList.add('build-btn-disabled');
-          } else {
-            btn.classList.remove('build-btn-disabled');
-          }
+          if (myPlayer.scrap < cost) btn.classList.add('build-btn-disabled');
+          else btn.classList.remove('build-btn-disabled');
         }
       });
     }
@@ -942,7 +742,7 @@
     document.getElementById('buildPod').addEventListener('click', () => buildStructure('pod'));
 
     /* =========================================================
-       7. スマホ操作 (ジョイスティック + 手動直線照準)
+       8. ジョイスティック操作
        ========================================================= */
     let joyTouchId = null;
     let joyCenter = { x: 0, y: 0 };
@@ -959,7 +759,6 @@
       const bounded = Math.min(dist, maxR);
 
       joyKnob.style.transform = `translate(calc(-50% + ${Math.cos(angle) * bounded}px), calc(-50% + ${Math.sin(angle) * bounded}px))`;
-
       if (dist > 5) {
         joyVector = { x: Math.cos(angle) * (bounded / maxR), y: Math.sin(angle) * (bounded / maxR) };
         myPlayer.angle = angle;
@@ -1001,7 +800,7 @@
     window.addEventListener('touchcancel', resetJoy);
 
     /* =========================================================
-       8. 手動直線攻撃 ＆ クラス特有アクション
+       9. 攻撃・ヒット・スキル
        ========================================================= */
     function performManualAttack() {
       if (!myPlayer.isAlive) return;
@@ -1016,21 +815,15 @@
       if (cfg.isMelee) {
         sound.playSlash();
         myPlayer.slashAnimation = 12;
-
         const slashObj = {
           id: 'sl_' + Math.random().toString(36).substr(2, 6),
           ownerId: myPlayer.id,
           ownerName: myPlayer.name,
-          x: myPlayer.x,
-          y: myPlayer.y,
-          angle: myPlayer.angle,
-          arc: cfg.arc,
-          range: cfg.range,
-          damage,
-          life: 8
+          x: myPlayer.x, y: myPlayer.y,
+          angle: myPlayer.angle, arc: cfg.arc, range: cfg.range,
+          damage, life: 8
         };
         slashes.push(slashObj);
-        broadcast({ type: 'attack_slash', ownerId: myPlayer.id, slash: slashObj });
         checkMeleeHits(slashObj, cfg.deflects);
       } else {
         sound.playShoot();
@@ -1045,19 +838,26 @@
           damage,
           radius: cfg.bulletSize || 6,
           life: 70,
-          color: myPlayer.classType === 'sorcerer' ? '#c084fc' : myPlayer.classType === 'alchemist' ? '#34d399' : '#38bdf8',
-          isPoison: !!cfg.isPoison,
-          isHoming: !!cfg.homing
+          color: myPlayer.classType === 'sorcerer' ? '#c084fc' : myPlayer.classType === 'alchemist' ? '#34d399' : '#38bdf8'
         };
         bullets.push(bullet);
-        broadcast({ type: 'attack_bullet', ownerId: myPlayer.id, bullet });
       }
-
-      myPlayer.vx -= Math.cos(myPlayer.angle) * 1.5;
-      myPlayer.vy -= Math.sin(myPlayer.angle) * 1.5;
     }
 
     function checkMeleeHits(sl, canDeflect) {
+      // 対ボット判定
+      aiBots.forEach(bot => {
+        const dist = Math.hypot(bot.x - sl.x, bot.y - sl.y);
+        const ang = Math.atan2(bot.y - sl.y, bot.x - sl.x);
+        const diff = Math.abs(normalizeAngle(ang - sl.angle));
+        if (dist < sl.range + bot.radius && diff < sl.arc / 2) {
+          bot.hp -= sl.damage;
+          sound.playHit();
+          triggerPopup(bot.x, bot.y, `-${sl.damage}`, '#f43f5e');
+        }
+      });
+
+      // 弾丸跳ね返し
       if (canDeflect) {
         for (let i = bullets.length - 1; i >= 0; i--) {
           const b = bullets[i];
@@ -1069,53 +869,6 @@
           }
         }
       }
-
-      remotePlayers.forEach(rp => {
-        if (!rp.isAlive) return;
-        const dist = Math.hypot(rp.x - sl.x, rp.y - sl.y);
-        const ang = Math.atan2(rp.y - sl.y, rp.x - sl.x);
-        const diff = Math.abs(normalizeAngle(ang - sl.angle));
-        if (dist < sl.range + 26 && diff < sl.arc / 2) {
-          sound.playHit();
-          broadcast({ type: 'damage_player', targetId: rp.id, attackerName: myPlayer.name, damage: sl.damage });
-        }
-      });
-
-      sleeperPlayers.forEach(sleeper => {
-        const dist = Math.hypot(sleeper.x - sl.x, sleeper.y - sl.y);
-        const ang = Math.atan2(sleeper.y - sl.y, sleeper.x - sl.x);
-        const diff = Math.abs(normalizeAngle(ang - sl.angle));
-        if (dist < sl.range + sleeper.radius && diff < sl.arc / 2) {
-          if (isInForcefield(sleeper.x, sleeper.y)) {
-            triggerPopup(sleeper.x, sleeper.y, '障壁により完全防御!', '#818cf8');
-            return;
-          }
-          const sleepDmg = Math.max(1, Math.round(sl.damage * 0.01)); // 耐久100倍により1/100
-          sleeper.hp -= sleepDmg;
-          sound.playHit();
-          broadcast({ type: 'damage_sleeper', targetName: sleeper.name, attackerName: myPlayer.name, damage: sleepDmg });
-          if (sleeper.hp <= 0) {
-            dropCoresAt(sleeper.x, sleeper.y, sleeper.cores);
-            sleeperPlayers = sleeperPlayers.filter(s => s.name !== sleeper.name);
-            localStorage.setItem(getSleeperKey(), JSON.stringify(sleeperPlayers));
-          }
-        }
-      });
-
-      defenseStructures.forEach(st => {
-        if (st.ownerName !== myPlayer.name && Math.hypot(st.x - sl.x, st.y - sl.y) < sl.range + st.radius) {
-          st.hp -= sl.damage;
-          broadcast({ type: 'damage_structure', structureId: st.id, damage: sl.damage });
-          if (st.hp <= 0) {
-            defenseStructures = defenseStructures.filter(s => s.id !== st.id);
-            triggerExplosion(st.x, st.y);
-          }
-        }
-      });
-    }
-
-    function isInForcefield(x, y) {
-      return defenseStructures.some(st => st.type === 'pylon' && Math.hypot(st.x - x, st.y - y) < st.domeRadius);
     }
 
     function normalizeAngle(a) {
@@ -1143,16 +896,6 @@
         myPlayer.x += Math.cos(myPlayer.angle) * 350;
         myPlayer.y += Math.sin(myPlayer.angle) * 350;
         triggerPopup(myPlayer.x, myPlayer.y, '空間跳躍ブリンク!', '#c084fc');
-      } else if (myPlayer.classType === 'alchemist') {
-        sound.playShoot();
-        toxicPools.push({
-          x: myPlayer.x + Math.cos(myPlayer.angle) * 120,
-          y: myPlayer.y + Math.sin(myPlayer.angle) * 120,
-          r: 90,
-          life: 240,
-          damage: 1.2
-        });
-        triggerPopup(myPlayer.x, myPlayer.y, '腐食毒沼展開!', '#34d399');
       } else {
         sound.playTone(450, 'sine', 0.2, 0.2);
         myPlayer.shield += 120;
@@ -1177,7 +920,7 @@
     document.getElementById('btnSkill').addEventListener('click', activateClassSkill);
 
     /* =========================================================
-       9. 物理・採掘・更新ループ
+       10. メイン更新ループ
        ========================================================= */
     function update() {
       if (!myPlayer.isAlive) return;
@@ -1194,15 +937,31 @@
       myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
       myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
 
-      // スクラップ鉱石の採掘・回収
+      // フィールドギミックとの接触判定（プレイヤー）
+      fieldGimmicks.forEach(g => {
+        const dist = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
+        if (dist < myPlayer.radius + g.radius) {
+          if (g.type === 'bouncer') {
+            const ang = Math.atan2(myPlayer.y - g.y, myPlayer.x - g.x);
+            myPlayer.vx = Math.cos(ang) * g.force;
+            myPlayer.vy = Math.sin(ang) * g.force;
+            sound.playBounce();
+            triggerPopup(g.x, g.y, 'バウンド!', '#f59e0b');
+          } else if (g.type === 'pulse') {
+            myPlayer.vx += Math.cos(g.angle) * g.power;
+            myPlayer.vy += Math.sin(g.angle) * g.power;
+          }
+        }
+      });
+
+      // スクラップ鉱石採取
       const magnetRange = 45 + (myPlayer.upgrades.magnet || 0) * 40;
       for (let i = scrapNodes.length - 1; i >= 0; i--) {
         const sc = scrapNodes[i];
-        const dist = Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y);
-        if (dist < magnetRange) {
+        if (Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y) < magnetRange) {
           myPlayer.scrap += sc.amount;
           sound.playScrap();
-          triggerPopup(sc.x, sc.y, `+${sc.amount} 廃材スクラップ`, '#2dd4bf');
+          triggerPopup(sc.x, sc.y, `+${sc.amount} 廃材`, '#2dd4bf');
           scrapNodes.splice(i, 1);
           updateBuildButtonsState();
         }
@@ -1229,63 +988,38 @@
         }
       }
 
-      // ワープゲート衝突判定
-      if (myPlayer.warpCooldown > 0) {
-        myPlayer.warpCooldown--;
-      } else {
-        hyperGates.forEach(g => {
-          if (Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y) < 70) {
-            myPlayer.x = g.targetX;
-            myPlayer.y = g.targetY;
-            myPlayer.warpCooldown = 150;
-            sound.playWarp();
-            triggerPopup(myPlayer.x, myPlayer.y, `${g.name} 転送完了!`, g.color);
-          }
-        });
-      }
-
-      // タレット自動迎撃
-      defenseStructures.forEach(st => {
-        if (st.type === 'turret') {
-          const now = performance.now();
-          if (now - st.lastShoot > 700) {
-            let target = null;
-            let minDist = st.range;
-            remotePlayers.forEach(rp => {
-              const d = Math.hypot(rp.x - st.x, rp.y - st.y);
-              if (d < minDist) { minDist = d; target = rp; }
-            });
-
-            if (target) {
-              st.lastShoot = now;
-              const ang = Math.atan2(target.y - st.y, target.x - st.x);
-              bullets.push({
-                id: 'tb_' + Math.random().toString(36).substr(2, 6),
-                ownerId: 'turret',
-                x: st.x, y: st.y,
-                vx: Math.cos(ang) * 14, vy: Math.sin(ang) * 14,
-                damage: 22, radius: 5, life: 60, color: '#06b6d4'
-              });
-            }
-          }
-        }
-      });
-
-      // 斬撃・弾丸の寿命
-      for (let i = slashes.length - 1; i >= 0; i--) {
-        if (--slashes[i].life <= 0) slashes.splice(i, 1);
-      }
-
+      // 弾丸挙動
       for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         b.x += b.vx;
         b.y += b.vy;
         if (--b.life <= 0) { bullets.splice(i, 1); continue; }
 
+        // 自プレイヤーへの弾丸ヒット
         if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
           takeDamage(b.damage, b.ownerName || '砲台');
           bullets.splice(i, 1);
+          continue;
         }
+
+        // プレイヤーの弾丸がボットに当たる判定
+        if (b.ownerId === myPlayer.id) {
+          for (let j = 0; j < aiBots.length; j++) {
+            const bot = aiBots[j];
+            if (Math.hypot(b.x - bot.x, b.y - bot.y) < bot.radius + b.radius) {
+              bot.hp -= b.damage;
+              sound.playHit();
+              triggerPopup(bot.x, bot.y, `-${b.damage}`, '#f43f5e');
+              bullets.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+
+      // 斬撃消滅
+      for (let i = slashes.length - 1; i >= 0; i--) {
+        if (--slashes[i].life <= 0) slashes.splice(i, 1);
       }
 
       const regenVal = 0.04 + (myPlayer.upgrades.regen || 0) * 0.05;
@@ -1294,7 +1028,8 @@
       if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
       if (myPlayer.slashAnimation > 0) myPlayer.slashAnimation--;
 
-      maintainScrapNodes();
+      maintainBots();
+      updateBots();
       updateHud();
     }
 
@@ -1323,34 +1058,31 @@
         document.getElementById('lostCoresText').textContent = `-${lost}`;
         document.getElementById('keptCoresText').textContent = myPlayer.cores;
         document.getElementById('deathModal').classList.remove('hidden');
-        broadcast({ type: 'kill_broadcast', killer: attacker, victim: myPlayer.name });
       }
     }
 
     function dropCoresAt(x, y, amount) {
-      for (let i = 0; i < Math.min(12, Math.max(3, amount)); i++) {
+      for (let i = 0; i < Math.min(8, Math.max(2, amount)); i++) {
         dropCores.push({
           id: 'c_' + Math.random().toString(36).substr(2, 6),
-          x: x + (Math.random() - 0.5) * 60,
-          y: y + (Math.random() - 0.5) * 60,
-          val: Math.max(1, Math.floor(amount / 5))
-        });
-      }
-    }
-
-    function triggerExplosion(x, y) {
-      sound.playExplode();
-      for (let i = 0; i < 18; i++) {
-        particles.push({
-          x, y,
-          vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
-          color: '#fbbf24', size: 5, alpha: 1, decay: 0.04
+          x: x + (Math.random() - 0.5) * 50,
+          y: y + (Math.random() - 0.5) * 50,
+          val: Math.max(1, Math.floor(amount / 4))
         });
       }
     }
 
     function triggerPopup(x, y, text, color) {
-      popups.push({ x, y, text, color, life: 40 });
+      popups.push({ x, y, text, color, life: 35 });
+    }
+
+    function addKillLog(killer, victim) {
+      const feed = document.getElementById('killFeed');
+      const item = document.createElement('div');
+      item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
+      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
+      feed.prepend(item);
+      setTimeout(() => item.remove(), 4000);
     }
 
     function updateHud() {
@@ -1374,7 +1106,7 @@
     }
 
     /* =========================================================
-       10. 描画 (100,000x100,000 空間描画)
+       11. 描画ループ（頭上HPバー・ギミック・ボット反映）
        ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1399,81 +1131,73 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // ハイパーゲート描画
-      hyperGates.forEach(gate => {
-        if (Math.hypot(gate.x - myPlayer.x, gate.y - myPlayer.y) < viewR) {
-          ctx.beginPath();
-          ctx.arc(gate.x, gate.y, 60, 0, Math.PI * 2);
-          ctx.fillStyle = `${gate.color}22`;
-          ctx.fill();
-          ctx.strokeStyle = gate.color;
-          ctx.lineWidth = 4;
-          ctx.stroke();
-        }
+      // フィールドギミック描画
+      fieldGimmicks.forEach(gim => {
+        ctx.beginPath();
+        ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `${gim.color}22`;
+        ctx.fill();
+        ctx.strokeStyle = gim.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = gim.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(gim.type === 'bouncer' ? '★ BOUNCER' : '➔ PULSE', gim.x, gim.y + 4);
       });
 
-      // スクラップ鉱石・廃材ノード描画
-      scrapNodes.forEach(sc => {
-        if (Math.hypot(sc.x - myPlayer.x, sc.y - myPlayer.y) < viewR) {
-          ctx.fillStyle = '#2dd4bf';
-          ctx.beginPath();
-          ctx.arc(sc.x, sc.y, sc.radius, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#99f6e4';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      });
-
-      // 設置型防衛建築
+      // 設置型防衛建築の描画 & 頭上HPバー
       defenseStructures.forEach(st => {
-        if (Math.hypot(st.x - myPlayer.x, st.y - myPlayer.y) < viewR + 250) {
-          if (st.type === 'pylon') {
-            ctx.beginPath();
-            ctx.arc(st.x, st.y, st.domeRadius, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(129, 140, 248, 0.12)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(129, 140, 248, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          }
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.radius, 0, Math.PI * 2);
+        ctx.fillStyle = st.color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        drawEntityHealthBar(st.x, st.y, st.radius, st.hp, st.maxHp);
+      });
+
+      // ボット描画 & 頭上HPバー
+      aiBots.forEach(bot => {
+        if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < viewR) {
+          ctx.save();
+          ctx.translate(bot.x, bot.y);
+          ctx.rotate(bot.angle);
 
           ctx.beginPath();
-          ctx.arc(st.x, st.y, st.radius, 0, Math.PI * 2);
-          ctx.fillStyle = st.color;
+          ctx.arc(0, 0, bot.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
           ctx.fill();
-          ctx.strokeStyle = '#ffffff';
+          ctx.strokeStyle = '#fca5a5';
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(0,0,0,0.6)';
-          ctx.fillRect(st.x - 20, st.y - st.radius - 8, 40, 3);
-          ctx.fillStyle = '#2dd4bf';
-          ctx.fillRect(st.x - 20, st.y - st.radius - 8, 40 * (st.hp / st.maxHp), 3);
-        }
-      });
+          // 砲身
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(5, -4, 18, 8);
+          ctx.restore();
 
-      // 休眠スリーパー (耐久100倍石像)
-      sleeperPlayers.forEach(sl => {
-        if (Math.hypot(sl.x - myPlayer.x, sl.y - myPlayer.y) < viewR) {
-          ctx.beginPath();
-          ctx.arc(sl.x, sl.y, sl.radius, 0, Math.PI * 2);
-          ctx.fillStyle = '#475569';
-          ctx.fill();
-          ctx.strokeStyle = '#94a3b8';
-          ctx.lineWidth = 3;
-          ctx.stroke();
-
-          ctx.font = 'bold 12px sans-serif';
-          ctx.fillStyle = '#93c5fd';
+          // 名前 & HP割合バー
+          ctx.font = 'bold 9px sans-serif';
+          ctx.fillStyle = '#f87171';
           ctx.textAlign = 'center';
-          ctx.fillText('💤 [休眠石像]', sl.x, sl.y - sl.radius - 16);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillText(`${sl.name} (100x HP)`, sl.x, sl.y - sl.radius - 4);
+          ctx.fillText(`[BOT] ${bot.name}`, bot.x, bot.y - bot.radius - 18);
+          drawEntityHealthBar(bot.x, bot.y, bot.radius, bot.hp, bot.maxHp);
         }
       });
 
-      // 斬撃エフェクト
+      // 弾丸
+      bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fillStyle = b.color;
+        ctx.fill();
+      });
+
+      // 斬撃
       slashes.forEach(sl => {
         ctx.beginPath();
         ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
@@ -1482,33 +1206,29 @@
         ctx.stroke();
       });
 
-      // 弾丸
-      bullets.forEach(b => {
-        if (Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < viewR) {
-          ctx.beginPath();
-          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-          ctx.fillStyle = b.color;
-          ctx.fill();
-        }
-      });
-
       // 自プレイヤー描画
       if (myPlayer.isAlive) {
-        drawCharacter(myPlayer, myPlayer.x, myPlayer.y, myPlayer.angle, true);
-        drawAimingGuide(myPlayer);
+        ctx.save();
+        ctx.translate(myPlayer.x, myPlayer.y);
+        ctx.rotate(myPlayer.angle);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, myPlayer.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0ea5e9';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.restore();
+        // プレイヤー自身の頭上にも割合表示
+        drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
       }
 
-      // リモートプレイヤー
-      remotePlayers.forEach(rp => {
-        if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
-          drawCharacter(rp, rp.x, rp.y, rp.angle, false);
-        }
-      });
-
-      // ポップアップ
+      // ポップアップテキスト
       for (let i = popups.length - 1; i >= 0; i--) {
         const p = popups[i];
-        ctx.font = 'bold 13px sans-serif';
+        ctx.font = 'bold 12px sans-serif';
         ctx.fillStyle = p.color;
         ctx.textAlign = 'center';
         ctx.fillText(p.text, p.x, p.y);
@@ -1517,213 +1237,29 @@
       }
 
       ctx.restore();
-      renderMiniMap();
-    }
-
-    function drawAimingGuide(p) {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.angle);
-      ctx.beginPath();
-      ctx.setLineDash([5, 5]);
-      ctx.moveTo(p.radius + 10, 0);
-      ctx.lineTo(p.radius + 130, 0);
-      ctx.strokeStyle = 'rgba(244, 63, 94, 0.7)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function drawCharacter(p, x, y, angle, isSelf) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-
-      if (p.classType === 'blademaster') {
-        ctx.strokeStyle = '#f43f5e';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(10, -14); ctx.lineTo(34, -18);
-        ctx.moveTo(10, 14); ctx.lineTo(34, 18);
-        ctx.stroke();
-      } else {
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(8, -5, 24, 10);
-      }
-
-      ctx.beginPath();
-      ctx.arc(0, 0, p.radius || 26, 0, Math.PI * 2);
-      ctx.fillStyle = isSelf ? '#0ea5e9' : '#10b981';
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#ffffff';
-      ctx.stroke();
-
-      ctx.rotate(-angle);
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.fillText(p.name, 0, -32);
-      ctx.restore();
-    }
-
-    function renderMiniMap() {
-      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-      const sx = miniCanvas.width / WORLD_WIDTH;
-      const sy = miniCanvas.height / WORLD_HEIGHT;
-
-      miniCtx.fillStyle = '#38bdf8';
-      hyperGates.forEach(g => miniCtx.fillRect(g.x * sx - 2, g.y * sy - 2, 4, 4));
-
-      miniCtx.fillStyle = '#94a3b8';
-      sleeperPlayers.forEach(sl => miniCtx.fillRect(sl.x * sx - 1, sl.y * sy - 1, 2, 2));
-
-      miniCtx.fillStyle = '#f43f5e';
-      miniCtx.beginPath();
-      miniCtx.arc(myPlayer.x * sx, myPlayer.y * sy, 3, 0, Math.PI * 2);
-      miniCtx.fill();
-    }
-
-    function updateLeaderboard() {
-      const all = [];
-      all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
-      remotePlayers.forEach(rp => all.push({ name: rp.name, cores: rp.cores || 0, tag: 'LIVE', color: 'text-cyan-300' }));
-      sleeperPlayers.forEach(sp => all.push({ name: sp.name, cores: sp.cores || 0, tag: '💤', color: 'text-slate-400' }));
-      colossusBosses.forEach(b => all.push({ name: b.name, cores: b.cores, tag: 'BOSS', color: 'text-rose-400 font-bold' }));
-
-      all.sort((a, b) => b.cores - a.cores);
-      const list = document.getElementById('leaderboardList');
-      list.innerHTML = '';
-      all.slice(0, 5).forEach((item, i) => {
-        const li = document.createElement('li');
-        li.className = `flex justify-between items-center ${item.color}`;
-        li.innerHTML = `
-          <span class="truncate max-w-[100px]">${i + 1}. [${item.tag}] ${item.name}</span>
-          <span class="font-mono text-amber-300 font-bold">${item.cores}</span>
-        `;
-        list.appendChild(li);
-      });
-    }
-
-    function addKillLog(killer, victim) {
-      const feed = document.getElementById('killFeed');
-      const item = document.createElement('div');
-      item.className = 'bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 text-[9px] text-white';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
-      feed.prepend(item);
-      setTimeout(() => item.remove(), 4000);
     }
 
     /* =========================================================
-       11. 強化モーダル UI 生成 & 処理
+       12. 初期化
        ========================================================= */
-    function renderUpgradeModal() {
-      document.getElementById('modalSp').textContent = myPlayer.sp;
-      document.getElementById('modalCores').textContent = myPlayer.cores;
-      document.getElementById('modalScrap').textContent = myPlayer.scrap;
-
-      const list = document.getElementById('upgradeStatsList');
-      list.innerHTML = '';
-
-      UPGRADE_TYPES.forEach(up => {
-        const curLv = myPlayer.upgrades[up.id] || 0;
-        const isMax = curLv >= up.maxLv;
-        const canBuy = myPlayer.sp >= up.cost && !isMax;
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-xs';
-        row.innerHTML = `
-          <div>
-            <div class="font-bold text-slate-200">${up.name} <span class="text-[10px] text-amber-400 font-mono">Lv.${curLv}/${up.maxLv}</span></div>
-            <div class="text-[10px] text-slate-400">${up.desc}</div>
-          </div>
-          <button class="upgrade-action-btn px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-            isMax ? 'bg-slate-800 text-slate-500 cursor-not-allowed' :
-            canBuy ? 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95' :
-            'bg-slate-800 text-slate-500 cursor-not-allowed'
-          }" data-id="${up.id}">
-            ${isMax ? 'MAX' : `${up.cost} SP`}
-          </button>
-        `;
-        list.appendChild(row);
-      });
-
-      document.querySelectorAll('.upgrade-action-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.id;
-          const up = UPGRADE_TYPES.find(u => u.id === id);
-          if (up && myPlayer.sp >= up.cost && (myPlayer.upgrades[id] || 0) < up.maxLv) {
-            myPlayer.sp -= up.cost;
-            myPlayer.upgrades[id] = (myPlayer.upgrades[id] || 0) + 1;
-            sound.playBuild();
-            recalcStats();
-            renderUpgradeModal();
-          }
-        });
-      });
-    }
-
-    document.getElementById('btnOpenUpgrade').addEventListener('click', () => {
-      renderUpgradeModal();
-      document.getElementById('upgradeModal').classList.remove('hidden');
-    });
-    document.getElementById('btnCloseUpgrade').addEventListener('click', () => {
-      document.getElementById('upgradeModal').classList.add('hidden');
-    });
-
-    /* =========================================================
-       12. ロビー ＆ イベント初期化
-       ========================================================= */
-    document.querySelectorAll('.class-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.class-btn').forEach(b => {
-          b.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-950/40');
-          b.classList.add('bg-slate-800/50');
-        });
-        btn.classList.add('ring-2', 'ring-rose-400', 'bg-rose-950/40');
-        btn.classList.remove('bg-slate-800/50');
-        myPlayer.classType = btn.dataset.class;
-      });
-    });
-
     document.getElementById('btnJoin').addEventListener('click', () => {
       sound.init();
       const n = document.getElementById('inputNickname').value.trim();
-      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
       myPlayer.name = n || '勇者' + Math.floor(Math.random() * 899 + 100);
-      roomCode = r;
-
-      const hasSave = loadPlayerData();
-      if (!hasSave) {
-        const cfg = CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster;
-        myPlayer.scrap = cfg.initScrap || 60;
-      }
       recalcStats();
+      initFieldGimmicks();
 
       document.getElementById('hudName').textContent = myPlayer.name;
       document.getElementById('hudClass').textContent = (CLASS_CONFIGS[myPlayer.classType] || CLASS_CONFIGS.blademaster).name;
-
-      initNetwork(roomCode);
-      updateBuildButtonsState();
 
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('gameHud').classList.remove('hidden');
     });
 
-    document.getElementById('btnSleepLogout').addEventListener('click', () => {
-      registerAsSleeper();
-      savePlayerData();
-      if (peer) peer.destroy();
-      document.getElementById('gameHud').classList.add('hidden');
-      document.getElementById('lobbyScreen').classList.remove('hidden');
-      document.getElementById('lobbyNetLog').textContent = '耐久100倍の石像として拠点休眠しました。';
-      checkSavedDataPreview();
-    });
-
     document.getElementById('btnRespawn').addEventListener('click', () => {
       recalcStats();
-      myPlayer.x = 50000 + (Math.random() - 0.5) * 800;
-      myPlayer.y = 50000 + (Math.random() - 0.5) * 800;
+      myPlayer.x = 50000 + (Math.random() - 0.5) * 400;
+      myPlayer.y = 50000 + (Math.random() - 0.5) * 400;
       myPlayer.isAlive = true;
       myPlayer.hp = myPlayer.maxHp;
       document.getElementById('deathModal').classList.add('hidden');
@@ -1734,12 +1270,7 @@
       render();
       requestAnimationFrame(loop);
     }
-
-    window.onload = function () {
-      checkSavedDataPreview();
-      updateBuildButtonsState();
-      requestAnimationFrame(loop);
-    };
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
