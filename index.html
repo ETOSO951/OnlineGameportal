@@ -109,7 +109,7 @@
         <div id="killFeed" class="flex flex-col items-center gap-0.5 max-w-[160px] text-center text-[8px] font-medium text-slate-300 pointer-events-none"></div>
       </div>
 
-      <!-- 右上: 超軽量ミニマップ ＆ ランキング -->
+      <!-- 右上: ミニマップ ＆ ランキング -->
       <div class="flex flex-col items-end gap-1 pointer-events-auto max-w-[105px] sm:max-w-[125px]">
         <div class="relative w-14 h-14 sm:w-18 sm:h-18 bg-slate-950/95 rounded-xl border border-slate-700 overflow-hidden shadow">
           <canvas id="miniMapCanvas" class="w-full h-full block"></canvas>
@@ -392,7 +392,6 @@
       ]
     };
 
-    // BOTバリエーション (強化版：ネクロマンサー & ヴォイドイーター追加)
     const BOT_VARIANTS = {
       berserker: { typeName: 'バーサーカー', hp: 55, speed: 3.2, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 8, attackRate: 850, cores: 12 },
       sniper: { typeName: 'スナイパー', hp: 40, speed: 2.6, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 6, bulletSpeed: 10, attackRate: 1400, cores: 10 },
@@ -738,28 +737,18 @@
        ========================================================= */
     function initFieldGimmicks() {
       fieldGimmicks = [
-        // バウンサー
         { id: 'g_b1', type: 'bouncer', x: 50250, y: 50150, radius: 40, force: 18, color: '#f59e0b' },
         { id: 'g_b2', type: 'bouncer', x: 49750, y: 49850, radius: 40, force: 18, color: '#f59e0b' },
-        // 加速パルス
         { id: 'g_p1', type: 'pulse', x: 50400, y: 49700, radius: 50, angle: Math.PI / 4, power: 14, color: '#38bdf8' },
-        // 磁場ブラックホール
         { id: 'g_mag1', type: 'magnet_hazard', x: 50100, y: 49600, radius: 95, pull: 1.0, color: '#c084fc', timer: 0, pullActive: false },
-        // 毒間欠泉
         { id: 'g_poi1', type: 'geyser', x: 49800, y: 50400, radius: 60, dps: 0.6, color: '#10b981', active: true, timer: 0 },
-        // 回復聖泉
         { id: 'g_heal1', type: 'fountain', x: 50000, y: 50000, radius: 75, healRate: 0.4, color: '#34d399' },
-        // テレポート
         { id: 'g_tp1', type: 'teleport', x: 49500, y: 49500, targetX: 50500, targetY: 50500, radius: 36, color: '#a855f7', cooldown: 0 },
         { id: 'g_tp2', type: 'teleport', x: 50500, y: 50500, targetX: 49500, targetY: 49500, radius: 36, color: '#a855f7', cooldown: 0 },
-        // 草むら
         { id: 'g_bush1', type: 'bush', x: 50150, y: 50350, radius: 70, color: '#15803d' },
         { id: 'g_bush2', type: 'bush', x: 49850, y: 49650, radius: 70, color: '#15803d' },
-        // 氷床
         { id: 'g_ice1', type: 'ice', x: 50300, y: 49950, radius: 80, color: '#67e8f9' },
-        // 【新】雷雲ストーム（定期的に落雷放電）
         { id: 'g_storm1', type: 'storm', x: 49700, y: 50100, radius: 85, color: '#eab308', timer: 0, discharge: false },
-        // 【新】エネルギー充電ステーション（シールド＆スタミナ急速補給）
         { id: 'g_station1', type: 'recharge', x: 50350, y: 50250, radius: 45, color: '#38bdf8' }
       ];
     }
@@ -818,7 +807,6 @@
           }
         }
 
-        // 死霊術士のミニオン召喚
         if (bot.variant === 'necromancer') {
           if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 8) {
             bot.summonTimer = 240;
@@ -836,7 +824,6 @@
           }
         }
 
-        // ギミック干渉
         fieldGimmicks.forEach(g => {
           const gd = Math.hypot(bot.x - g.x, bot.y - g.y);
           if (gd < bot.radius + g.radius) {
@@ -1120,7 +1107,7 @@
     });
 
     /* =========================================================
-       9. ランキング (スマホ枠内収縮)
+       9. ランキング
        ========================================================= */
     function updateLeaderboard() {
       const all = [];
@@ -1325,7 +1312,9 @@
         sound.playExplode();
         purgeSaveData();
 
-        document.getElementById('lostCoresText').textContent = `-${myPlayer.cores}`;
+        const lostEl = document.getElementById('lostCoresText');
+        if (lostEl) lostEl.textContent = `-${myPlayer.cores}`;
+
         document.getElementById('deathModal').classList.remove('hidden');
         addKillLog(attacker, myPlayer.name);
         broadcast({ type: 'kill_broadcast', killer: attacker, victim: myPlayer.name });
@@ -1497,7 +1486,6 @@
           } else if (g.type === 'fountain') {
             myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + g.healRate);
           } else if (g.type === 'recharge') {
-            // ステーション急速充電
             if (myPlayer.shield < 120) myPlayer.shield += 0.8;
             if (myPlayer.stamina < 100) myPlayer.stamina += 1.2;
           } else if (g.type === 'teleport' && g.cooldown <= 0) {
@@ -1620,11 +1608,6 @@
       document.getElementById('hudHpText').textContent = `${Math.ceil(myPlayer.hp)}/${myPlayer.maxHp}`;
       document.getElementById('hudCores').textContent = myPlayer.cores;
       document.getElementById('hudSp').textContent = myPlayer.sp;
-      document.getElementById('hudPosX').textContent = Math.round(myPlayer.x);
-      document.getElementById('hudPosY').textContent = Math.round(myPlayer.y);
-      const secX = Math.floor(myPlayer.x / 1000);
-      const secY = Math.floor(myPlayer.y / 1000);
-      document.getElementById('hudSector').textContent = `[${secX}-${secY}]`;
 
       const cd = document.getElementById('skillCooldownCover');
       if (myPlayer.skillCooldown > 0) {
@@ -1652,7 +1635,7 @@
     }
 
     /* =========================================================
-       描画ループ（プレイヤー消滅バグ完全修正版）
+       13. 描画ループ
        ========================================================= */
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1678,7 +1661,7 @@
         ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
       }
 
-      // 多彩なギミック描画
+      // ギミック描画
       fieldGimmicks.forEach(gim => {
         ctx.save();
         ctx.beginPath();
@@ -1842,12 +1825,11 @@
         ctx.restore();
       });
 
-      // ★ 自プレイヤー描画（透過度・スコープ完全リセットで確実に表示）
+      // プレイヤー描画
       if (myPlayer.isAlive) {
         ctx.save();
-        ctx.globalAlpha = myPlayer.inBush ? 0.5 : 1.0; // ブッシュ時のみ半透明
+        ctx.globalAlpha = myPlayer.inBush ? 0.5 : 1.0;
 
-        // 脱出中の金色の回転サークル
         if (isEscaping) {
           ctx.save();
           ctx.beginPath();
@@ -1859,7 +1841,6 @@
           ctx.restore();
         }
 
-        // 覚醒オーラエフェクト
         if (myPlayer.evolved) {
           ctx.save();
           ctx.beginPath();
@@ -1875,7 +1856,6 @@
         ctx.translate(myPlayer.x, myPlayer.y);
         ctx.rotate(myPlayer.angle);
 
-        // プレイヤー本体
         ctx.beginPath();
         ctx.arc(0, 0, myPlayer.radius, 0, Math.PI * 2);
         ctx.fillStyle = myPlayer.evolved ? '#d97706' : '#0ea5e9';
@@ -1884,7 +1864,6 @@
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // 向きを示すポインタ
         ctx.beginPath();
         ctx.moveTo(myPlayer.radius - 2, -5);
         ctx.lineTo(myPlayer.radius + 8, 0);
@@ -1894,7 +1873,6 @@
 
         ctx.restore();
 
-        // 頭上HPバー
         drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
       }
 
@@ -1933,7 +1911,7 @@
     }
 
     /* =========================================================
-       13. ロビー & 出撃処理
+       14. ロビー & 出撃処理
        ========================================================= */
     function checkSavePreview() {
       const banner = document.getElementById('saveStatusBanner');
@@ -2005,7 +1983,6 @@
       updateModuleSlotsHUD();
     });
 
-    // 死亡後リスポーン (初期化)
     document.getElementById('btnRespawn').addEventListener('click', () => {
       purgeSaveData();
 
