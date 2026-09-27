@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Wizard: Definitive Edition</title>
+    <title>Flappy Wizard: Ultimate Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; user-select: none; }
@@ -59,7 +59,76 @@
     </div>
 
 <script>
-// --- 初期の全13ステージ定義 ---
+// --- Web Audio API による効果音システム ---
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playSE(type) {
+    try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        if (type === 'flap') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.1);
+        } else if (type === 'skill') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(500, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.2);
+        } else if (type === 'die') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.4);
+        } else if (type === 'roulette') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400 + Math.random() * 200, now);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.05);
+        } else if (type === 'win') {
+            const notes = [440, 554, 659, 880];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+                gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.1); osc.stop(now + idx * 0.1 + 0.2);
+            });
+        }
+    } catch(e) {}
+}
+
+// --- ステージ定義 ---
 const STAGES = [
     { name: "NORMAL", bg: "#70c5ce", pipe: "#73bf2e", interval: 105, speed: 1.0, gap: 1.0, g:0.28, j:-5.2 },
     { name: "DUSK", bg: "#e67e22", pipe: "#a35200", interval: 100, speed: 1.1, gap: 1.0, g:0.28, j:-5.2 },
@@ -132,6 +201,7 @@ let isGameOver = false;
 
 // --- 通信・初期化 ---
 function initPeer(host) {
+    initAudio();
     const rid = document.getElementById('room-id').value.trim().toLowerCase();
     if(!rid) return alert("合言葉を入力してください");
     isHost = host;
@@ -166,9 +236,12 @@ function setupConn() {
             pipes = data.pipes; scores = data.scores; frame = data.frame;
             activeSkills = data.skills; activeHappenings = data.happenings;
         }
-        if(data.type === "skill") activeSkills[data.skill] = data.dur || 300;
+        if(data.type === "skill") {
+            activeSkills[data.skill] = data.dur || 300;
+            playSE('skill');
+        }
         if(data.type === "roulette") triggerRouletteVisual(data.index);
-        if(data.type === "die") switchTurn();
+        if(data.type === "die") { playSE('die'); switchTurn(); }
     });
 }
 
@@ -192,6 +265,7 @@ function useHandSlot(slotIdx) {
 
     mp -= skill.cost;
     activeSkills[skillKey] = skill.dur;
+    playSE('skill');
     conn.send({ type: "skill", skill: skillKey, dur: skill.dur });
 
     const available = Object.keys(ALL_SKILLS).filter(k => !currentHand.includes(k));
@@ -201,6 +275,7 @@ function useHandSlot(slotIdx) {
 function rerollHand() {
     if(isAttacker() || mp < 15) return;
     mp -= 15;
+    playSE('skill');
     setupDeck();
 }
 
@@ -242,6 +317,7 @@ function triggerRouletteVisual(finalIndex) {
     msg.style.display = 'block';
     let count = 0;
     const timer = setInterval(() => {
+        playSE('roulette');
         msg.innerText = HAPPENINGS[Math.floor(Math.random() * HAPPENINGS.length)].name;
         count++;
         if(count > 10) {
@@ -334,7 +410,6 @@ function update(dt) {
     if (activeHappenings.fast > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
 
-    // 隙間計算の補正
     let gapMultiplier = stage.gap;
     if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
     if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
@@ -343,7 +418,6 @@ function update(dt) {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         
-        // --- 正常に機能していた王道の当たり判定ロジック ---
         if (activeSkills.ghost <= 0 && !p.isFake) {
             let hitSize = activeSkills.giant > 0 ? 24 : 12;
             if (bird.x + hitSize > p.x && bird.x - hitSize < p.x + 52) {
@@ -374,7 +448,11 @@ function update(dt) {
     });
 }
 
-function die() { conn.send({ type: "die" }); switchTurn(); }
+function die() { 
+    playSE('die');
+    conn.send({ type: "die" }); 
+    switchTurn(); 
+}
 
 function switchTurn() {
     if(currentAttacker === "p1") { currentAttacker = "p2"; startTurn(); }
@@ -384,6 +462,7 @@ function switchTurn() {
 function checkWinner() {
     if((scores.p1 >= 100 || scores.p2 >= 100) && scores.p1 !== scores.p2) {
         isGameOver = true;
+        playSE('win');
         showStatus(scores.p1 > scores.p2 ? "1P WIN!" : "2P WIN!", "#f8e71c");
     } else {
         currentAttacker = "p1"; startTurn();
@@ -529,6 +608,7 @@ const flap = (e) => {
         if (activeSkills.rev > 0) j *= -1;
         if (activeSkills.flip > 0) j *= -1;
         bird.v = j;
+        playSE('flap');
     } 
 };
 window.addEventListener('mousedown', flap);
