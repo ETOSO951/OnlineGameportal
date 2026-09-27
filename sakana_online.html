@@ -521,7 +521,7 @@
       { color: "#546e7a", speed: 300, score: 300, size: 45, type: 'fish' },
       { color: "#ff3300", speed: 130, score: -250, size: 30, type: 'mine' },
       // ★超低確率・一撃逆転の古代宝箱★
-      { color: "#ffd700", speed: 110, score: 1500, size: 32, type: 'treasure' }
+      { color: "#ffd700", speed: 110, score: 1000, size: 32, type: 'treasure' }
     ];
 
     function resizeCanvas() {
@@ -563,13 +563,15 @@
 
       try {
         const firebaseConfig = {
-          apiKey: "AIzaSyYOUR_ACTUAL_API_KEY_HERE",
-          authDomain: "your-project-id.firebaseapp.com",
-          projectId: "your-project-id",
-          storageBucket: "your-project-id.appspot.com",
-          messagingSenderId: "1234567890",
-          appId: "1:1234567890:web:abcdef123456"
-        };
+  apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
+  authDomain: "sakana-online.firebaseapp.com",
+  databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
+  projectId: "sakana-online",
+  storageBucket: "sakana-online.firebasestorage.app",
+  messagingSenderId: "389239928158",
+  appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
+  measurementId: "G-V166BQY0Q1"
+};
 
         if (firebaseConfig.apiKey.includes("YOUR_ACTUAL_API_KEY")) {
           throw new Error("キーが初期値です。firebaseConfigを貼り付けてください（BOT戦は即座に遊べます）");
