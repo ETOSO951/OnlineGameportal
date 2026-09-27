@@ -76,7 +76,7 @@ const STAGES = [
     { name: "METEOR", bg: "#000000", pipe: "#73bf2e", interval: 95, speed: 1.3, gap: 0.85, g:0.28, j:-5.2, move:true }
 ];
 
-// --- スキルマスタ（新技含む全17種） ---
+// --- スキルマスタ（全20種） ---
 const ALL_SKILLS = {
     shrink:   { name: "隙間狭", cost: 35, dur: 220 },
     flip:     { name: "天地反転", cost: 65, dur: 180 },
@@ -95,10 +95,13 @@ const ALL_SKILLS = {
     ascend:   { name: "昇天",   cost: 100, dur: 300 },
     quake:    { name: "地震",   cost: 45, dur: 200 },
     heavy:    { name: "超重力", cost: 55, dur: 240 },
-    narrow:   { name: "超極狭", cost: 60, dur: 180 }
+    narrow:   { name: "超極狭", cost: 60, dur: 180 },
+    flash:    { name: "閃光",   cost: 40, dur: 120 },
+    drain:    { name: "減速罠", cost: 45, dur: 200 },
+    wind:     { name: "強風",   cost: 35, dur: 180 }
 };
 
-// --- ハプニング定義（追加含む全8種） ---
+// --- ハプニング定義（全12種） ---
 const HAPPENINGS = [
     { name: "★低重力モード！", apply: () => { activeHappenings.lowG = 300; } },
     { name: "★乱気流発生！", apply: () => { activeHappenings.turb = 300; } },
@@ -107,7 +110,11 @@ const HAPPENINGS = [
     { name: "★超高速ダッシュ！", apply: () => { activeHappenings.fast = 300; } },
     { name: "★暗闇の呪い！", apply: () => { activeSkills.blind = 180; } },
     { name: "★超乱気流ブレイク！", apply: () => { activeHappenings.turb = 450; } },
-    { name: "★重力反転ワールド！", apply: () => { activeSkills.rev = 180; } }
+    { name: "★重力反転ワールド！", apply: () => { activeSkills.rev = 180; } },
+    { name: "★超巨大化フィーバー！", apply: () => { activeSkills.giant = 250; } },
+    { name: "★極小・隙間地獄！", apply: () => { activeSkills.narrow = 200; } },
+    { name: "★地震パニック！", apply: () => { activeSkills.quake = 180; } },
+    { name: "★強制足止めストップ！", apply: () => { activeSkills.back = 120; } }
 ];
 
 // --- グローバル変数 ---
@@ -292,6 +299,7 @@ function update(dt) {
 
     checkStageProgress();
 
+    // --- 物理演算 ---
     let g = stage.g;
     if (activeSkills.gravUp > 0) g *= 2.0;
     if (activeSkills.heavy > 0) g *= 3.5;
@@ -302,10 +310,11 @@ function update(dt) {
     if (activeSkills.ascend > 0) g = Math.abs(g) * -0.35;
 
     bird.v += g * fpsAdj; 
-    if (activeHappenings.turb > 0) bird.v += (Math.random() - 0.5) * 1.5;
+    if (activeHappenings.turb > 0 || activeSkills.wind > 0) bird.v += (Math.random() - 0.5) * 2.0;
     bird.y += bird.v * fpsAdj;
     bird.rot = Math.max(-0.5, Math.min(0.5, bird.v * 0.1));
 
+    // --- 土管生成 ---
     if (frame % stage.interval === 0) {
         pipes.push({ 
             x: 330, gapY: Math.random() * 200 + 100, 
@@ -320,10 +329,12 @@ function update(dt) {
     }
 
     let baseSpd = stage.speed * (activeSkills.speed > 0 ? 2.5 : 1.5) * 2;
+    if (activeSkills.drain > 0) baseSpd *= 0.7;
     if (activeHappenings.slow > 0) baseSpd *= 0.6;
     if (activeHappenings.fast > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
 
+    // 隙間計算の補正
     let gapMultiplier = stage.gap;
     if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
     if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
@@ -332,19 +343,11 @@ function update(dt) {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         
-        // ★修正された衝突判定
+        // --- 正常に機能していた王道の当たり判定ロジック ---
         if (activeSkills.ghost <= 0 && !p.isFake) {
-            let hitRadius = activeSkills.giant > 0 ? 20 : 11;
-            let pipeWidth = 52;
-            let actualGapHeight = 130 * gapMultiplier;
-
-            // X軸方向の重複チェック（鳥が土管の横範囲に入っているか）
-            if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + pipeWidth) {
-                let safeTop = myGapY;
-                let safeBottom = myGapY + actualGapHeight;
-
-                // Y軸方向の隙間から外れている（＝上または下の土管に当たっている）場合
-                if ((bird.y - hitRadius < safeTop) || (bird.y + hitRadius > safeBottom)) {
+            let hitSize = activeSkills.giant > 0 ? 24 : 12;
+            if (bird.x + hitSize > p.x && bird.x - hitSize < p.x + 52) {
+                if (bird.y - (hitSize - 2) < myGapY || bird.y + (hitSize - 2) > myGapY + 130 * gapMultiplier) {
                     die();
                 }
             }
@@ -488,6 +491,11 @@ function draw() {
         ctx.fillStyle = g; ctx.fillRect(0, 0, 320, 480);
     }
 
+    if (activeSkills.flash > 0) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${activeSkills.flash / 120})`;
+        ctx.fillRect(0, 0, 320, 480);
+    }
+
     ctx.restore();
 }
 
@@ -517,6 +525,7 @@ const flap = (e) => {
     if (isAttacker() && !isGameOver) { 
         const stage = getStage(); 
         let j = activeSkills.highJump > 0 ? stage.j * 1.4 : stage.j;
+        if (activeSkills.drain > 0) j *= 0.85;
         if (activeSkills.rev > 0) j *= -1;
         if (activeSkills.flip > 0) j *= -1;
         bird.v = j;
