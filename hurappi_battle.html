@@ -268,15 +268,15 @@ function useHandSlot(slotIdx) {
     playSE('skill');
     conn.send({ type: "skill", skill: skillKey, dur: skill.dur });
 
-    const available = Object.keys(ALL_SKILLS).filter(k => !currentHand.includes(k));
-    currentHand[slotIdx] = available[Math.floor(Math.random() * available.length)];
+    // ★修正: 技発動時はスロットを自動で別スキルに変えず、使用済みにするだけ（またはそのまま維持）
+    // ユーザー要望「技発動時にはラインナップが更新されないように」
 }
 
 function rerollHand() {
     if(isAttacker() || mp < 15) return;
     mp -= 15;
     playSE('skill');
-    setupDeck();
+    setupDeck(); // ここでのみ手札全体のラインナップが更新される
 }
 
 function startTurn() {
@@ -286,7 +286,7 @@ function startTurn() {
     lastStageIndex = 0;
 
     if(!isAttacker()) {
-        setupDeck();
+        setupDeck(); // ターンが変わった時にも手札ラインナップが新しくなる
     }
 
     showStatus(isAttacker() ? "YOUR TURN" : "SABOTAGE", isAttacker() ? "#2ecc71" : "#e74c3c");
@@ -418,10 +418,12 @@ function update(dt) {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         
+        // --- 確実な当たり判定 ---
         if (activeSkills.ghost <= 0 && !p.isFake) {
-            let hitSize = activeSkills.giant > 0 ? 24 : 12;
-            if (bird.x + hitSize > p.x && bird.x - hitSize < p.x + 52) {
-                if (bird.y - (hitSize - 2) < myGapY || bird.y + (hitSize - 2) > myGapY + 130 * gapMultiplier) {
+            let hitRadius = activeSkills.giant > 0 ? 18 : 10;
+            // 鳥の矩形（または円）が土管のエリアに侵入しているかチェック
+            if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + 52) {
+                if (bird.y - hitRadius < myGapY || bird.y + hitRadius > myGapY + 130 * gapMultiplier) {
                     die();
                 }
             }
