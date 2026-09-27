@@ -127,34 +127,48 @@ const STAGES = [
     { name: "METEOR", bg: "#000000", pipe: "#73bf2e", interval: 95, speed: 1.3, gap: 0.85, g:0.28, j:-5.2, move:true }
 ];
 
+// dur は秒数で管理
 const ALL_SKILLS = {
-    speed:    { name: "高速",   cost: 25, dur: 300 },
-    move:     { name: "揺れ",   cost: 30, dur: 300 },
-    blind:    { name: "暗闇",   cost: 50, dur: 300 },
-    rev:      { name: "反転",   cost: 65, dur: 300 },
-    ghost:    { name: "透明",   cost: 30, dur: 300 }, // 強化：土管判定は残し、姿がほぼ見えなくなる
-    fake:     { name: "分身",   cost: 25, dur: 300 },
-    gravUp:   { name: "重力+",  cost: 25, dur: 300 },
-    highJump: { name: "強跳",   cost: 30, dur: 300 },
-    giant:    { name: "巨大化", cost: 40, dur: 300 },
-    back:     { name: "足止め", cost: 65, dur: 80 },
-    impact:   { name: "衝撃",   cost: 25, dur: 30 },
-    ascend:   { name: "昇天",   cost: 100, dur: 300 },
-    magnet:   { name: "磁石",   cost: 35, dur: 200 },
-    flash:    { name: "閃光",   cost: 45, dur: 180 },
-    quake:    { name: "地震",   cost: 40, dur: 250 }  // NEW
+    speed:    { name: "高速",   cost: 25, dur: 5.0 },
+    move:     { name: "揺れ",   cost: 30, dur: 5.0 },
+    blind:    { name: "暗闇",   cost: 50, dur: 5.0 },
+    rev:      { name: "反転",   cost: 65, dur: 5.0 },
+    ghost:    { name: "透明",   cost: 30, dur: 5.0 },
+    fake:     { name: "分身",   cost: 25, dur: 5.0 },
+    gravUp:   { name: "重力+",  cost: 25, dur: 5.0 },
+    highJump: { name: "強跳",   cost: 30, dur: 5.0 },
+    giant:    { name: "巨大化", cost: 40, dur: 5.0 },
+    back:     { name: "足止め", cost: 65, dur: 1.5 },
+    impact:   { name: "衝撃",   cost: 25, dur: 0.8 },
+    ascend:   { name: "昇天",   cost: 100, dur: 5.0 },
+    magnet:   { name: "磁石",   cost: 35, dur: 3.5 },
+    flash:    { name: "閃光",   cost: 45, dur: 3.0 },
+    quake:    { name: "地震",   cost: 40, dur: 4.0 },
+    // 追加スキル
+    fog:      { name: "濃霧",   cost: 35, dur: 5.0 }, // 視界を全体的に覆い隠す
+    shrink:   { name: "収縮",   cost: 50, dur: 4.5 }, // 土管の隙間を狭くする
+    drain:    { name: "吸収",   cost: 60, dur: 1.0 }  // 発動即時に妨害側のMPを回復し操作を乱す
 };
 
 const HAPPENINGS = [
-    { name: "★低重力モード！", apply: () => { activeHappenings.lowG = 300; } },
-    { name: "★乱気流発生！", apply: () => { activeHappenings.turb = 300; } },
+    { name: "★低重力モード！", apply: () => { activeHappenings.lowG = 6.0; } },
+    { name: "★乱気流発生！", apply: () => { activeHappenings.turb = 6.0; } },
     { name: "★妨害側MP全回復！", apply: () => { mp = 100; } },
-    { name: "★スローモーション！", apply: () => { activeHappenings.slow = 300; } },
-    { name: "★土管の隙間シャッフル！", apply: () => { 
+    { name: "★スローモーション！", apply: () => { activeHappenings.slow = 6.0; } },
+    { name: "★土管隙間シャッフル！", apply: () => { 
         pipes.forEach(p => { p.gapY = Math.random() * 200 + 100; });
     } },
-    { name: "★スピード狂モード！", apply: () => { activeHappenings.speedUp = 250; } },
-    { name: "★強制パニックジャンプ！", apply: () => { activeHappenings.panic = 220; } } // NEW
+    { name: "★スピード狂モード！", apply: () => { activeHappenings.speedUp = 5.0; } },
+    { name: "★パニックジャンプ！", apply: () => { activeHappenings.panic = 4.0; } },
+    // 追加ハプニング
+    { name: "★10秒間 完全無敵！！", apply: () => { activeHappenings.invincible = 10.0; } },
+    { name: "★ポイント強制入れ替え！！", apply: () => {
+        let temp = scores.p1;
+        scores.p1 = scores.p2;
+        scores.p2 = temp;
+        document.getElementById('s1').innerText = scores.p1;
+        document.getElementById('s2').innerText = scores.p2;
+    } }
 ];
 
 let peer, conn, isHost = false;
@@ -164,9 +178,9 @@ const ctx = canvas.getContext('2d');
 let scores = { p1: 0, p2: 0 }, currentAttacker = "p1", mp = 0, frame = 0;
 let bird = { x: 60, y: 240, v: 0, rot: 0 }, pipes = [], stars = [];
 let activeSkills = {};
-let activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0 };
+let activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0, invincible:0 };
 let currentHand = [];
-let lastStageIndex = 0;
+let visitedStages = {}; // 初回到達チェック用 { 0: true, 1: true, ... }
 let isGameOver = false;
 
 function initPeer(host) {
@@ -189,7 +203,8 @@ function setupConn() {
             const pool = STAGES.filter(s => s.name !== "NORMAL" && s.name !== "METEOR");
             const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 3);
             sessionStages = [STAGES[0], ...shuffled, STAGES[STAGES.length-1]];
-            conn.send({ type: "init", stages: sessionStages });
+            visitedStages = { 0: true }; // 初期ステージ(NORMAL)は済み
+            conn.send({ type: "init", stages: sessionStages, visited: visitedStages });
         }
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
@@ -199,17 +214,26 @@ function setupConn() {
         requestAnimationFrame(gameLoop);
     });
     conn.on('data', data => {
-        if(data.type === "init") sessionStages = data.stages;
+        if(data.type === "init") {
+            sessionStages = data.stages;
+            visitedStages = data.visited || { 0: true };
+        }
         if(data.type === "sync" && !isAttacker()) {
             bird.y = data.birdY; bird.rot = data.birdRot;
             pipes = data.pipes; scores = data.scores; frame = data.frame;
             activeSkills = data.skills; activeHappenings = data.happenings;
+            visitedStages = data.visitedStages;
         }
         if(data.type === "skill") {
-            activeSkills[data.skill] = data.dur || 300;
+            activeSkills[data.skill] = data.dur;
+            if(data.skill === 'drain') mp = Math.min(100, mp + 30);
             playSE('skill');
         }
-        if(data.type === "roulette") triggerRouletteVisual(data.index);
+        if(data.type === "roulette") {
+            visitedStages[data.stageIdx] = true;
+            triggerRouletteVisual(data.index);
+            HAPPENINGS[data.index].apply();
+        }
         if(data.type === "die") { playSE('die'); switchTurn(); }
     });
 }
@@ -233,6 +257,7 @@ function useHandSlot(slotIdx) {
 
     mp -= skill.cost;
     activeSkills[skillKey] = skill.dur;
+    if(skillKey === 'drain') mp = Math.min(100, mp + 30);
     playSE('skill');
     conn.send({ type: "skill", skill: skillKey, dur: skill.dur });
 }
@@ -247,8 +272,7 @@ function rerollHand() {
 function startTurn() {
     bird.y = 240; bird.v = 0; pipes = []; frame = 0;
     activeSkills = {};
-    activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0 };
-    lastStageIndex = 0;
+    activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0, invincible:0 };
     if(!isAttacker()) setupDeck();
     showStatus(isAttacker() ? "YOUR TURN" : "SABOTAGE", isAttacker() ? "#2ecc71" : "#e74c3c");
 }
@@ -258,16 +282,18 @@ function getStage() {
     return sessionStages[Math.min(Math.floor(s / 20), 4)] || STAGES[0];
 }
 
+// 初回ステージ到達時のみハプニングを発火
 function checkStageProgress() {
     const s = scores[currentAttacker];
     const stageIdx = Math.min(Math.floor(s / 20), 4);
-    if(stageIdx > lastStageIndex) {
-        lastStageIndex = stageIdx;
+
+    if(!visitedStages[stageIdx]) {
+        visitedStages[stageIdx] = true;
         const rIndex = Math.floor(Math.random() * HAPPENINGS.length);
         triggerRouletteVisual(rIndex);
-        if(isAttacker()) {
-            conn.send({ type: "roulette", index: rIndex });
-            HAPPENINGS[rIndex].apply();
+        HAPPENINGS[rIndex].apply();
+        if(conn && conn.open) {
+            conn.send({ type: "roulette", index: rIndex, stageIdx: stageIdx });
         }
     }
 }
@@ -275,10 +301,8 @@ function checkStageProgress() {
 function triggerRouletteVisual(finalIndex) {
     const msg = document.getElementById('roulette-msg');
     msg.style.display = 'block';
-    setTimeout(() => {
-        msg.innerText = HAPPENINGS[finalIndex].name;
-        setTimeout(() => { msg.style.display = 'none'; }, 2000);
-    }, 500);
+    msg.innerText = HAPPENINGS[finalIndex].name;
+    setTimeout(() => { msg.style.display = 'none'; }, 2500);
 }
 
 function update(dt) {
@@ -288,6 +312,22 @@ function update(dt) {
     document.getElementById('s1').innerText = scores.p1;
     document.getElementById('s2').innerText = scores.p2;
     document.getElementById('stage-display').innerText = stage.name;
+
+    // スキルの持続時間減少（秒単位で一律管理）
+    Object.keys(activeSkills).forEach(k => {
+        if (activeSkills[k] > 0) {
+            activeSkills[k] -= dt;
+            if (activeSkills[k] <= 0) delete activeSkills[k];
+        }
+    });
+
+    // ハプニング持続時間減少（秒単位）
+    Object.keys(activeHappenings).forEach(k => {
+        if (activeHappenings[k] > 0) {
+            activeHappenings[k] -= dt;
+            if (activeHappenings[k] <= 0) activeHappenings[k] = 0;
+        }
+    });
 
     if (!isAttacker()) {
         if (mp < 100) mp += 4.8 * dt; 
@@ -307,10 +347,6 @@ function update(dt) {
         const rerollBtn = document.getElementById('reroll-btn');
         if (mp < 15) rerollBtn.classList.add('disabled');
         else rerollBtn.classList.remove('disabled');
-
-        Object.keys(activeSkills).forEach(k => {
-            if (activeSkills[k] > 0) activeSkills[k] -= 60 * dt; 
-        });
         return;
     }
 
@@ -318,14 +354,14 @@ function update(dt) {
     checkStageProgress();
 
     // ハプニング：パニックジャンプ
-    if (activeHappenings.panic > 0 && frame % 45 === 0) {
+    if (activeHappenings.panic > 0 && frame % 40 === 0) {
         bird.v = (activeSkills.highJump > 0 ? stage.j * 1.4 : stage.j) * (activeSkills.rev > 0 ? -1 : 1);
         playSE('flap');
     }
 
     let g = stage.g;
     if (activeSkills.gravUp > 0) g *= 2.0;
-    if (activeSkills.impact > 0) g *= 2.0;
+    if (activeSkills.impact > 0) g *= 2.5;
     if (activeSkills.rev > 0) g *= -1;
     if (activeHappenings.lowG > 0) g *= 0.5;
     if (activeSkills.ascend > 0) g = Math.abs(g) * -0.35;
@@ -337,7 +373,8 @@ function update(dt) {
     if (activeSkills.magnet > 0) {
         let targetPipe = pipes.find(p => p.x + 52 > bird.x);
         if (targetPipe) {
-            let gapCenter = targetPipe.currentGapY + (130 * stage.gap) / 2;
+            let gapMultiplier = (activeSkills.shrink > 0 ? 0.7 : 1.0);
+            let gapCenter = targetPipe.currentGapY + (130 * stage.gap * gapMultiplier) / 2;
             bird.v += (gapCenter - bird.y) * 0.05 * fpsAdj;
         }
     }
@@ -357,16 +394,19 @@ function update(dt) {
     if (activeHappenings.speedUp > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
 
+    const gapMultiplier = (activeSkills.shrink > 0 ? 0.7 : 1.0);
+    const finalGapSize = 130 * stage.gap * gapMultiplier;
+
     pipes.forEach(p => {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         p.currentGapY = myGapY;
 
-        // 【透明（ゴースト）でも当たり判定は残す仕様に変更】
-        if (!p.isFake) {
+        // 無敵中は当たり判定なし
+        if (!p.isFake && activeHappenings.invincible <= 0) {
             let hitRadius = activeSkills.giant > 0 ? 20 : 11;
             if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + 52) {
-                if (bird.y - hitRadius < myGapY || bird.y + hitRadius > myGapY + 130 * stage.gap) {
+                if (bird.y - hitRadius < myGapY || bird.y + hitRadius > myGapY + finalGapSize) {
                     die();
                 }
             }
@@ -379,23 +419,12 @@ function update(dt) {
     });
 
     if (pipes.length > 0 && pipes[0].x < -100) pipes.shift();
-    if (bird.y < 0 || bird.y > 480) die();
-
-    Object.keys(activeSkills).forEach(k => {
-        if (activeSkills[k] > 0) {
-            let decay = (k === 'impact') ? 270 : 1;
-            activeSkills[k] -= decay * dt; 
-            if (activeSkills[k] < 0) activeSkills[k] = 0;
-        }
-    });
-    Object.keys(activeHappenings).forEach(k => {
-        if (activeHappenings[k] > 0) activeHappenings[k] -= 60 * dt;
-    });
+    if ((bird.y < 0 || bird.y > 480) && activeHappenings.invincible <= 0) die();
 }
 
 function die() { 
     playSE('die');
-    conn.send({ type: "die" }); 
+    if(conn && conn.open) conn.send({ type: "die" }); 
     switchTurn(); 
 }
 
@@ -417,7 +446,15 @@ function checkWinner() {
 function drawBird(ctx, bird) { 
     ctx.save(); ctx.translate(bird.x, bird.y); ctx.rotate(bird.rot); 
     const wPos = Math.sin(frame * 0.4) * 7; 
-    ctx.fillStyle = "#f8e71c"; ctx.strokeStyle = "#000"; ctx.lineWidth = 2; 
+    
+    // 無敵中は金色に発光
+    if (activeHappenings.invincible > 0) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#f1c40f";
+    }
+
+    ctx.fillStyle = activeHappenings.invincible > 0 ? "#ffd700" : "#f8e71c"; 
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 2; 
     ctx.beginPath(); ctx.ellipse(0, 0, 16, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(-8, wPos, 8, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(8, -5, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
@@ -440,7 +477,6 @@ function drawPipe(x, y, isTop, stage, gap) {
 }
 
 function drawBackground(stage) {
-    // 地震スキル発動中の画面揺れオフセット計算
     let quakeX = 0, quakeY = 0;
     if (activeSkills.quake > 0) {
         quakeX = (Math.random() - 0.5) * 8;
@@ -474,18 +510,20 @@ function draw() {
     const stage = getStage();
     drawBackground(stage);
     
+    const gapMultiplier = (activeSkills.shrink > 0 ? 0.7 : 1.0);
+    const finalGapSize = 130 * stage.gap * gapMultiplier;
+
     pipes.forEach(p => {
         let myGapY = p.currentGapY !== undefined ? p.currentGapY : (p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0));
         ctx.save();
         if (p.isFake) ctx.globalAlpha = 0.9;
         else ctx.globalAlpha = 1.0;
-        drawPipe(p.x, myGapY, true, stage, 130 * stage.gap);
-        drawPipe(p.x, myGapY, false, stage, 130 * stage.gap);
+        drawPipe(p.x, myGapY, true, stage, finalGapSize);
+        drawPipe(p.x, myGapY, false, stage, finalGapSize);
         ctx.restore();
     });
 
     ctx.save();
-    // 【透明スキルの強化】今よりもっと透明に（不透明度0.05）
     if (activeSkills.ghost > 0) {
         ctx.globalAlpha = 0.05;
     }
@@ -504,8 +542,13 @@ function draw() {
         ctx.fillStyle = g; ctx.fillRect(0, 0, 320, 480);
     }
 
+    if (activeSkills.fog > 0) {
+        ctx.fillStyle = "rgba(220, 220, 220, 0.85)";
+        ctx.fillRect(0, 0, 320, 480);
+    }
+
     if (activeSkills.flash > 0) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, activeSkills.flash / 50)})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, activeSkills.flash / 2)})`;
         ctx.fillRect(0, 0, 320, 480);
     }
 }
@@ -520,12 +563,13 @@ function gameLoop(timestamp) {
     update(dt); 
     draw();
 
-    if (isAttacker()) {
+    if (isAttacker() && conn && conn.open) {
         conn.send({ 
             type: "sync", 
             birdY: bird.y, birdRot: bird.rot, 
             pipes, scores, frame, 
-            skills: activeSkills, happenings: activeHappenings
+            skills: activeSkills, happenings: activeHappenings,
+            visitedStages: visitedStages
         });
     }
     requestAnimationFrame(gameLoop);
