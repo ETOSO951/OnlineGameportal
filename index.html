@@ -1,2219 +1,898 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ARENA.IO: EVOLUTION & SURVIVAL</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <title>ONLINE GAME PORTAL</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0f;
+            --panel-bg: rgba(20, 20, 35, 0.75);
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff007f;
+            --neon-purple: #bd00ff;
+            --neon-red: #ff3333; /* 追加：赤色用 */
+            --text-main: #ffffff;
+            --text-sub: #8a8a9e;
+        }
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+        body {
+            font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(0, 240, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 127, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overscroll-behavior-y: contain;
+            box-sizing: border-box;
+        }
 
-  <style>
-    * {
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-      box-sizing: border-box;
-      touch-action: none;
-    }
-    body, html {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #020617;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    .custom-scroll::-webkit-scrollbar { width: 3px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    .custom-scroll { -ms-overflow-style: auto; scrollbar-width: thin; }
-  </style>
+        /* 画面共通のフェードトランジション */
+        .screen {
+            position: absolute;
+            width: 100%;
+            max-width: 440px;
+            height: 90vh;
+            max-height: 760px;
+            background: var(--panel-bg);
+            padding: 32px 24px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+            
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* 画面の非表示状態 */
+        .hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        /* --- 1. タイトル（スタート）画面 --- */
+        #title-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-logo {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .title-sub {
+            font-size: 13px;
+            color: var(--text-sub);
+            letter-spacing: 4px;
+            margin-bottom: 80px;
+        }
+
+        .start-btn {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .start-btn:active {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-blue);
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.6); }
+            100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+        }
+
+        /* --- 2. メイン（ポータル）画面 --- */
+        #main-screen {
+            justify-content: flex-start;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            text-align: left;
+            background: linear-gradient(to right, #fff, var(--text-sub));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin: 0 0 24px 0;
+            text-align: left;
+        }
+
+        /* ゲームリストエリア */
+        .game-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .game-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .game-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        /* ゲーム起動・設定ボタン共通 */
+        .game-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .game-btn:active {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .game-btn::after {
+            content: "➔";
+            color: var(--neon-blue);
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .game-btn.special {
+            background: rgba(255, 0, 127, 0.05);
+            border-color: rgba(255, 0, 127, 0.3);
+            color: #ff80bf;
+        }
+        .game-btn.special::after { color: var(--neon-pink); }
+        .game-btn.special:active {
+            background: rgba(255, 0, 127, 0.15);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
+        }
+
+        .game-btn.ura {
+            background: rgba(189, 0, 255, 0.07);
+            border-color: rgba(189, 0, 255, 0.4);
+            color: #e5b3ff;
+        }
+        .game-btn.ura::after { color: var(--neon-purple); }
+        .game-btn.ura:active {
+            background: rgba(189, 0, 255, 0.2);
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
+        }
+
+        /* 資料室用（水色） */
+        .game-btn.manual-color {
+            background: rgba(0, 240, 255, 0.05);
+            border-color: rgba(0, 240, 255, 0.3);
+            color: #80f5ff;
+        }
+        .game-btn.manual-color::after { color: var(--neon-blue); }
+        .game-btn.manual-color:active {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        /* 四大試練・リミックス用（紫） */
+        .game-btn.purple-color {
+            background: rgba(189, 0, 255, 0.07);
+            border-color: rgba(189, 0, 255, 0.4);
+            color: #e5b3ff;
+        }
+        .game-btn.purple-color::after { color: var(--neon-purple); }
+        .game-btn.purple-color:active {
+            background: rgba(189, 0, 255, 0.2);
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
+        }
+
+        /* クリアチェッカーもっと裏用（調節済み：より鮮やかなマゼンタ・ピンクグラデーション） */
+        .game-btn.more-ura-color {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.12), rgba(189, 0, 255, 0.12));
+            border-color: rgba(255, 0, 127, 0.5);
+            color: #ffb3e6;
+        }
+        .game-btn.more-ura-color::after { color: var(--neon-pink); }
+        .game-btn.more-ura-color:active {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.25), rgba(189, 0, 255, 0.25));
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
+        }
+
+        /* ワイヤレスイヤホン遅延設定用（赤色） */
+        .game-btn.red-color {
+            background: rgba(255, 51, 51, 0.07);
+            border-color: rgba(255, 51, 51, 0.4);
+            color: #ff9999;
+        }
+        .game-btn.red-color::after { color: var(--neon-red); }
+        .game-btn.red-color:active {
+            background: rgba(255, 51, 51, 0.2);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+        }
+
+        /* 設定画面へのボタン用デザイン */
+        .game-btn.settings-trigger {
+            background: rgba(0, 240, 255, 0.05);
+            border-color: rgba(0, 240, 255, 0.3);
+            color: var(--neon-blue);
+        }
+        .game-btn.settings-trigger::after {
+            color: var(--neon-blue);
+        }
+
+        .no-game {
+            font-size: 14px;
+            color: var(--text-sub);
+            padding: 40px 20px;
+            line-height: 1.6;
+            text-align: center;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+
+        /* --- 4. 設定画面 --- */
+        #settings-screen {
+            justify-content: flex-start;
+        }
+
+        .settings-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .setting-group {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-label span.value-disp {
+            color: var(--neon-blue);
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--neon-blue);
+            cursor: pointer;
+        }
+
+        /* 並び順設定用リストのスタイル */
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 8px;
+            padding-right: 4px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .order-btns {
+            display: flex;
+            gap: 4px;
+        }
+        .order-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .order-btn:active {
+            background: var(--neon-blue);
+            color: #000;
+        }
+
+        .setting-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-save {
+            background: var(--neon-blue);
+            color: #000;
+        }
+        .btn-save:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-back:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.98);
+        }
+
+        .btn-reset {
+            background: rgba(255, 0, 127, 0.1);
+            color: var(--neon-pink);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn-reset:active {
+            background: rgba(255, 0, 127, 0.2);
+            transform: scale(0.98);
+        }
+
+        /* --- 5. 全画面ゲームプレイヤーエリア --- */
+        #game-player-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            overscroll-behavior: none !important;
+        }
+
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+            pointer-events: auto !important;
+            touch-action: manipulation !important; 
+        }
+
+        .close-game-btn {
+            position: fixed;
+            z-index: 100000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .close-game-btn:active {
+            transform: scale(0.9);
+        }
+
+        #game-player-screen.hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="relative bg-slate-950 text-white overflow-hidden">
+<body>
 
-  <canvas id="gameCanvas"></canvas>
+<!-- タイトル画面 -->
+<div id="title-screen" class="screen">
+    <div class="title-logo">Online Game Portal</div>
+    <div class="title-sub">NEXT GENERATION</div>
+    <button class="start-btn" onclick="startGamePortal()">PRESS START</button>
+</div>
 
-  <!-- ゲーム内 HUD -->
-  <div id="gameHud" class="pointer-events-none absolute inset-0 hidden flex flex-col justify-between p-1.5 sm:p-3 select-none">
-    
-    <!-- 上段ヘッダー -->
-    <div class="flex justify-between items-start w-full gap-1">
-      
-      <!-- 左上: プレイヤー情報 -->
-      <div class="flex flex-col gap-1 max-w-[140px] sm:max-w-[210px] pointer-events-auto">
-        <div class="flex items-center gap-1 flex-wrap">
-          <span id="hudName" class="font-black text-[11px] sm:text-xs truncate max-w-[65px] text-amber-300">勇者</span>
-          <span id="hudLevelBadge" class="text-[8px] bg-gradient-to-r from-amber-500 to-yellow-400 px-1 py-0.2 rounded-full font-black text-black">Lv.1</span>
-          <span id="hudClass" class="text-[8px] bg-indigo-950 px-1 py-0.2 rounded-full border border-indigo-400 font-bold text-indigo-300 truncate max-w-[60px]">BLADE</span>
-        </div>
+<!-- メイン画面 -->
+<div id="main-screen" class="screen hidden">
+    <h1>MY GAME PORTAL</h1>
+    <p class="subtitle">SELECT A MISSION TO LAUNCH</p>
 
-        <!-- HP & シールドバー -->
-        <div class="relative w-full h-2.5 sm:h-3.5 bg-slate-900/90 rounded-full border border-slate-700 overflow-hidden shadow-inner">
-          <div id="hudHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-full transition-all duration-75"></div>
-          <div id="hudShieldFill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-400 opacity-80 w-0 transition-all duration-75"></div>
-          <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[7px] sm:text-[9px] font-black text-white drop-shadow">200/200</span>
-        </div>
-
-        <!-- コア & 強化ボタン & アミュレット表示 -->
-        <div class="flex items-center justify-between text-[9px] font-mono bg-slate-900/85 backdrop-blur px-1.5 py-0.5 rounded-lg border border-slate-800 shadow">
-          <div class="flex items-center gap-1 text-amber-300">
-            <i class="fa-solid fa-gem text-amber-400 text-[9px]"></i>
-            <span id="hudCores" class="font-black">0</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <span id="hudAmuletBadge" class="text-[7px] font-sans px-1 rounded bg-slate-800 text-amber-300 border border-slate-700">通常</span>
-            <button id="btnOpenUpgrade" class="flex items-center gap-0.5 text-emerald-300 font-bold active:scale-95 bg-emerald-950/80 hover:bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-600">
-              <i class="fa-solid fa-bolt text-emerald-400 text-[8px]"></i>
-              <span class="text-[8px]">強化<b id="hudSp" class="text-white ml-0.5">0</b></span>
-            </button>
-          </div>
-        </div>
-
-        <!-- ソウルモジュールスロット -->
-        <div class="bg-slate-900/80 backdrop-blur px-1.5 py-0.5 rounded-lg border border-slate-800 flex items-center justify-between">
-          <span class="text-[7px] text-slate-400">MOD:</span>
-          <div class="flex gap-1" id="hudModuleSlots">
-            <div class="w-3.5 h-3.5 rounded-full border border-dashed border-slate-600 bg-slate-950 flex items-center justify-center text-[6px] text-slate-500">-</div>
-            <div class="w-3.5 h-3.5 rounded-full border border-dashed border-slate-600 bg-slate-950 flex items-center justify-center text-[6px] text-slate-500">-</div>
-            <div class="w-3.5 h-3.5 rounded-full border border-dashed border-slate-600 bg-slate-950 flex items-center justify-center text-[6px] text-slate-500">-</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 中央上部: 脱出 & 状態 -->
-      <div class="flex flex-col items-center gap-1 pointer-events-auto flex-1 px-1">
-        <div class="bg-slate-900/90 backdrop-blur-md px-2 py-1 rounded-full border border-slate-700 shadow flex items-center gap-1.5 text-[9px]">
-          <span id="netStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-slate-400 font-mono text-[8px]"><i class="fa-solid fa-users text-cyan-400 mr-0.5"></i><span id="netPlayerCount">1</span></span>
-          <span class="text-slate-600">|</span>
-          <button id="btnStartEscape" class="text-[8px] bg-gradient-to-r from-amber-600 to-yellow-600 px-2 py-0.5 rounded font-black text-black active:scale-95 shadow">
-            脱出
-          </button>
-        </div>
-
-        <div id="escapeProgressBox" class="hidden flex-col items-center bg-slate-900/95 border border-amber-500/80 px-2 py-1 rounded-lg shadow-xl text-center">
-          <div class="text-[8px] font-black text-amber-300">脱出待機中 (被弾で中断)</div>
-          <div class="w-24 h-1.5 bg-slate-950 rounded-full border border-slate-700 overflow-hidden mt-0.5">
-            <div id="escapeProgressBar" class="h-full bg-amber-400 w-0 transition-all duration-100"></div>
-          </div>
-          <span id="escapeCountdownText" class="font-mono font-bold text-[9px] text-amber-400">10.0s</span>
-        </div>
-
-        <div id="killFeed" class="flex flex-col items-center gap-0.5 max-w-[160px] text-center text-[8px] font-medium text-slate-300 pointer-events-none"></div>
-      </div>
-
-      <!-- 右上: ミニマップ（修正版レーダー） ＆ ランキング -->
-      <div class="flex flex-col items-end gap-1 pointer-events-auto max-w-[110px] sm:max-w-[130px]">
-        <div class="relative w-18 h-18 sm:w-22 sm:h-22 bg-slate-950/95 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-xl">
-          <canvas id="miniMapCanvas" width="90" height="90" class="w-full h-full block"></canvas>
-          <div class="absolute bottom-0.5 right-1 text-[6px] font-mono text-cyan-400 pointer-events-none font-bold">RADAR</div>
-        </div>
-
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-lg p-1 border border-slate-800 text-[7px] sm:text-[8px] shadow w-full overflow-hidden">
-          <div class="font-bold border-b border-slate-800 pb-0.5 text-slate-400 flex items-center justify-between">
-            <span><i class="fa-solid fa-trophy text-amber-400 mr-0.5"></i>順位</span>
-            <span id="roomCodeBadge" class="bg-indigo-950 text-indigo-300 px-1 rounded font-mono text-[6px]">OMNI</span>
-          </div>
-          <ol id="leaderboardList" class="mt-0.5 space-y-0.5 text-slate-200"></ol>
-        </div>
-      </div>
+    <!-- ゲームリストエリア -->
+    <div id="game-list" class="game-list">
+        <div class="no-game">LOADING DATA...</div>
     </div>
+</div>
 
-    <!-- 画面中央通知 -->
-    <div id="centerAlert" class="self-center text-center opacity-0 transition-opacity duration-300 pointer-events-none -mt-8">
-      <div id="centerAlertText" class="text-lg sm:text-2xl font-black text-amber-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.8)]">LEVEL UP!</div>
-    </div>
+<!-- 設定画面 -->
+<div id="settings-screen" class="screen hidden">
+    <h1>SETTINGS</h1>
+    <p class="subtitle">CUSTOMIZE APP & BUTTONS</p>
 
-    <!-- モジュール取得確認インタラクトパネル -->
-    <div id="modulePickupPrompt" class="hidden self-center bg-slate-900/95 border border-cyan-500/80 rounded-2xl p-2 px-3 shadow-2xl backdrop-blur flex items-center gap-2.5 pointer-events-auto mb-2 animate-bounce">
-      <div class="flex flex-col text-left">
-        <span id="promptModName" class="text-[10px] font-black text-cyan-300">モジュール名</span>
-        <span id="promptModDesc" class="text-[8px] text-slate-400">効果説明</span>
-      </div>
-      <button id="btnPickModule" class="bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow">
-        取得
-      </button>
-    </div>
-
-    <!-- 下部操作パネル -->
-    <div class="flex justify-between items-end w-full pb-1 px-1">
-      <div id="joystickZone" class="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-cyan-400/40 bg-slate-900/50 backdrop-blur pointer-events-auto flex items-center justify-center">
-        <div id="joystickKnob" class="absolute w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 flex items-center justify-center text-cyan-950 font-black text-xs">
-          <i class="fa-solid fa-crosshairs"></i>
-        </div>
-      </div>
-
-      <!-- アクションボタン -->
-      <div class="flex flex-col items-end gap-2 pointer-events-auto">
-        <div class="flex items-end gap-1.5 sm:gap-2.5">
-          <button id="btnSkill" class="relative w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 border-2 border-indigo-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
-            <i id="skillIcon" class="fa-solid fa-wind text-sm sm:text-base text-white"></i>
-            <span class="text-[6px] sm:text-[7px] font-black text-indigo-100">SKILL</span>
-            <div id="skillCooldownCover" class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-[9px] font-bold text-white hidden">0s</div>
-          </button>
-
-          <button id="btnDash" class="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-cyan-600 active:bg-cyan-500 border-2 border-cyan-300 shadow flex flex-col items-center justify-center active:scale-90 transition p-1">
-            <i class="fa-solid fa-bolt text-sm sm:text-base text-white"></i>
-            <span class="text-[6px] sm:text-[7px] font-black text-cyan-100">DASH</span>
-          </button>
-
-          <button id="btnAttack" class="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-rose-600 to-red-500 active:from-rose-500 border-2 border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center active:scale-90 transition p-1">
-            <i id="attackIcon" class="fa-solid fa-khanda text-xl sm:text-2xl text-white mb-0.5"></i>
-            <span id="attackLabel" class="text-[7px] sm:text-[9px] font-black tracking-wider text-rose-100">ATTACK</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- クラス進化モーダル -->
-  <div id="evolutionModal" class="absolute inset-0 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-3 z-50">
-    <div class="w-full max-w-sm bg-slate-900 border-2 border-amber-400 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 text-center">
-      <div class="text-amber-400 font-black text-base flex items-center justify-center gap-1.5">
-        <i class="fa-solid fa-crown text-yellow-300"></i> 上位クラス覚醒進化
-      </div>
-      <p class="text-[10px] text-slate-300">Lv.10到達！プレイスタイルに合わせた上位形態を選択してください。</p>
-      <div id="evolutionChoices" class="flex flex-col gap-2"></div>
-    </div>
-  </div>
-
-  <!-- 深層強化ツリー & アミュレット設定モーダル -->
-  <div id="upgradeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-2.5 sm:p-4 z-50">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-700 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-col gap-2 max-h-[92vh]">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-        <h2 class="text-xs sm:text-sm font-black text-amber-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-dna text-cyan-400"></i> キャラクター深層強化ツリー
-        </h2>
-        <button id="btnCloseUpgrade" class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-
-      <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl px-2 py-1 text-[8px] text-amber-300 flex items-center justify-between">
-        <span><i class="fa-solid fa-shield mr-1"></i>強化中: BOTダメージ無効化中</span>
-        <span class="text-slate-400">PVP被弾あり</span>
-      </div>
-
-      <!-- 神器アミュレット枠 -->
-      <div class="bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 flex flex-col gap-1">
-        <span class="text-[8px] font-bold text-slate-300 flex items-center gap-1">
-          <i class="fa-solid fa-ring text-amber-400"></i> 神器アミュレット (プレイスタイル選択)
-        </span>
-        <div class="grid grid-cols-2 gap-1" id="amuletSelectorContainer"></div>
-      </div>
-
-      <div class="flex justify-between bg-slate-950/70 p-1.5 rounded-xl border border-slate-800 text-[10px]">
-        <div>強化SP: <b id="modalSp" class="text-emerald-400 font-mono">0</b></div>
-        <div>所持コア: <b id="modalCores" class="text-amber-400 font-mono">0</b></div>
-        <div>状態: <span id="modalSaveStatus" class="text-amber-400 font-bold">脱出待機</span></div>
-      </div>
-
-      <div id="upgradeStatsList" class="flex flex-col gap-1 overflow-y-auto custom-scroll pr-1 flex-1"></div>
-    </div>
-  </div>
-
-  <!-- ロビー画面 -->
-  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex items-center justify-center p-2 z-40 overflow-y-auto">
-    <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-col gap-2 my-auto max-h-[96vh] overflow-y-auto custom-scroll">
-      
-      <div class="text-center">
-        <div class="inline-block px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-cyan-500/20 rounded-full border border-cyan-500/40 text-[7px] font-mono text-cyan-300 font-bold mb-0.5">
-          ARENA SURVIVAL: SECTOR 30K
-        </div>
-        <h1 class="text-base sm:text-lg font-black italic bg-gradient-to-r from-amber-400 via-rose-400 to-cyan-400 bg-clip-text text-transparent">
-          ARENA.IO: EVOLUTION
-        </h1>
-      </div>
-
-      <div class="grid grid-cols-2 gap-1.5">
-        <div>
-          <label class="text-[8px] font-semibold text-slate-300 block mb-0.5">プレイヤー名</label>
-          <input id="inputNickname" type="text" maxlength="12" value="勇者" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white focus:outline-none focus:border-cyan-400">
-        </div>
-        <div>
-          <label class="text-[8px] font-semibold text-slate-300 block mb-0.5">合言葉 (ROOM)</label>
-          <input id="inputRoom" type="text" maxlength="12" value="OMNI10" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white font-mono uppercase focus:outline-none focus:border-cyan-400">
-        </div>
-      </div>
-
-      <div id="saveStatusBanner" class="hidden bg-slate-800/90 border border-emerald-500/50 rounded-lg p-1.5 text-[8px] text-emerald-300 flex items-center justify-between">
-        <div><i class="fa-solid fa-floppy-disk mr-1"></i>脱出維持データ: <b id="saveStatusDetail">Lv.1</b></div>
-        <span class="text-[7px] text-cyan-300 font-bold">続きから出撃</span>
-      </div>
-
-      <div>
-        <label class="text-[8px] font-semibold text-slate-300 mb-0.5 flex items-center justify-between">
-          <span>初期クラス選択 (全5種)</span>
-        </label>
-        
-        <div class="flex flex-col gap-1 max-h-[175px] overflow-y-auto custom-scroll pr-1" id="classSelector">
-          <button type="button" data-class="blademaster" class="class-btn p-1.5 rounded-lg border border-rose-500/60 bg-rose-950/40 text-left flex items-center justify-between ring-2 ring-rose-400 transition">
-            <div class="flex-1 pr-1">
-              <div class="text-[10px] font-black text-rose-300 flex items-center gap-1">
-                <i class="fa-solid fa-khanda text-rose-400 text-[9px]"></i> ブレードマスター
-              </div>
-              <div class="text-[7px] text-slate-300">近接回転斬撃・弾丸反射・高機動</div>
+    <div class="settings-container">
+        <!-- 透明度設定 -->
+        <div class="setting-group">
+            <div class="setting-label">
+                透明度 (Opacity) <span id="val-opacity" class="value-disp">0.6</span>
             </div>
-            <span class="text-[8px] font-mono text-rose-300 font-bold bg-rose-950 px-1 py-0.2 rounded border border-rose-500/40">近接</span>
-          </button>
-
-          <button type="button" data-class="gunner" class="class-btn p-1.5 rounded-lg border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
-            <div class="flex-1 pr-1">
-              <div class="text-[10px] font-black text-cyan-300 flex items-center gap-1">
-                <i class="fa-solid fa-crosshairs text-cyan-400 text-[9px]"></i> ヘビーガンナー
-              </div>
-              <div class="text-[7px] text-slate-300">長射程砲撃・直線ノックバック</div>
-            </div>
-            <span class="text-[8px] font-mono text-cyan-300 font-bold bg-cyan-950 px-1 py-0.2 rounded border border-cyan-500/40">遠隔</span>
-          </button>
-
-          <button type="button" data-class="sorcerer" class="class-btn p-1.5 rounded-lg border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
-            <div class="flex-1 pr-1">
-              <div class="text-[10px] font-black text-purple-300 flex items-center gap-1">
-                <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-[9px]"></i> アルケイン魔導士
-              </div>
-              <div class="text-[7px] text-slate-300">誘導弾・高火力バースト</div>
-            </div>
-            <span class="text-[8px] font-mono text-purple-300 font-bold bg-purple-950 px-1 py-0.2 rounded border border-purple-500/40">魔法</span>
-          </button>
-
-          <button type="button" data-class="alchemist" class="class-btn p-1.5 rounded-lg border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
-            <div class="flex-1 pr-1">
-              <div class="text-[10px] font-black text-emerald-300 flex items-center gap-1">
-                <i class="fa-solid fa-flask-vial text-emerald-400 text-[9px]"></i> バイオ毒工師
-              </div>
-              <div class="text-[7px] text-slate-300">腐食毒・残留スリップダメージ</div>
-            </div>
-            <span class="text-[8px] font-mono text-emerald-300 font-bold bg-emerald-950 px-1 py-0.2 rounded border border-emerald-500/40">毒沼</span>
-          </button>
-
-          <button type="button" data-class="guardian" class="class-btn p-1.5 rounded-lg border border-slate-700 bg-slate-800/50 text-left flex items-center justify-between transition">
-            <div class="flex-1 pr-1">
-              <div class="text-[10px] font-black text-amber-300 flex items-center gap-1">
-                <i class="fa-solid fa-shield-halved text-amber-400 text-[9px]"></i> スティール城塞守護者
-              </div>
-              <div class="text-[7px] text-slate-300">最高耐久・ダメージ反射装甲</div>
-            </div>
-            <span class="text-[8px] font-mono text-amber-300 font-bold bg-amber-950 px-1 py-0.2 rounded border border-amber-500/40">防壁</span>
-          </button>
+            <input type="range" id="range-opacity" min="0.1" max="1.0" step="0.05" value="0.6" oninput="updateSettingPreview()">
         </div>
-      </div>
 
-      <button id="btnJoin" class="w-full py-2 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 rounded-xl font-black text-xs shadow active:scale-95 transition">
-        出撃 (PLAY)
-      </button>
+        <!-- サイズ設定 -->
+        <div class="setting-group">
+            <div class="setting-label">
+                サイズ (Size) <span id="val-size" class="value-disp">44px</span>
+            </div>
+            <input type="range" id="range-size" min="30" max="70" step="2" value="44" oninput="updateSettingPreview()">
+        </div>
 
-      <div id="lobbyNetLog" class="text-[7px] text-center text-slate-400 font-mono">合言葉を入力して出撃</div>
+        <!-- 位置調整（上下） -->
+        <div class="setting-group">
+            <div class="setting-label">
+                下からの距離 (Bottom) <span id="val-bottom" class="value-disp">24px</span>
+            </div>
+            <input type="range" id="range-bottom" min="10" max="800" step="2" value="24" oninput="updateSettingPreview()">
+        </div>
+
+        <!-- 位置調整（左右） -->
+        <div class="setting-group">
+            <div class="setting-label">
+                左からの距離 (Left) <span id="val-left" class="value-disp">24px</span>
+            </div>
+            <input type="range" id="range-left" min="10" max="350" step="2" value="24" oninput="updateSettingPreview()">
+        </div>
+
+        <!-- 解放済みゲームの順序設定 -->
+        <div class="setting-group">
+            <div class="setting-label">
+                ゲームの表示順序変更
+            </div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">リスト内の表示順を上下で入れ替えます</div>
+            <div id="order-list-container" class="order-list">
+                <!-- 動的に生成 -->
+            </div>
+        </div>
+
+        <!-- プレビュー＆ボタンアクション -->
+        <div class="setting-group" style="text-align: center; border-style: dashed;">
+            <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">戻るボタンプレビュー</div>
+            <div style="position: relative; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <button id="preview-btn" class="close-game-btn" style="position: static;" onclick="void(0);">◀</button>
+            </div>
+        </div>
+
+        <button class="action-btn btn-reset" onclick="resetSettingsToDefault()">設定を初期化する</button>
+
+        <div class="setting-actions">
+            <button class="action-btn btn-back" onclick="closeSettings()">キャンセル</button>
+            <button class="action-btn btn-save" onclick="saveSettings()">保存する</button>
+        </div>
     </div>
-  </div>
+</div>
 
-  <!-- 死亡時モーダル -->
-  <div id="deathModal" class="absolute inset-0 bg-red-950/90 backdrop-blur hidden flex flex-col items-center justify-center p-4 z-50">
-    <div class="w-full max-w-xs bg-slate-900 border border-rose-500 p-4 rounded-3xl text-center shadow-2xl flex flex-col items-center gap-2">
-      <div class="text-3xl text-rose-500 animate-bounce"><i class="fa-solid fa-skull-crossbones"></i></div>
-      <h2 class="text-base font-black text-rose-400">撃破・全ロスト</h2>
-      <p id="deathMessage" class="text-[9px] text-rose-300">脱出できず死亡したため、すべての能力とレベルが消滅しました。</p>
-      
-      <div class="bg-slate-800/80 rounded-xl p-2 w-full text-left text-[10px] space-y-1 border border-slate-700">
-        <div class="flex justify-between text-slate-400"><span>保存データ:</span><span class="font-bold text-rose-400">リセット完了</span></div>
-        <div class="flex justify-between text-slate-400"><span>次回状態:</span><span class="font-bold text-amber-400">Lv.1・初期状態</span></div>
-      </div>
+<!-- ゲームプレイヤー画面 -->
+<div id="game-player-screen" class="hidden">
+    <button id="active-close-btn" class="close-game-btn" onclick="closeGame()">◀</button>
+    <iframe id="game-frame" src=""></iframe>
+</div>
 
-      <button id="btnRespawn" class="w-full py-2 bg-gradient-to-r from-rose-600 to-red-700 rounded-xl font-black text-xs active:scale-95 shadow text-white">
-        Lv.1から再出撃
-      </button>
-    </div>
-  </div>
+<script>
+    window.addEventListener('touchstart', {}, { passive: true });
 
-  <script>
-    const firebaseConfig = {
-  apiKey: "AIzaSyBvnThEak0YIBfKBP11g1qdhN_U0Vf3keM",
-  authDomain: "arena-survival-d5565.firebaseapp.com",
-  databaseURL: "https://arena-survival-d5565-default-rtdb.firebaseio.com",
-  projectId: "arena-survival-d5565",
-  storageBucket: "arena-survival-d5565.firebasestorage.app",
-  messagingSenderId: "423425665912",
-  appId: "1:423425665912:web:ea26e0438aaa9e8d0d768d",
-  measurementId: "G-GMZMWKDFGX"
-};
+    document.getElementById('game-player-screen').addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    }, { passive: false });
 
-    let db = null;
-    let myPlayerRef = null;
-    let roomPlayersRef = null;
-    try {
-      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-      }
-    } catch(e) {}
-
-    class SoundFX {
-      constructor() { this.ctx = null; }
-      init() {
-        if (!this.ctx) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) this.ctx = new AC();
+    document.getElementById('game-player-screen').addEventListener('touchmove', function(e) {
+        if (!e.target.classList.contains('close-game-btn')) {
+            e.preventDefault();
         }
-        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-      }
-      playTone(freq, type, dur, gainVal = 0.06) {
-        if (!this.ctx) return;
+    }, { passive: false });
+
+    // ゲームライブラリ
+    const gameLibrary = {
+        "intro": "はじめに",
+        "manual": "資料室",
+        "clear_checker": "クリアチェッカー",
+        "ClearCheckerUra": "クリアチェッカー(ウラ)",
+        "blockbreak": "ブロック崩し",
+        "kusoblockbreak": "くそブロック崩し",
+        "colorblockbreak": "カラフルブロック崩し",
+        "rougeblockbreak": "ローグライクブロック崩し",
+        "supershotblockbreak": "スーパーショットブロック崩し",
+        "coinrush":"コインラッシュ",
+        "rizumuex": "リズムキャッチャーEX",
+        "Neon Architect - Refined Final": "Neon Architect - Refined Final",
+        "hiragananarabe2": "ひらがなならべ2"
+    };
+
+    const defaultUnlockedIds = ["intro", "manual", "clear_checker", "blockbreak", "kusoblockbreak", "datamanagement"];
+    const storageKeyPrefix = "";
+    const unlockedValue = "1";
+
+    // --- 設定関連のデフォルト値＆管理 ---
+    const defaultSettings = {
+        opacity: 0.6,
+        size: 44,
+        bottom: 24,
+        left: 24,
+        gameOrder: []
+    };
+
+    function getAppSettings() {
         try {
-          const now = this.ctx.currentTime;
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(gainVal, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now);
-          osc.stop(now + dur);
-        } catch(e) {}
-      }
-      playSlash() { this.playTone(300, 'sawtooth', 0.08, 0.08); }
-      playShoot() { this.playTone(600, 'square', 0.05, 0.06); }
-      playHit() { this.playTone(140, 'triangle', 0.06, 0.12); }
-      playExplode() { this.playTone(70, 'square', 0.3, 0.2); }
-      playEquip() { this.playTone(1100, 'sine', 0.18, 0.12); }
-      playBounce() { this.playTone(480, 'sine', 0.15, 0.12); }
-      playWarp() { this.playTone(720, 'sine', 0.2, 0.12); }
-      playEvolution() { this.playTone(980, 'triangle', 0.5, 0.2); }
-      playEscapeWarning() { this.playTone(440, 'sine', 0.12, 0.08); }
-      playEscapeSuccess() { this.playTone(880, 'triangle', 0.4, 0.18); }
-      playThunder() { this.playTone(110, 'sawtooth', 0.3, 0.18); }
-    }
-    const sound = new SoundFX();
-
-    // ★ ステージを30000x30000（やや狭め）に変更
-    const WORLD_WIDTH = 30000;
-    const WORLD_HEIGHT = 30000;
-
-    const CLASS_CONFIGS = {
-      blademaster: { name: 'ブレードマスター', isMelee: true, maxHp: 200, speed: 5.4, attackRate: 280, range: 90, arc: Math.PI * 0.75, damage: 34, deflects: true },
-      gunner: { name: 'ヘビーガンナー', isMelee: false, maxHp: 180, speed: 4.6, attackRate: 250, range: 580, damage: 24, bulletSpeed: 16, bulletSize: 6 },
-      sorcerer: { name: 'アルケイン魔導士', isMelee: false, maxHp: 160, speed: 4.8, attackRate: 290, range: 500, damage: 22, bulletSpeed: 13, homing: true },
-      alchemist: { name: 'バイオ毒工師', isMelee: false, maxHp: 170, speed: 4.9, attackRate: 310, range: 450, damage: 18, bulletSpeed: 13, isPoison: true },
-      guardian: { name: 'スティール城塞守護者', isMelee: true, maxHp: 280, speed: 4.2, attackRate: 360, range: 80, arc: Math.PI * 0.65, damage: 30, reflectArmor: 0.25 }
-    };
-
-    const EVOLUTIONS = {
-      blademaster: [
-        { id: 'shadow_dancer', name: '影舞衆シャドウダンサー', desc: '攻速+35%・分身刃射出', damage: 40, attackRate: 180, speed: 6.0, range: 100, isMelee: true, arc: Math.PI * 0.8, deflects: true },
-        { id: 'holy_paladin', name: '聖騎士パラディン', desc: '最大HP+100・常時被ダメ20%カット', damage: 42, attackRate: 290, speed: 5.0, range: 95, maxHpBonus: 100, isMelee: true, arc: Math.PI * 0.75, deflects: true }
-      ],
-      gunner: [
-        { id: 'railgun_master', name: '電磁砲レールガンマスター', desc: '弾丸貫通・超射程・高火力', damage: 52, attackRate: 360, speed: 4.4, range: 750, bulletSpeed: 22, bulletSize: 8, isMelee: false },
-        { id: 'gatling_striker', name: '連撃ガトリングストライカー', desc: '超高速マシンガン連射', damage: 18, attackRate: 100, speed: 4.5, range: 500, bulletSpeed: 17, bulletSize: 5, isMelee: false }
-      ],
-      sorcerer: [
-        { id: 'chronomancer', name: '時歪術士クロノマンサー', desc: '攻撃ヒット時に敵を遅延減速', damage: 30, attackRate: 240, speed: 5.1, range: 560, bulletSpeed: 14, isMelee: false, homing: true, isFreeze: true },
-        { id: 'void_archon', name: '虚空大導師ヴォイドアーコン', desc: '3方向誘導弾・テレポート強化', damage: 32, attackRate: 280, speed: 5.0, range: 540, bulletSpeed: 14, isMelee: false, multiShot: 3, homing: true }
-      ],
-      alchemist: [
-        { id: 'plague_lord', name: '猛毒王プレイグロード', desc: '毒沼拡大・スリップ倍加', damage: 26, attackRate: 260, speed: 5.0, range: 480, bulletSpeed: 14, isMelee: false, isPoison: true, poisonAmp: 2.0 },
-        { id: 'bio_mutant', name: '生体変異体バイオミュータント', desc: '被ダメ時毒トゲ放射＆自己再生+5', damage: 28, attackRate: 280, speed: 5.1, range: 440, bulletSpeed: 14, isMelee: false, isPoison: true, regenBonus: 5 }
-      ],
-      guardian: [
-        { id: 'titan_colossus', name: '金剛巨神タイタン', desc: 'ノックバック無効・被ダメ35%反射', damage: 40, attackRate: 330, speed: 4.2, range: 90, arc: Math.PI * 0.8, maxHpBonus: 160, isMelee: true, reflectArmor: 0.35 },
-        { id: 'dreadnought', name: '突進重甲ドレッドノート', desc: 'ダッシュ突進攻撃・最大HP+100', damage: 45, attackRate: 310, speed: 4.8, range: 85, arc: Math.PI * 0.7, maxHpBonus: 100, isMelee: true, dashRam: true }
-      ]
-    };
-
-    // ★ BOTステータスを弱体化調整（理不尽な強さを抑制）
-    const BOT_VARIANTS = {
-      berserker: { typeName: 'バーサーカー', hp: 45, speed: 3.0, range: 60, isMelee: true, color: '#f43f5e', border: '#fda4af', damage: 9, attackRate: 900, cores: 12 },
-      sniper: { typeName: 'スナイパー', hp: 35, speed: 2.4, range: 380, isMelee: false, color: '#818cf8', border: '#c7d2fe', damage: 9, bulletSpeed: 11, attackRate: 1400, cores: 10 },
-      tank: { typeName: '重装ドローン', hp: 90, speed: 1.8, range: 160, isMelee: false, color: '#10b981', border: '#a7f3d0', damage: 6, bulletSpeed: 7, attackRate: 1500, cores: 16 },
-      assassin: { typeName: 'アサシン', hp: 40, speed: 3.8, range: 65, isMelee: true, color: '#c084fc', border: '#f3e8ff', damage: 14, attackRate: 750, cores: 14 },
-      bomber: { typeName: 'ボマー', hp: 30, speed: 3.5, range: 40, isMelee: true, color: '#f59e0b', border: '#fef3c7', damage: 28, attackRate: 9999, isSuicide: true, cores: 15 },
-      necromancer: { typeName: '死霊術士', hp: 75, speed: 2.1, range: 300, isMelee: false, color: '#6366f1', border: '#c7d2fe', damage: 8, bulletSpeed: 8, attackRate: 1900, isSummoner: true, cores: 25 },
-      slime: { typeName: '増殖スライム', hp: 40, speed: 2.6, range: 50, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 7, attackRate: 800, isSplitter: true, cores: 8 },
-      golem: { typeName: 'ドレッドゴーレム', hp: 180, speed: 1.5, range: 85, isMelee: true, color: '#d97706', border: '#fde68a', damage: 20, attackRate: 1100, radius: 28, cores: 35 },
-      elite_boss: { typeName: 'ヴォイド・イーター', hp: 380, speed: 1.6, range: 260, isMelee: false, color: '#ec4899', border: '#fbcfe8', damage: 16, bulletSpeed: 9, attackRate: 850, isBoss: true, radius: 34, cores: 70 }
-    };
-
-    // ★ 新要素：神器アミュレット（メリット特化）
-    const AMULET_TYPES = {
-      none: { name: 'なし', desc: '標準状態' },
-      bloodstone: { name: '紅血の勾玉', desc: '会心率+15%・撃破時HP回復+5' },
-      windchime: { name: '風切の鈴', desc: 'ダッシュ無敵時間+0.15s・移動速度+8%' },
-      forcefield: { name: '重力水晶', desc: '被ダメ10%カット・常時シールド+40' },
-      greedeye: { name: '富の宝珠', desc: 'コア＆経験値獲得量+30%' },
-      piercegem: { name: '貫通の牙', desc: '攻撃範囲+15%・攻撃速度+10%' }
-    };
-
-    // ★ 強化ツリー（豊富な育成ラインナップ）
-    const UPGRADE_TYPES = [
-      { id: 'maxHp', name: '最大HP増強', desc: 'HP+30', maxLv: 15, cost: 1 },
-      { id: 'dmg', name: '攻撃力強化', desc: '攻撃威力+10%', maxLv: 15, cost: 1 },
-      { id: 'speed', name: '機動推進力', desc: '移動速度+5%', maxLv: 10, cost: 1 },
-      { id: 'regen', name: 'ナノリジェネ', desc: '毎秒HP回復+2', maxLv: 10, cost: 1 },
-      { id: 'armor', name: '複合装甲', desc: '被ダメ4%軽減', maxLv: 10, cost: 1 },
-      { id: 'crit', name: 'クリティカル精密', desc: '会心率+6% (1.8倍撃)', maxLv: 8, cost: 1 },
-      { id: 'critDmg', name: '会心倍率増幅', desc: '会心威力+20%', maxLv: 6, cost: 2 },
-      { id: 'vampire', name: 'ライフドレイン', desc: '敵撃破時HP10回復', maxLv: 5, cost: 2 },
-      { id: 'magnet', name: '強力マグネット', desc: '吸引範囲+50px', maxLv: 8, cost: 1 },
-      { id: 'cdr', name: '冷却短縮', desc: 'スキルCDが8%短縮', maxLv: 6, cost: 2 },
-      { id: 'stamina', name: 'スタミナ効率', desc: 'ダッシュ消費量-15%', maxLv: 5, cost: 1 },
-      { id: 'staminaRegen', name: '心肺機能強化', desc: 'スタミナ回復+25%', maxLv: 5, cost: 1 },
-      { id: 'reach', name: '広域攻撃器', desc: '攻撃・斬撃範囲+8%', maxLv: 6, cost: 1 },
-      { id: 'bulletSpeed', name: '弾速加速器', desc: '弾速+12% (遠隔のみ)', maxLv: 5, cost: 1 },
-      { id: 'baseShield', name: '出撃時シールド', desc: '開始時シールド+40', maxLv: 5, cost: 2 },
-      { id: 'expBoost', name: '学習プロセッサ', desc: '獲得経験値+20%', maxLv: 5, cost: 1 },
-      { id: 'thorns', name: 'トゲ装甲反撃', desc: '近接被ダメ20%反射', maxLv: 5, cost: 2 },
-      { id: 'escapeSpeed', name: '脱出支援ビーコン', desc: '脱出必要時間を0.5秒短縮', maxLv: 4, cost: 3 }
-    ];
-
-    const MODULE_DEFINITIONS = {
-      crimson: { name: 'クリムゾン', desc: '攻撃力+10%', color: '#ef4444', icon: '⚔' },
-      aqua: { name: 'アクア', desc: '常時シールド+35', color: '#06b6d4', icon: '🛡' },
-      void: { name: 'ヴォイド', desc: '射程・範囲+12%', color: '#a855f7', icon: '✦' },
-      vital: { name: 'ヴァイタル', desc: '最大HP+40 & 速度+4%', color: '#10b981', icon: '♥' }
-    };
-
-    let isPlaying = false;
-    let isUpgrading = false;
-
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const miniCanvas = document.getElementById('miniMapCanvas');
-    const miniCtx = miniCanvas.getContext('2d');
-
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    let roomCode = 'OMNI10';
-    const myId = 'p_' + Math.random().toString(36).substr(2, 7);
-
-    let myPlayer = {
-      id: myId,
-      name: '勇者',
-      baseClass: 'blademaster',
-      classType: 'blademaster',
-      amulet: 'none',
-      evolved: false,
-      customEvo: null,
-      x: 15000,
-      y: 15000,
-      angle: 0,
-      vx: 0,
-      vy: 0,
-      hp: 200,
-      maxHp: 200,
-      shield: 0,
-      stamina: 100,
-      cores: 0,
-      sp: 0,
-      level: 1,
-      exp: 0,
-      nextExp: 40,
-      radius: 24,
-      isAlive: true,
-      isDashing: false,
-      inBush: false,
-      onIce: false,
-      lastAttackTime: 0,
-      skillCooldown: 0,
-      slashAnimation: 0,
-      upgrades: { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, reach: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, escapeSpeed: 0 },
-      modules: []
-    };
-
-    let isEscaping = false;
-    let escapeTimer = 0;
-    let escapeDuration = 10.0;
-    let nearbyModuleToPick = null;
-
-    function getSaveKey() {
-      const n = (document.getElementById('inputNickname').value.trim() || myPlayer.name).toLowerCase();
-      const r = (document.getElementById('inputRoom').value.trim() || roomCode).toUpperCase();
-      return `arena_save_${r}_${n}`;
+            const saved = localStorage.getItem('launcher_settings');
+            if (saved) {
+                return { ...defaultSettings, ...JSON.parse(saved) };
+            }
+        } catch (e) {}
+        return defaultSettings;
     }
 
-    function saveOnSuccessfulEscape() {
-      try {
-        const data = {
-          name: myPlayer.name,
-          baseClass: myPlayer.baseClass,
-          classType: myPlayer.classType,
-          amulet: myPlayer.amulet,
-          evolved: myPlayer.evolved,
-          customEvo: myPlayer.customEvo,
-          level: myPlayer.level,
-          exp: myPlayer.exp,
-          nextExp: myPlayer.nextExp,
-          cores: myPlayer.cores,
-          sp: myPlayer.sp,
-          upgrades: myPlayer.upgrades,
-          modules: myPlayer.modules
-        };
-        localStorage.setItem(getSaveKey(), JSON.stringify(data));
-      } catch (e) {}
+    function applySettingsToButton(btnElem) {
+        const s = getAppSettings();
+        btnElem.style.opacity = s.opacity;
+        btnElem.style.width = s.size + 'px';
+        btnElem.style.height = s.size + 'px';
+        btnElem.style.bottom = s.bottom + 'px';
+        btnElem.style.left = s.left + 'px';
+        btnElem.style.background = `rgba(20, 20, 35, ${Math.max(0.2, s.opacity)})`;
+        btnElem.style.color = 'var(--neon-pink)';
+        btnElem.style.border = '1px solid var(--neon-pink)';
+        btnElem.style.boxShadow = '0 4px 15px rgba(255, 0, 127, 0.3)';
     }
 
-    function purgeSaveData() {
-      try {
-        localStorage.removeItem(getSaveKey());
-      } catch (e) {}
-    }
-
-    function loadSavedDataIfValid() {
-      try {
-        const raw = localStorage.getItem(getSaveKey());
-        if (!raw) return false;
-        const d = JSON.parse(raw);
-        if (!d.level) return false;
-
-        myPlayer.level = d.level || 1;
-        myPlayer.exp = d.exp || 0;
-        myPlayer.nextExp = d.nextExp || 40;
-        myPlayer.cores = d.cores || 0;
-        myPlayer.sp = d.sp || 0;
-        myPlayer.baseClass = d.baseClass || myPlayer.baseClass;
-        myPlayer.classType = d.classType || myPlayer.baseClass;
-        myPlayer.amulet = d.amulet || 'none';
-        myPlayer.evolved = !!d.evolved;
-        myPlayer.customEvo = d.customEvo || null;
-        if (d.upgrades) myPlayer.upgrades = { ...myPlayer.upgrades, ...d.upgrades };
-        if (d.modules) myPlayer.modules = [...d.modules];
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    let remotePlayers = new Map();
-    let bullets = [];
-    let slashes = [];
-    let dropCores = [];
-    let dropModules = [];
-    let popups = [];
-    let aiBots = [];
-    let fieldGimmicks = [];
-    let lastSyncSendTime = 0;
-
-    function initNetwork(rId) {
-      roomCode = rId.trim().toUpperCase() || 'OMNI10';
-      const logEl = document.getElementById('lobbyNetLog');
-
-      if (!db) {
-        logEl.textContent = 'Firebase未設定 (ソロ・BOT戦モード)';
-        updateNetUI(1);
-        return;
-      }
-
-      logEl.textContent = `[${roomCode}] 接続中...`;
-      roomPlayersRef = db.ref(`rooms/${roomCode}/players`);
-      myPlayerRef = roomPlayersRef.child(myPlayer.id);
-
-      myPlayerRef.onDisconnect().remove();
-
-      roomPlayersRef.on('child_added', (snap) => {
-        const data = snap.val();
-        if (data && data.id !== myPlayer.id) {
-          remotePlayers.set(data.id, {
-            ...data,
-            targetX: data.x,
-            targetY: data.y,
-            lastSeen: performance.now()
-          });
-          updateLeaderboard();
+    function getUnlockedGameIds() {
+        let unlocked = [];
+        for (const id of Object.keys(gameLibrary)) {
+            if (id === "datamanagement") continue;
+            const status = localStorage.getItem(storageKeyPrefix + id);
+            if (defaultUnlockedIds.includes(id) || status === unlockedValue || status === "1" || status === "true") {
+                unlocked.push(id);
+            }
         }
-      });
-
-      roomPlayersRef.on('child_changed', (snap) => {
-        const data = snap.val();
-        if (data && data.id !== myPlayer.id) {
-          const exist = remotePlayers.get(data.id);
-          if (exist) {
-            exist.targetX = data.x;
-            exist.targetY = data.y;
-            exist.angle = data.angle;
-            exist.hp = data.hp;
-            exist.maxHp = data.maxHp;
-            exist.cores = data.cores;
-            exist.name = data.name;
-            exist.isEscaping = data.isEscaping;
-            exist.inBush = data.inBush;
-            exist.evolved = data.evolved;
-            exist.lastSeen = performance.now();
-          } else {
-            remotePlayers.set(data.id, {
-              ...data,
-              targetX: data.x,
-              targetY: data.y,
-              lastSeen: performance.now()
-            });
-          }
-        }
-      });
-
-      roomPlayersRef.on('child_removed', (snap) => {
-        const data = snap.val();
-        if (data && data.id !== myPlayer.id) {
-          remotePlayers.delete(data.id);
-          updateLeaderboard();
-        }
-      });
-
-      logEl.textContent = '同期完了';
-      updateNetUI(remotePlayers.size + 1);
+        return unlocked;
     }
 
-    function updateNetUI(count) {
-      const dot = document.getElementById('netStatusDot');
-      const countEl = document.getElementById('netPlayerCount');
-      dot.className = db ? 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse' : 'w-1.5 h-1.5 rounded-full bg-amber-400';
-      countEl.textContent = count;
-      document.getElementById('roomCodeBadge').textContent = roomCode;
+    function openSettings() {
+        const s = getAppSettings();
+        document.getElementById('range-opacity').value = s.opacity;
+        document.getElementById('range-size').value = s.size;
+        document.getElementById('range-bottom').value = s.bottom;
+        document.getElementById('range-left').value = s.left;
+
+        updateSettingPreview();
+        buildOrderListUI();
+
+        document.getElementById("main-screen").classList.add("hidden");
+        document.getElementById("settings-screen").classList.remove("hidden");
     }
 
-    function syncNetworkState() {
-      if (!isPlaying || !myPlayer.isAlive) return;
-      const now = performance.now();
+    function closeSettings() {
+        document.getElementById("settings-screen").classList.add("hidden");
+        document.getElementById("main-screen").classList.remove("hidden");
+    }
 
-      if (db && myPlayerRef && now - lastSyncSendTime > 100) {
-        lastSyncSendTime = now;
-        myPlayerRef.set({
-          id: myPlayer.id,
-          name: myPlayer.name,
-          x: Math.round(myPlayer.x),
-          y: Math.round(myPlayer.y),
-          angle: Number(myPlayer.angle.toFixed(2)),
-          hp: Math.round(myPlayer.hp),
-          maxHp: Math.round(myPlayer.maxHp),
-          cores: myPlayer.cores,
-          isEscaping: isEscaping,
-          inBush: myPlayer.inBush,
-          evolved: myPlayer.evolved
+    function updateSettingPreview() {
+        const opacity = parseFloat(document.getElementById('range-opacity').value);
+        const size = parseInt(document.getElementById('range-size').value);
+        const bottom = parseInt(document.getElementById('range-bottom').value);
+        const left = parseInt(document.getElementById('range-left').value);
+
+        document.getElementById('val-opacity').innerText = opacity.toFixed(2);
+        document.getElementById('val-size').innerText = size + 'px';
+        document.getElementById('val-bottom').innerText = bottom + 'px';
+        document.getElementById('val-left').innerText = left + 'px';
+
+        const previewBtn = document.getElementById('preview-btn');
+        previewBtn.style.opacity = opacity;
+        previewBtn.style.width = size + 'px';
+        previewBtn.style.height = size + 'px';
+        previewBtn.style.background = `rgba(20, 20, 35, ${Math.max(0.2, opacity)})`;
+        previewBtn.style.color = 'var(--neon-pink)';
+        previewBtn.style.border = '1px solid var(--neon-pink)';
+    }
+
+    let currentEditingOrder = [];
+    function buildOrderListUI() {
+        const container = document.getElementById('order-list-container');
+        container.innerHTML = "";
+
+        const unlocked = getUnlockedGameIds();
+        const s = getAppSettings();
+
+        currentEditingOrder = [];
+        if (s.gameOrder && Array.isArray(s.gameOrder)) {
+            for (const id of s.gameOrder) {
+                if (unlocked.includes(id)) {
+                    currentEditingOrder.push(id);
+                }
+            }
+        }
+        for (const id of unlocked) {
+            if (!currentEditingOrder.includes(id)) {
+                currentEditingOrder.push(id);
+            }
+        }
+
+        currentEditingOrder.forEach((id, index) => {
+            const item = document.createElement('div');
+            item.className = 'order-item';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = gameLibrary[id] || id;
+            item.appendChild(nameSpan);
+
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'order-btns';
+
+            const upBtn = document.createElement('button');
+            upBtn.className = 'order-btn';
+            upBtn.innerText = '▲';
+            upBtn.onclick = () => moveOrder(index, -1);
+            if (index === 0) upBtn.style.opacity = '0.3';
+
+            const downBtn = document.createElement('button');
+            downBtn.className = 'order-btn';
+            downBtn.innerText = '▼';
+            downBtn.onclick = () => moveOrder(index, 1);
+            if (index === currentEditingOrder.length - 1) downBtn.style.opacity = '0.3';
+
+            btnDiv.appendChild(upBtn);
+            btnDiv.appendChild(downBtn);
+            item.appendChild(btnDiv);
+
+            container.appendChild(item);
         });
-      }
-
-      remotePlayers.forEach((rp, id) => {
-        if (now - rp.lastSeen > 5000) {
-          remotePlayers.delete(id);
-          updateLeaderboard();
-        } else {
-          rp.x += (rp.targetX - rp.x) * 0.25;
-          rp.y += (rp.targetY - rp.y) * 0.25;
-        }
-      });
-
-      updateNetUI(remotePlayers.size + 1);
     }
 
-    // ★ ギミック初期化（30,000x30,000ワールド内に適正配置）
-    function initFieldGimmicks() {
-      fieldGimmicks = [];
-      const types = ['bouncer', 'pulse', 'geyser', 'fountain', 'recharge', 'bush', 'ice', 'storm', 'teleport', 'magnet_hazard'];
-
-      for (let i = 0; i < 110; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const gx = 15000 + (Math.random() - 0.5) * 24000;
-        const gy = 15000 + (Math.random() - 0.5) * 24000;
+    function moveOrder(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= currentEditingOrder.length) return;
         
-        let color = '#38bdf8';
-        if (type === 'bouncer') color = '#f59e0b';
-        if (type === 'bush') color = '#15803d';
-        if (type === 'ice') color = '#67e8f9';
-        if (type === 'geyser') color = '#10b981';
-        if (type === 'fountain') color = '#34d399';
-        if (type === 'teleport') color = '#a855f7';
-        if (type === 'storm') color = '#eab308';
-        if (type === 'magnet_hazard') color = '#c084fc';
+        const temp = currentEditingOrder[index];
+        currentEditingOrder[index] = currentEditingOrder[newIndex];
+        currentEditingOrder[newIndex] = temp;
 
-        fieldGimmicks.push({
-          id: 'g_' + i,
-          type: type,
-          x: gx,
-          y: gy,
-          targetX: gx + (Math.random() - 0.5) * 2000,
-          targetY: gy + (Math.random() - 0.5) * 2000,
-          radius: type === 'bush' || type === 'ice' ? 60 : (type === 'fountain' ? 55 : 40),
-          force: 15,
-          power: 11,
-          dps: 1.0,
-          healRate: 0.4,
-          color: color,
-          angle: Math.random() * Math.PI * 2,
-          timer: Math.floor(Math.random() * 100),
-          active: true,
-          discharge: false,
-          cooldown: 0
+        const container = document.getElementById('order-list-container');
+        container.innerHTML = "";
+
+        currentEditingOrder.forEach((id, idx) => {
+            const item = document.createElement('div');
+            item.className = 'order-item';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = gameLibrary[id] || id;
+            item.appendChild(nameSpan);
+
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'order-btns';
+
+            const upBtn = document.createElement('button');
+            upBtn.className = 'order-btn';
+            upBtn.innerText = '▲';
+            upBtn.onclick = () => moveOrder(idx, -1);
+            if (idx === 0) upBtn.style.opacity = '0.3';
+
+            const downBtn = document.createElement('button');
+            downBtn.className = 'order-btn';
+            downBtn.innerText = '▼';
+            downBtn.onclick = () => moveOrder(idx, 1);
+            if (idx === currentEditingOrder.length - 1) downBtn.style.opacity = '0.3';
+
+            btnDiv.appendChild(upBtn);
+            btnDiv.appendChild(downBtn);
+            item.appendChild(btnDiv);
+
+            container.appendChild(item);
         });
-      }
     }
 
-    function maintainBots() {
-      if (!isPlaying) return;
-      if (aiBots.length < 8) {
-        const types = ['berserker', 'sniper', 'tank', 'assassin', 'bomber', 'necromancer', 'slime', 'golem'];
-        const isElite = Math.random() < 0.12 && !aiBots.some(b => b.variant === 'elite_boss');
-        const chosenKey = isElite ? 'elite_boss' : types[Math.floor(Math.random() * types.length)];
-        const spec = BOT_VARIANTS[chosenKey];
+    function saveSettings() {
+        const current = getAppSettings();
+        const newSettings = {
+            ...current,
+            opacity: parseFloat(document.getElementById('range-opacity').value),
+            size: parseInt(document.getElementById('range-size').value),
+            bottom: parseInt(document.getElementById('range-bottom').value),
+            left: parseInt(document.getElementById('range-left').value),
+            gameOrder: currentEditingOrder
+        };
 
-        // BOTの成長スケールを穏やかに抑制
-        const lvScale = 1 + (myPlayer.level - 1) * 0.05;
-        const spawnDist = 600 + Math.random() * 300;
-        const spawnAngle = Math.random() * Math.PI * 2;
-
-        aiBots.push({
-          id: 'bot_' + Math.random().toString(36).substr(2, 6),
-          name: `${spec.typeName}`,
-          variant: chosenKey,
-          spec: spec,
-          x: myPlayer.x + Math.cos(spawnAngle) * spawnDist,
-          y: myPlayer.y + Math.sin(spawnAngle) * spawnDist,
-          vx: 0,
-          vy: 0,
-          angle: Math.random() * Math.PI * 2,
-          hp: Math.round(spec.hp * lvScale),
-          maxHp: Math.round(spec.hp * lvScale),
-          radius: spec.radius || 22,
-          speed: spec.speed,
-          damage: Math.round(spec.damage * lvScale),
-          cores: spec.cores,
-          lastAttack: 0,
-          wanderTimer: 0,
-          stealth: chosenKey === 'assassin',
-          stealthTimer: 180,
-          summonTimer: 120
-        });
-        updateLeaderboard();
-      }
+        localStorage.setItem('launcher_settings', JSON.stringify(newSettings));
+        closeSettings();
+        loadGames();
     }
 
-    function updateBots() {
-      const now = performance.now();
-
-      for (let i = aiBots.length - 1; i >= 0; i--) {
-        const bot = aiBots[i];
-        const spec = bot.spec;
-        const dist = Math.hypot(myPlayer.x - bot.x, myPlayer.y - bot.y);
-
-        if (dist > 1400) {
-          const reAngle = Math.random() * Math.PI * 2;
-          const reDist = 650 + Math.random() * 250;
-          bot.x = myPlayer.x + Math.cos(reAngle) * reDist;
-          bot.y = myPlayer.y + Math.sin(reAngle) * reDist;
-          bot.vx = 0;
-          bot.vy = 0;
-          continue;
+    function resetSettingsToDefault() {
+        if (confirm("設定をすべて初期状態に戻しますか？")) {
+            localStorage.removeItem('launcher_settings');
+            closeSettings();
+            loadGames();
         }
+    }
+
+    function startGamePortal() {
+        document.getElementById("title-screen").classList.add("hidden");
+        document.getElementById("main-screen").classList.remove("hidden");
+    }
+
+    function createGameButton(id, displayName) {
+        const button = document.createElement("button");
+        button.className = "game-btn";
+        button.innerText = displayName;
         
-        const detectRange = myPlayer.inBush ? 80 : (spec.isBoss ? 600 : 450);
-        const canSeePlayer = myPlayer.isAlive && dist < detectRange;
-
-        if (bot.variant === 'assassin') {
-          if (--bot.stealthTimer <= 0) {
-            bot.stealth = !bot.stealth;
-            bot.stealthTimer = bot.stealth ? 180 : 120;
-          }
+        // 各種専用色の割り当て
+        if (id === "ClearCheckerUra") {
+            button.classList.add("ura");
+        } else if (id === "clear_checker" || id === "datamanagement") {
+            button.classList.add("special");
+        } else if (id === "manual") {
+            button.classList.add("manual-color");
+        } else if (id === "yondaisiren" || id === "remix") {
+            button.classList.add("purple-color");
+        } else if (id === "ClearCheckerMoreUra") {
+            button.classList.add("manual-color"); // 調節後のマゼンタ/ピンク系グラデーション
+        } else if (id === "motokarateka") {
+            button.classList.add("special"); // 追加：ワイヤレスイヤホン遅延設定を赤色に
         }
 
-        if (bot.variant === 'necromancer') {
-          if (--bot.summonTimer <= 0 && canSeePlayer && aiBots.length < 10) {
-            bot.summonTimer = 240;
-            sound.playWarp();
-            triggerPopup(bot.x, bot.y, '怨霊召喚！', '#818cf8');
-            aiBots.push({
-              id: 'bot_minion_' + Math.random().toString(36).substr(2, 5),
-              name: '怨念ドローン',
-              variant: 'berserker',
-              spec: { typeName: '怨念', hp: 20, speed: 3.5, range: 45, isMelee: true, color: '#818cf8', border: '#e0e7ff', damage: 6, attackRate: 600, cores: 3 },
-              x: bot.x + (Math.random() - 0.5) * 40,
-              y: bot.y + (Math.random() - 0.5) * 40,
-              vx: 0, vy: 0, angle: bot.angle, hp: 20, maxHp: 20, radius: 14, speed: 3.5, damage: 6, cores: 3, lastAttack: 0, wanderTimer: 0
+        button.onclick = () => {
+            const gameUrl = encodeURIComponent(id) + ".html";
+            const frame = document.getElementById("game-frame");
+            frame.src = gameUrl;
+            
+            const activeCloseBtn = document.getElementById("active-close-btn");
+            applySettingsToButton(activeCloseBtn);
+
+            document.getElementById("game-player-screen").classList.remove("hidden");
+        };
+
+        return button;
+    }
+
+    function closeGame() {
+        document.getElementById("game-player-screen").classList.add("hidden");
+        document.getElementById("game-frame").src = "";
+        loadGames();
+    }
+
+    function loadGames() {
+        const listContainer = document.getElementById("game-list");
+        listContainer.innerHTML = "";
+
+        const s = getAppSettings();
+        let unlockedIds = getUnlockedGameIds();
+
+        if (s.gameOrder && Array.isArray(s.gameOrder) && s.gameOrder.length > 0) {
+            unlockedIds.sort((a, b) => {
+                let idxA = s.gameOrder.indexOf(a);
+                let idxB = s.gameOrder.indexOf(b);
+                if (idxA === -1) idxA = 999;
+                if (idxB === -1) idxB = 999;
+                return idxA - idxB;
             });
-          }
         }
 
-        fieldGimmicks.forEach(g => {
-          const gd = Math.hypot(bot.x - g.x, bot.y - g.y);
-          if (gd < bot.radius + g.radius) {
-            if (g.type === 'bouncer') {
-              const ga = Math.atan2(bot.y - g.y, bot.x - g.x);
-              bot.vx += Math.cos(ga) * g.force;
-              bot.vy += Math.sin(ga) * g.force;
-            } else if (g.type === 'pulse') {
-              bot.vx += Math.cos(g.angle) * g.power;
-              bot.vy += Math.sin(g.angle) * g.power;
-            } else if (g.type === 'magnet_hazard') {
-              const ga = Math.atan2(g.y - bot.y, g.x - bot.x);
-              bot.vx += Math.cos(ga) * 1.5;
-              bot.vy += Math.sin(ga) * 1.5;
-            } else if (g.type === 'geyser' && g.active) {
-              bot.hp -= g.dps;
-            } else if (g.type === 'storm' && g.discharge) {
-              bot.hp -= 15;
-            } else if (g.type === 'fountain') {
-              bot.hp = Math.min(bot.maxHp, bot.hp + g.healRate);
+        let hasGames = false;
+
+        for (const id of unlockedIds) {
+            const displayName = gameLibrary[id];
+            if (displayName) {
+                const button = createGameButton(id, displayName);
+                listContainer.appendChild(button);
+                hasGames = true;
             }
-          }
-        });
-
-        if (canSeePlayer) {
-          bot.angle = Math.atan2(myPlayer.y - bot.y, myPlayer.x - bot.x);
-
-          if (bot.variant === 'bomber' && dist < 42) {
-            triggerPopup(bot.x, bot.y, '自爆！', '#f59e0b');
-            sound.playExplode();
-            takeDamage(bot.damage || spec.damage, bot.name, false);
-            aiBots.splice(i, 1);
-            continue;
-          }
-
-          if (bot.variant === 'sniper' || bot.variant === 'necromancer') {
-            if (dist < 180) {
-              bot.vx -= Math.cos(bot.angle) * bot.speed * 0.12;
-              bot.vy -= Math.sin(bot.angle) * bot.speed * 0.12;
-            } else if (dist > 260) {
-              bot.vx += Math.cos(bot.angle) * bot.speed * 0.12;
-              bot.vy += Math.sin(bot.angle) * bot.speed * 0.12;
-            }
-          } else {
-            bot.vx += Math.cos(bot.angle) * bot.speed * 0.14;
-            bot.vy += Math.sin(bot.angle) * bot.speed * 0.14;
-          }
-
-          const dmg = bot.damage || spec.damage;
-          if (dist <= spec.range && now - bot.lastAttack > spec.attackRate) {
-            bot.lastAttack = now;
-            if (spec.isMelee) {
-              sound.playSlash();
-              const sl = {
-                id: 'sl_' + Math.random().toString(36).substr(2, 6),
-                ownerId: bot.id,
-                ownerName: bot.name,
-                x: bot.x, y: bot.y,
-                angle: bot.angle, arc: Math.PI * 0.6,
-                range: spec.range, damage: dmg, life: 6
-              };
-              slashes.push(sl);
-              if (dist < sl.range + myPlayer.radius) takeDamage(sl.damage, bot.name, false);
-            } else {
-              sound.playShoot();
-              bullets.push({
-                id: 'b_' + Math.random().toString(36).substr(2, 6),
-                ownerId: bot.id,
-                ownerName: bot.name,
-                isPlayerBullet: false,
-                x: bot.x + Math.cos(bot.angle) * (bot.radius + 6),
-                y: bot.y + Math.sin(bot.angle) * (bot.radius + 6),
-                vx: Math.cos(bot.angle) * spec.bulletSpeed,
-                vy: Math.sin(bot.angle) * spec.bulletSpeed,
-                damage: dmg, radius: 4, life: 50,
-                color: spec.color
-              });
-            }
-          }
-        } else {
-          if (--bot.wanderTimer <= 0) {
-            bot.angle += (Math.random() - 0.5) * 1.5;
-            bot.wanderTimer = Math.floor(Math.random() * 60 + 60);
-          }
-          bot.vx += Math.cos(bot.angle) * (bot.speed * 0.05);
-          bot.vy += Math.sin(bot.angle) * (bot.speed * 0.05);
         }
 
-        bot.vx *= 0.85;
-        bot.vy *= 0.85;
-        bot.x += bot.vx;
-        bot.y += bot.vy;
-
-        if (bot.hp <= 0) {
-          sound.playExplode();
-          dropCoresAt(bot.x, bot.y, bot.cores);
-
-          if (spec.isSplitter && bot.radius > 16) {
-            for (let s = 0; s < 2; s++) {
-              aiBots.push({
-                id: 'bot_slime_' + Math.random().toString(36).substr(2, 5),
-                name: '小スライム',
-                variant: 'slime',
-                spec: { typeName: '小スライム', hp: 20, speed: 3.2, range: 40, isMelee: true, color: '#06b6d4', border: '#a5f3fc', damage: 5, attackRate: 600, cores: 4 },
-                x: bot.x + (s === 0 ? -10 : 10),
-                y: bot.y + (s === 0 ? -10 : 10),
-                vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
-                angle: Math.random() * Math.PI * 2,
-                hp: 20, maxHp: 20, radius: 14, speed: 3.2, damage: 5, cores: 4, lastAttack: 0, wanderTimer: 0
-              });
-            }
-            triggerPopup(bot.x, bot.y, '分裂！', '#06b6d4');
-          }
-
-          if (spec.isBoss || Math.random() < 0.25) {
-            spawnRandomModule(bot.x, bot.y);
-          }
-
-          let vampVal = (myPlayer.upgrades.vampire || 0) * 10;
-          if (myPlayer.amulet === 'bloodstone') vampVal += 5;
-          if (vampVal > 0) {
-            myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + vampVal);
-          }
-
-          addKillLog(myPlayer.name, bot.name);
-          myPlayer.cores += bot.cores;
-          
-          let expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
-          if (myPlayer.amulet === 'greedeye') expMult += 0.3;
-          myPlayer.exp += Math.round(bot.cores * 5 * expMult);
-
-          aiBots.splice(i, 1);
-          updateLeaderboard();
-        }
-      }
-    }
-
-    function spawnRandomModule(x, y) {
-      const keys = ['crimson', 'aqua', 'void', 'vital'];
-      const k = keys[Math.floor(Math.random() * keys.length)];
-      dropModules.push({
-        id: 'mod_' + Math.random().toString(36).substr(2, 6),
-        type: k,
-        x, y,
-        life: 800
-      });
-      triggerPopup(x, y - 25, 'モジュール出現!', '#c084fc');
-    }
-
-    function checkClassEvolution() {
-      if (myPlayer.level >= 10 && !myPlayer.evolved) {
-        showEvolutionModal();
-      }
-    }
-
-    function showEvolutionModal() {
-      const modal = document.getElementById('evolutionModal');
-      const container = document.getElementById('evolutionChoices');
-      container.innerHTML = '';
-
-      const choices = EVOLUTIONS[myPlayer.baseClass] || [];
-      choices.forEach(evo => {
-        const btn = document.createElement('button');
-        btn.className = 'p-2.5 rounded-xl border border-amber-400/80 bg-slate-800 hover:bg-slate-700 text-left transition flex flex-col gap-0.5 active:scale-95';
-        btn.innerHTML = `
-          <div class="text-xs font-black text-amber-300 flex items-center justify-between">
-            <span>${evo.name}</span>
-            <span class="text-[8px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded">覚醒</span>
-          </div>
-          <div class="text-[9px] text-slate-300">${evo.desc}</div>
-        `;
-        btn.onclick = () => {
-          applyEvolution(evo);
-          modal.classList.add('hidden');
-        };
-        container.appendChild(btn);
-      });
-
-      modal.classList.remove('hidden');
-      sound.playEvolution();
-    }
-
-    function applyEvolution(evo) {
-      myPlayer.evolved = true;
-      myPlayer.classType = evo.id;
-
-      const baseCfg = CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
-      myPlayer.customEvo = {
-        ...baseCfg,
-        ...evo,
-        maxHp: baseCfg.maxHp + (evo.maxHpBonus || 0),
-        speed: evo.speed || baseCfg.speed,
-        arc: evo.arc !== undefined ? evo.arc : baseCfg.arc,
-        range: evo.range || baseCfg.range,
-        damage: evo.damage || baseCfg.damage,
-        attackRate: evo.attackRate || baseCfg.attackRate,
-        bulletSpeed: evo.bulletSpeed || baseCfg.bulletSpeed || 15
-      };
-
-      triggerPopup(myPlayer.x, myPlayer.y - 45, `覚醒！ ${evo.name}`, '#f59e0b');
-      document.getElementById('hudClass').textContent = evo.name.slice(0, 5);
-      recalcStats();
-    }
-
-    const btnStartEscape = document.getElementById('btnStartEscape');
-    const escapeProgressBox = document.getElementById('escapeProgressBox');
-    const escapeProgressBar = document.getElementById('escapeProgressBar');
-    const escapeCountdownText = document.getElementById('escapeCountdownText');
-
-    btnStartEscape.addEventListener('click', () => {
-      if (!isPlaying || !myPlayer.isAlive || isEscaping) return;
-      isEscaping = true;
-      escapeTimer = 0;
-      
-      const reduction = (myPlayer.upgrades.escapeSpeed || 0) * 0.5;
-      escapeDuration = Math.max(7.5, 10.0 - reduction);
-
-      escapeProgressBox.classList.remove('hidden');
-      sound.playEscapeWarning();
-      triggerPopup(myPlayer.x, myPlayer.y - 45, '脱出シークエンス開始! 10秒防衛せよ!', '#facc15');
-    });
-
-    function cancelEscapeSequence(reason = '被弾により脱出失敗！') {
-      if (!isEscaping) return;
-      isEscaping = false;
-      escapeTimer = 0;
-      escapeProgressBox.classList.add('hidden');
-      sound.playTone(180, 'sawtooth', 0.25, 0.15);
-      triggerPopup(myPlayer.x, myPlayer.y - 40, reason, '#ef4444');
-    }
-
-    function updateEscapeSequence(dt) {
-      if (!isEscaping || !isPlaying || !myPlayer.isAlive) return;
-
-      escapeTimer += dt;
-      const remain = Math.max(0, escapeDuration - escapeTimer);
-      const ratio = Math.min(1.0, escapeTimer / escapeDuration);
-
-      escapeProgressBar.style.width = `${ratio * 100}%`;
-      escapeCountdownText.textContent = `${remain.toFixed(1)}s`;
-
-      if (escapeTimer >= escapeDuration) {
-        isEscaping = false;
-        escapeProgressBox.classList.add('hidden');
-        sound.playEscapeSuccess();
-
-        saveOnSuccessfulEscape();
-
-        if (myPlayerRef) myPlayerRef.remove();
-        isPlaying = false;
-
-        document.getElementById('gameHud').classList.add('hidden');
-        document.getElementById('lobbyScreen').classList.remove('hidden');
-        document.getElementById('lobbyNetLog').textContent = '安全脱出成功！強化＆所持コアを維持。';
-
-        checkSavePreview();
-      }
-    }
-
-    function renderAmuletSelector() {
-      const container = document.getElementById('amuletSelectorContainer');
-      container.innerHTML = '';
-      Object.keys(AMULET_TYPES).forEach(k => {
-        const s = AMULET_TYPES[k];
-        const isSelected = myPlayer.amulet === k;
-        const btn = document.createElement('button');
-        btn.className = `p-1 rounded-lg border text-left flex flex-col transition active:scale-95 ${
-          isSelected ? 'border-amber-400 bg-amber-950/40 text-amber-300 ring-1 ring-amber-400' : 'border-slate-800 bg-slate-900/60 text-slate-400'
-        }`;
-        btn.innerHTML = `
-          <span class="text-[8px] font-bold ${isSelected ? 'text-amber-300' : 'text-slate-200'}">${s.name}</span>
-          <span class="text-[6.5px] leading-tight text-slate-400 mt-0.2">${s.desc}</span>
-        `;
-        btn.onclick = () => {
-          myPlayer.amulet = k;
-          recalcStats();
-          renderAmuletSelector();
-          sound.playTone(600, 'sine', 0.1, 0.08);
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function renderUpgradeModal() {
-      document.getElementById('modalSp').textContent = myPlayer.sp;
-      document.getElementById('modalCores').textContent = myPlayer.cores;
-      document.getElementById('modalSaveStatus').textContent = isPlaying ? '未脱出' : '脱出維持済';
-
-      renderAmuletSelector();
-
-      const list = document.getElementById('upgradeStatsList');
-      list.innerHTML = '';
-
-      UPGRADE_TYPES.forEach(up => {
-        const curLv = myPlayer.upgrades[up.id] || 0;
-        const isMax = curLv >= up.maxLv;
-        const canBuy = myPlayer.sp >= up.cost && !isMax;
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between p-1.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs';
-        row.innerHTML = `
-          <div>
-            <div class="font-bold text-slate-200 text-[9px] sm:text-[10px]">${up.name} <span class="text-[8px] text-amber-400 font-mono">Lv.${curLv}/${up.maxLv}</span></div>
-            <div class="text-[7.5px] text-slate-400">${up.desc}</div>
-          </div>
-          <button class="upgrade-action-btn px-2 py-0.5 rounded font-bold text-[8.5px] transition ${
-            isMax ? 'bg-slate-800 text-slate-500 cursor-not-allowed' :
-            canBuy ? 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95' :
-            'bg-slate-800 text-slate-500 cursor-not-allowed'
-          }" data-id="${up.id}">
-            ${isMax ? 'MAX' : `${up.cost}SP`}
-          </button>
-        `;
-        list.appendChild(row);
-      });
-
-      document.querySelectorAll('.upgrade-action-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.id;
-          const up = UPGRADE_TYPES.find(u => u.id === id);
-          if (up && myPlayer.sp >= up.cost && (myPlayer.upgrades[id] || 0) < up.maxLv) {
-            myPlayer.sp -= up.cost;
-            myPlayer.upgrades[id] = (myPlayer.upgrades[id] || 0) + 1;
-            sound.playTone(550, 'triangle', 0.1, 0.1);
-            recalcStats();
-            renderUpgradeModal();
-          }
-        });
-      });
-    }
-
-    document.getElementById('btnOpenUpgrade').addEventListener('click', () => {
-      isUpgrading = true;
-      renderUpgradeModal();
-      document.getElementById('upgradeModal').classList.remove('hidden');
-    });
-    document.getElementById('btnCloseUpgrade').addEventListener('click', () => {
-      isUpgrading = false;
-      document.getElementById('upgradeModal').classList.add('hidden');
-    });
-
-    function updateLeaderboard() {
-      const all = [];
-      if (myPlayer.isAlive) {
-        all.push({ name: myPlayer.name, cores: myPlayer.cores, tag: 'YOU', color: 'text-amber-300' });
-      }
-      remotePlayers.forEach(rp => {
-        all.push({ name: rp.name, cores: rp.cores || 0, tag: rp.isEscaping ? '脱出' : '他', color: rp.isEscaping ? 'text-amber-400' : 'text-cyan-300' });
-      });
-      aiBots.forEach(bot => {
-        all.push({ name: bot.name, cores: bot.cores, tag: bot.spec.isBoss ? 'BOSS' : 'BOT', color: bot.spec.isBoss ? 'text-pink-400 font-bold' : 'text-rose-400' });
-      });
-
-      all.sort((a, b) => b.cores - a.cores);
-
-      const list = document.getElementById('leaderboardList');
-      list.innerHTML = '';
-      all.slice(0, 3).forEach((item, i) => {
-        const li = document.createElement('li');
-        li.className = `flex justify-between items-center text-[7px] leading-tight ${item.color}`;
-        li.innerHTML = `
-          <span class="truncate max-w-[50px] font-sans">${i + 1}.${item.name}</span>
-          <span class="font-mono text-amber-300 font-bold ml-0.5">${item.cores}</span>
-        `;
-        list.appendChild(li);
-      });
-    }
-
-    function recalcStats() {
-      let cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
-      const u = myPlayer.upgrades;
-
-      let extraHp = (u.maxHp * 30) + ((myPlayer.level - 1) * 12);
-      let extraShield = (u.baseShield || 0) * 40;
-      if (myPlayer.amulet === 'forcefield') extraShield += 40;
-
-      myPlayer.modules.forEach(mod => {
-        const mult = mod.star || 1;
-        if (mod.type === 'vital') extraHp += 40 * mult;
-        if (mod.type === 'aqua') extraShield += 35 * mult;
-      });
-
-      myPlayer.maxHp = Math.max(100, cfg.maxHp + extraHp);
-      myPlayer.shield = Math.max(myPlayer.shield, extraShield);
-      if (myPlayer.hp > myPlayer.maxHp) myPlayer.hp = myPlayer.maxHp;
-
-      document.getElementById('hudAmuletBadge').textContent = AMULET_TYPES[myPlayer.amulet].name;
-    }
-
-    function checkModulePickupInteraction() {
-      const promptEl = document.getElementById('modulePickupPrompt');
-      nearbyModuleToPick = null;
-
-      for (let i = 0; i < dropModules.length; i++) {
-        const m = dropModules[i];
-        if (Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 35) {
-          nearbyModuleToPick = { index: i, module: m };
-          break;
-        }
-      }
-
-      if (nearbyModuleToPick) {
-        const def = MODULE_DEFINITIONS[nearbyModuleToPick.module.type];
-        document.getElementById('promptModName').textContent = def.name;
-        document.getElementById('promptModName').style.color = def.color;
-        document.getElementById('promptModDesc').textContent = def.desc;
-        promptEl.classList.remove('hidden');
-      } else {
-        promptEl.classList.add('hidden');
-      }
-    }
-
-    document.getElementById('btnPickModule').addEventListener('click', () => {
-      if (!nearbyModuleToPick) return;
-      const mod = nearbyModuleToPick.module;
-      addOrUpgradeModule(mod.type);
-      dropModules.splice(nearbyModuleToPick.index, 1);
-      nearbyModuleToPick = null;
-      document.getElementById('modulePickupPrompt').classList.add('hidden');
-      sound.playEquip();
-    });
-
-    function addOrUpgradeModule(type) {
-      const existing = myPlayer.modules.find(m => m.type === type);
-      if (existing) {
-        if (existing.star < 3) {
-          existing.star = (existing.star || 1) + 1;
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `モジュール合成！ ★${existing.star} ${MODULE_DEFINITIONS[type].name}`, '#f59e0b');
-        } else {
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `モジュール最大強化済`, '#94a3b8');
-        }
-      } else {
-        if (myPlayer.modules.length < 3) {
-          myPlayer.modules.push({ type, star: 1 });
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `装備: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
-        } else {
-          myPlayer.modules.shift();
-          myPlayer.modules.push({ type, star: 1 });
-          triggerPopup(myPlayer.x, myPlayer.y - 35, `入替: ${MODULE_DEFINITIONS[type].name}`, MODULE_DEFINITIONS[type].color);
-        }
-      }
-      recalcStats();
-      updateModuleSlotsHUD();
-    }
-
-    function updateModuleSlotsHUD() {
-      const container = document.getElementById('hudModuleSlots');
-      container.innerHTML = '';
-      for (let i = 0; i < 3; i++) {
-        const mod = myPlayer.modules[i];
-        const el = document.createElement('div');
-        if (mod) {
-          const def = MODULE_DEFINITIONS[mod.type];
-          el.className = 'w-3.5 h-3.5 rounded-full border border-white flex items-center justify-center text-[7px] font-bold shadow';
-          el.style.backgroundColor = def.color;
-          el.textContent = mod.star > 1 ? `★${mod.star}` : def.icon;
-          el.title = `${def.name} ★${mod.star || 1}`;
-        } else {
-          el.className = 'w-3.5 h-3.5 rounded-full border border-dashed border-slate-600 bg-slate-950 flex items-center justify-center text-[6px] text-slate-500';
-          el.textContent = '-';
-        }
-        container.appendChild(el);
-      }
-    }
-
-    function performManualAttack() {
-      if (!isPlaying || !myPlayer.isAlive) return;
-      const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
-      const now = performance.now();
-
-      const rateModifier = myPlayer.amulet === 'piercegem' ? 0.9 : 1.0;
-      if (now - myPlayer.lastAttackTime < cfg.attackRate * rateModifier) return;
-      myPlayer.lastAttackTime = now;
-
-      let dmgBuff = 1 + (myPlayer.upgrades.dmg || 0) * 0.1;
-      const crimsonMod = myPlayer.modules.find(m => m.type === 'crimson');
-      if (crimsonMod) dmgBuff += 0.1 * (crimsonMod.star || 1);
-
-      let critChance = (myPlayer.upgrades.crit || 0) * 0.06;
-      if (myPlayer.amulet === 'bloodstone') critChance += 0.15;
-
-      let isCrit = false;
-      if (Math.random() < critChance) {
-        const critMultiplier = 1.8 + (myPlayer.upgrades.critDmg || 0) * 0.2;
-        dmgBuff *= critMultiplier;
-        isCrit = true;
-      }
-      const damage = Math.round(cfg.damage * dmgBuff);
-
-      const voidMod = myPlayer.modules.find(m => m.type === 'void');
-      let extraReach = 1 + (myPlayer.upgrades.reach || 0) * 0.08;
-      if (voidMod) extraReach += 0.12 * (voidMod.star || 1);
-      if (myPlayer.amulet === 'piercegem') extraReach += 0.15;
-
-      if (cfg.isMelee) {
-        sound.playSlash();
-        myPlayer.slashAnimation = 10;
-        const slashObj = {
-          id: 'sl_' + Math.random().toString(36).substr(2, 6),
-          ownerId: myPlayer.id,
-          x: myPlayer.x, y: myPlayer.y,
-          angle: myPlayer.angle, arc: cfg.arc || (Math.PI * 0.75), range: cfg.range * extraReach,
-          damage, life: 8, isCrit
-        };
-        slashes.push(slashObj);
-        checkMeleeHits(slashObj);
-      } else {
-        sound.playShoot();
-        const count = cfg.multiShot || 1;
-        const bSpeed = (cfg.bulletSpeed || 15) * (1 + (myPlayer.upgrades.bulletSpeed || 0) * 0.12);
-        for (let i = 0; i < count; i++) {
-          const spreadAngle = myPlayer.angle + (i - (count - 1) / 2) * 0.18;
-          const bullet = {
-            id: 'b_' + Math.random().toString(36).substr(2, 6),
-            ownerId: myPlayer.id,
-            isPlayerBullet: true,
-            x: myPlayer.x + Math.cos(spreadAngle) * (myPlayer.radius + 8),
-            y: myPlayer.y + Math.sin(spreadAngle) * (myPlayer.radius + 8),
-            vx: Math.cos(spreadAngle) * bSpeed,
-            vy: Math.sin(spreadAngle) * bSpeed,
-            damage, radius: isCrit ? 7 : (cfg.bulletSize || 5), life: Math.round(65 * extraReach),
-            color: isCrit ? '#facc15' : myPlayer.baseClass === 'sorcerer' ? '#c084fc' : '#38bdf8',
-            isCrit,
-            isFreeze: cfg.isFreeze
-          };
-          bullets.push(bullet);
-        }
-      }
-    }
-
-    function checkMeleeHits(sl) {
-      aiBots.forEach(bot => {
-        const dist = Math.hypot(bot.x - sl.x, bot.y - sl.y);
-        const ang = Math.atan2(bot.y - sl.y, bot.x - sl.x);
-        const diff = Math.abs(normalizeAngle(ang - sl.angle));
-        if (dist < sl.range + bot.radius && diff < sl.arc / 2) {
-          bot.hp -= sl.damage;
-          sound.playHit();
-          triggerPopup(bot.x, bot.y, sl.isCrit ? `CRIT! -${sl.damage}` : `-${sl.damage}`, sl.isCrit ? '#facc15' : '#f43f5e');
-        }
-      });
-    }
-
-    function normalizeAngle(a) {
-      while (a > Math.PI) a -= Math.PI * 2;
-      while (a < -Math.PI) a += Math.PI * 2;
-      return a;
-    }
-
-    function takeDamage(dmg, attacker, isFromPlayer = false) {
-      if (!myPlayer.isAlive) return;
-
-      // ★ 強化メニュー閲覧中はBOTダメージを完全無効化
-      if (isUpgrading && !isFromPlayer) {
-        triggerPopup(myPlayer.x, myPlayer.y - 20, '無敵(強化中)', '#38bdf8');
-        return;
-      }
-
-      sound.playHit();
-
-      if (isEscaping) {
-        cancelEscapeSequence('被弾により脱出失敗！');
-      }
-
-      let armorRed = (myPlayer.upgrades.armor || 0) * 0.04;
-      if (myPlayer.amulet === 'forcefield') armorRed += 0.1;
-
-      dmg = Math.max(1, Math.round(dmg * (1 - armorRed)));
-
-      const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass];
-      const reflectPercent = (cfg && cfg.reflectArmor ? cfg.reflectArmor : 0) + (myPlayer.upgrades.thorns || 0) * 0.2;
-      if (reflectPercent > 0 && !isFromPlayer) {
-        const refDmg = Math.round(dmg * reflectPercent);
-        aiBots.forEach(bot => {
-          if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < 140) {
-            bot.hp -= refDmg;
-            triggerPopup(bot.x, bot.y, `反撃 -${refDmg}`, '#f59e0b');
-          }
-        });
-      }
-
-      if (myPlayer.shield > 0) {
-        if (myPlayer.shield >= dmg) { myPlayer.shield -= dmg; dmg = 0; }
-        else { dmg -= myPlayer.shield; myPlayer.shield = 0; }
-      }
-
-      myPlayer.hp -= dmg;
-      triggerPopup(myPlayer.x, myPlayer.y - 20, `-${dmg}`, '#f43f5e');
-
-      if (myPlayer.hp <= 0) {
-        myPlayer.isAlive = false;
-        sound.playExplode();
-        purgeSaveData();
-
-        if (myPlayerRef) myPlayerRef.remove();
-
-        document.getElementById('deathModal').classList.remove('hidden');
-        addKillLog(attacker, myPlayer.name);
-      }
-    }
-
-    function dropCoresAt(x, y, amount) {
-      for (let i = 0; i < Math.min(5, Math.max(2, amount)); i++) {
-        dropCores.push({
-          id: 'c_' + Math.random().toString(36).substr(2, 6),
-          x: x + (Math.random() - 0.5) * 40,
-          y: y + (Math.random() - 0.5) * 40,
-          val: Math.max(1, Math.floor(amount / 3))
-        });
-      }
-    }
-
-    function triggerPopup(x, y, text, color) {
-      popups.push({ x, y, text, color, life: 35 });
-    }
-
-    function addKillLog(killer, victim) {
-      const feed = document.getElementById('killFeed');
-      const item = document.createElement('div');
-      item.className = 'bg-slate-900/90 px-1.5 py-0.5 rounded-full border border-slate-700 text-[7px] text-white';
-      item.innerHTML = `<span class="text-rose-400 font-bold">${killer}</span> ⚔️ <span class="text-slate-300">${victim}</span>`;
-      feed.prepend(item);
-      setTimeout(() => item.remove(), 3500);
-    }
-
-    let joyTouchId = null;
-    let joyCenter = { x: 0, y: 0 };
-    let joyVector = { x: 0, y: 0 };
-    const joyZone = document.getElementById('joystickZone');
-    const joyKnob = document.getElementById('joystickKnob');
-
-    function updateJoystick(cx, cy) {
-      const dx = cx - joyCenter.x;
-      const dy = cy - joyCenter.y;
-      const dist = Math.hypot(dx, dy);
-      const maxR = 45;
-      const angle = Math.atan2(dy, dx);
-      const bounded = Math.min(dist, maxR);
-
-      joyKnob.style.transform = `translate(calc(-50% + ${Math.cos(angle) * bounded}px), calc(-50% + ${Math.sin(angle) * bounded}px))`;
-      if (dist > 5) {
-        joyVector = { x: Math.cos(angle) * (bounded / maxR), y: Math.sin(angle) * (bounded / maxR) };
-        myPlayer.angle = angle;
-      } else {
-        joyVector = { x: 0, y: 0 };
-      }
-    }
-
-    joyZone.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (joyTouchId !== null) return;
-      const t = e.changedTouches[0];
-      joyTouchId = t.identifier;
-      const r = joyZone.getBoundingClientRect();
-      joyCenter = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-      updateJoystick(t.clientX, t.clientY);
-    }, { passive: false });
-
-    window.addEventListener('touchmove', (e) => {
-      if (joyTouchId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) {
-          updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-          break;
-        }
-      }
-    }, { passive: false });
-
-    function resetJoy() {
-      joyTouchId = null;
-      joyVector = { x: 0, y: 0 };
-      joyKnob.style.transform = 'translate(-50%, -50%)';
-    }
-    window.addEventListener('touchend', (e) => {
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) { resetJoy(); break; }
-      }
-    });
-    window.addEventListener('touchcancel', resetJoy);
-
-    document.getElementById('btnAttack').addEventListener('touchstart', (e) => { e.preventDefault(); performManualAttack(); });
-    document.getElementById('btnAttack').addEventListener('mousedown', (e) => { e.preventDefault(); performManualAttack(); });
-    
-    document.getElementById('btnDash').addEventListener('click', () => {
-      const staminaCost = Math.max(10, 30 - (myPlayer.upgrades.stamina || 0) * 3);
-      if (!isPlaying || !myPlayer.isAlive || myPlayer.stamina < staminaCost) return;
-      myPlayer.stamina -= staminaCost;
-      myPlayer.isDashing = true;
-      sound.playTone(320, 'triangle', 0.1, 0.1);
-      myPlayer.vx += Math.cos(myPlayer.angle) * 17;
-      myPlayer.vy += Math.sin(myPlayer.angle) * 17;
-      
-      const dashTime = myPlayer.amulet === 'windchime' ? 280 : 200;
-      setTimeout(() => { myPlayer.isDashing = false; }, dashTime);
-    });
-
-    document.getElementById('btnSkill').addEventListener('click', () => {
-      if (!isPlaying || !myPlayer.isAlive || myPlayer.skillCooldown > 0) return;
-      const baseCD = 240;
-      const cdReduction = (myPlayer.upgrades.cdr || 0) * 0.08;
-      myPlayer.skillCooldown = Math.round(baseCD * (1 - cdReduction));
-
-      sound.playSlash();
-      const spin = {
-        id: 'spin_' + Math.random().toString(36).substr(2, 6),
-        ownerId: myPlayer.id,
-        x: myPlayer.x, y: myPlayer.y, angle: 0, arc: Math.PI * 2, range: 125, damage: 60, life: 10, isCrit: true
-      };
-      slashes.push(spin);
-      checkMeleeHits(spin);
-      triggerPopup(myPlayer.x, myPlayer.y, '旋風演舞!', '#f43f5e');
-    });
-
-    let lastFrameTime = performance.now();
-
-    function update() {
-      const now = performance.now();
-      const dt = (now - lastFrameTime) / 1000;
-      lastFrameTime = now;
-
-      if (!isPlaying || !myPlayer.isAlive) return;
-
-      updateEscapeSequence(dt);
-      checkModulePickupInteraction();
-
-      const cfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass] || CLASS_CONFIGS.blademaster;
-      let speedBuff = 1 + (myPlayer.upgrades.speed || 0) * 0.05;
-      
-      const vitalMod = myPlayer.modules.find(m => m.type === 'vital');
-      if (vitalMod) speedBuff += 0.04 * (vitalMod.star || 1);
-      if (myPlayer.amulet === 'windchime') speedBuff += 0.08;
-
-      const curSpeed = (myPlayer.isDashing ? cfg.speed * 2.1 : cfg.speed) * speedBuff;
-      const friction = myPlayer.onIce ? 0.98 : 0.85;
-
-      myPlayer.vx += joyVector.x * curSpeed * (myPlayer.onIce ? 0.15 : 0.28);
-      myPlayer.vy += joyVector.y * curSpeed * (myPlayer.onIce ? 0.15 : 0.28);
-      myPlayer.vx *= friction;
-      myPlayer.vy *= friction;
-
-      myPlayer.x = Math.max(myPlayer.radius, Math.min(WORLD_WIDTH - myPlayer.radius, myPlayer.x + myPlayer.vx));
-      myPlayer.y = Math.max(myPlayer.radius, Math.min(WORLD_HEIGHT - myPlayer.radius, myPlayer.y + myPlayer.vy));
-
-      myPlayer.inBush = false;
-      myPlayer.onIce = false;
-
-      fieldGimmicks.forEach(g => {
-        const d = Math.hypot(myPlayer.x - g.x, myPlayer.y - g.y);
-
-        if (d < myPlayer.radius + g.radius) {
-          if (g.type === 'bouncer') {
-            const ang = Math.atan2(myPlayer.y - g.y, myPlayer.x - g.x);
-            myPlayer.vx = Math.cos(ang) * g.force;
-            myPlayer.vy = Math.sin(ang) * g.force;
-            sound.playBounce();
-            triggerPopup(g.x, g.y, 'バウンド!', '#f59e0b');
-          } else if (g.type === 'pulse') {
-            myPlayer.vx += Math.cos(g.angle) * g.power;
-            myPlayer.vy += Math.sin(g.angle) * g.power;
-          } else if (g.type === 'magnet_hazard') {
-            const ang = Math.atan2(g.y - myPlayer.y, g.x - myPlayer.x);
-            myPlayer.vx += Math.cos(ang) * 1.5;
-            myPlayer.vy += Math.sin(ang) * 1.5;
-          } else if (g.type === 'geyser' && g.active) {
-            takeDamage(g.dps, '毒間欠泉', false);
-          } else if (g.type === 'fountain') {
-            myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + g.healRate);
-          } else if (g.type === 'recharge') {
-            if (myPlayer.shield < 90) myPlayer.shield += 0.6;
-            if (myPlayer.stamina < 100) myPlayer.stamina += 0.9;
-          } else if (g.type === 'teleport' && g.cooldown <= 0) {
-            sound.playWarp();
-            myPlayer.x = g.targetX;
-            myPlayer.y = g.targetY;
-            g.cooldown = 120;
-            triggerPopup(myPlayer.x, myPlayer.y, 'ワープ！', '#a855f7');
-          } else if (g.type === 'bush') {
-            myPlayer.inBush = true;
-          } else if (g.type === 'ice') {
-            myPlayer.onIce = true;
-          } else if (g.type === 'storm' && g.discharge) {
-            takeDamage(15, '雷雲放電', false);
-            sound.playThunder();
-          }
+        const settingsButton = document.createElement("button");
+        settingsButton.className = "game-btn settings-trigger special";
+        settingsButton.innerText = "設定";
+        settingsButton.onclick = openSettings;
+        listContainer.appendChild(settingsButton);
+
+        let dataManagementButton = null;
+        const dmStatus = localStorage.getItem(storageKeyPrefix + "datamanagement");
+        if (defaultUnlockedIds.includes("datamanagement") || dmStatus === unlockedValue || dmStatus === "1" || dmStatus === "true") {
+            dataManagementButton = createGameButton("datamanagement", gameLibrary["datamanagement"]);
         }
 
-        if (g.type === 'teleport' && g.cooldown > 0) g.cooldown--;
-        if (g.type === 'geyser') {
-          if (++g.timer > 180) {
-            g.timer = 0;
-            g.active = !g.active;
-          }
-        }
-        if (g.type === 'storm') {
-          if (++g.timer > 160) {
-            g.timer = 0;
-            g.discharge = true;
-            setTimeout(() => g.discharge = false, 300);
-          }
-        }
-      });
-
-      const magnetRange = 50 + (myPlayer.upgrades.magnet || 0) * 50;
-      for (let i = dropCores.length - 1; i >= 0; i--) {
-        const c = dropCores[i];
-        if (Math.hypot(c.x - myPlayer.x, c.y - myPlayer.y) < magnetRange) {
-          let coreVal = c.val;
-          let expGain = c.val * 6;
-          if (myPlayer.amulet === 'greedeye') {
-            coreVal = Math.round(coreVal * 1.3);
-            expGain = Math.round(expGain * 1.3);
-          }
-          myPlayer.cores += coreVal;
-
-          const expMult = 1 + (myPlayer.upgrades.expBoost || 0) * 0.2;
-          myPlayer.exp += Math.round(expGain * expMult);
-
-          sound.playTone(1200, 'sine', 0.08, 0.08);
-          triggerPopup(c.x, c.y, `+${coreVal} コア`, '#facc15');
-          dropCores.splice(i, 1);
-
-          if (myPlayer.exp >= myPlayer.nextExp) {
-            myPlayer.level++;
-            myPlayer.exp -= myPlayer.nextExp;
-            myPlayer.nextExp = Math.round(myPlayer.nextExp * 1.35);
-            myPlayer.sp += 1;
-            triggerPopup(myPlayer.x, myPlayer.y - 40, 'LEVEL UP!', '#38bdf8');
-            recalcStats();
-            checkClassEvolution();
-          }
-          updateLeaderboard();
-        }
-      }
-
-      for (let i = dropModules.length - 1; i >= 0; i--) {
-        if (--dropModules[i].life <= 0) dropModules.splice(i, 1);
-      }
-
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.x += b.vx;
-        b.y += b.vy;
-        if (--b.life <= 0) { bullets.splice(i, 1); continue; }
-
-        if (b.ownerId !== myPlayer.id && Math.hypot(b.x - myPlayer.x, b.y - myPlayer.y) < myPlayer.radius + b.radius) {
-          takeDamage(b.damage, b.ownerName || '敵', !!b.isPlayerBullet);
-          bullets.splice(i, 1);
-          continue;
+        if (dataManagementButton) {
+            listContainer.appendChild(dataManagementButton);
         }
 
-        if (b.ownerId === myPlayer.id) {
-          for (let j = 0; j < aiBots.length; j++) {
-            const bot = aiBots[j];
-            if (Math.hypot(b.x - bot.x, b.y - bot.y) < bot.radius + b.radius) {
-              bot.hp -= b.damage;
-              sound.playHit();
-
-              if (b.isFreeze) bot.speed = Math.max(1.0, bot.speed * 0.6);
-              triggerPopup(bot.x, bot.y, b.isCrit ? `CRIT! -${b.damage}` : `-${b.damage}`, b.isCrit ? '#facc15' : '#f43f5e');
-              bullets.splice(i, 1);
-              break;
-            }
-          }
+        if (!hasGames && !dataManagementButton) {
+            listContainer.innerHTML = '<div class="no-game">解放されているゲームがありません。<br><span style="font-size:11px; color:#666;">（テスト用にストレージデータを保存してください）</span></div>';
         }
-      }
-
-      for (let i = slashes.length - 1; i >= 0; i--) {
-        if (--slashes[i].life <= 0) slashes.splice(i, 1);
-      }
-
-      const regenVal = 0.04 + (myPlayer.upgrades.regen || 0) * 0.04 + (cfg.regenBonus || 0);
-      if (myPlayer.hp < myPlayer.maxHp) myPlayer.hp = Math.min(myPlayer.maxHp, myPlayer.hp + regenVal);
-
-      let staminaRegenMult = 1 + (myPlayer.upgrades.staminaRegen || 0) * 0.25;
-      const staminaRegenSpeed = 0.4 * staminaRegenMult;
-      if (myPlayer.stamina < 100) myPlayer.stamina = Math.min(100, myPlayer.stamina + staminaRegenSpeed);
-
-      if (myPlayer.skillCooldown > 0) myPlayer.skillCooldown--;
-      if (myPlayer.slashAnimation > 0) myPlayer.slashAnimation--;
-
-      maintainBots();
-      updateBots();
-      syncNetworkState();
-      updateHud();
     }
 
-    function updateHud() {
-      document.getElementById('hudHpFill').style.width = `${(myPlayer.hp / myPlayer.maxHp) * 100}%`;
-      document.getElementById('hudHpText').textContent = `${Math.ceil(myPlayer.hp)}/${myPlayer.maxHp}`;
-      document.getElementById('hudCores').textContent = myPlayer.cores;
-      document.getElementById('hudSp').textContent = myPlayer.sp;
+    window.onload = loadGames;
+</script>
 
-      const cd = document.getElementById('skillCooldownCover');
-      if (myPlayer.skillCooldown > 0) {
-        cd.classList.remove('hidden');
-        cd.textContent = `${Math.ceil(myPlayer.skillCooldown / 60)}s`;
-      } else cd.classList.add('hidden');
-    }
-
-    function drawEntityHealthBar(x, y, radius, curHp, maxHp) {
-      const barW = Math.max(26, radius * 1.4);
-      const barH = 3;
-      const barX = x - barW / 2;
-      const barY = y - radius - 7;
-      const ratio = Math.max(0, Math.min(1, curHp / maxHp));
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
-
-      let fillColor = '#22c55e';
-      if (ratio < 0.3) fillColor = '#ef4444';
-      else if (ratio < 0.6) fillColor = '#eab308';
-
-      ctx.fillStyle = fillColor;
-      ctx.fillRect(barX, barY, barW * ratio, barH);
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!isPlaying) return;
-
-      const camX = myPlayer.x - canvas.width / 2;
-      const camY = myPlayer.y - canvas.height / 2;
-      const viewR = Math.hypot(canvas.width, canvas.height) / 2 + 100;
-
-      ctx.save();
-      ctx.translate(-camX, -camY);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-      ctx.lineWidth = 1;
-      const g = 100;
-      const sx = Math.floor(camX / g) * g;
-      const sy = Math.floor(camY / g) * g;
-      for (let x = sx; x < camX + canvas.width + g; x += g) {
-        ctx.beginPath(); ctx.moveTo(x, camY); ctx.lineTo(x, camY + canvas.height); ctx.stroke();
-      }
-      for (let y = sy; y < camY + canvas.height + g; y += g) {
-        ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + canvas.width, y); ctx.stroke();
-      }
-
-      // ギミック描画
-      fieldGimmicks.forEach(gim => {
-        if (Math.hypot(gim.x - myPlayer.x, gim.y - myPlayer.y) > viewR) return;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(gim.x, gim.y, gim.radius, 0, Math.PI * 2);
-
-        if (gim.type === 'bush') {
-          ctx.fillStyle = 'rgba(21, 128, 61, 0.35)';
-          ctx.fill();
-          ctx.strokeStyle = '#22c55e';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        } else if (gim.type === 'ice') {
-          ctx.fillStyle = 'rgba(103, 232, 249, 0.2)';
-          ctx.fill();
-          ctx.strokeStyle = '#a5f3fc';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        } else if (gim.type === 'fountain') {
-          ctx.fillStyle = 'rgba(52, 211, 153, 0.25)';
-          ctx.fill();
-          ctx.strokeStyle = '#34d399';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        } else if (gim.type === 'recharge') {
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
-          ctx.fill();
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        } else if (gim.type === 'storm') {
-          ctx.fillStyle = gim.discharge ? 'rgba(234, 179, 8, 0.5)' : 'rgba(234, 179, 8, 0.15)';
-          ctx.fill();
-          ctx.strokeStyle = '#eab308';
-          ctx.lineWidth = 3;
-          ctx.stroke();
-        } else {
-          ctx.fillStyle = `${gim.color}22`;
-          ctx.fill();
-          ctx.strokeStyle = gim.color;
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-        }
-
-        ctx.font = 'bold 8px sans-serif';
-        ctx.fillStyle = gim.color;
-        ctx.textAlign = 'center';
-        let label = '★BOUNCE';
-        if (gim.type === 'pulse') label = '➔PULSE';
-        if (gim.type === 'geyser') label = gim.active ? '⚠POISON' : '💤GEYSER';
-        if (gim.type === 'fountain') label = '♥HEAL';
-        if (gim.type === 'recharge') label = '⚡STATION';
-        if (gim.type === 'storm') label = gim.discharge ? '⚡STORM' : '☁CLOUD';
-        if (gim.type === 'teleport') label = '✦WARP';
-        if (gim.type === 'magnet_hazard') label = '🧲PULL';
-        if (gim.type === 'bush') label = '🍃BUSH';
-        if (gim.type === 'ice') label = '❄ICE';
-        ctx.fillText(label, gim.x, gim.y + 3);
-        ctx.restore();
-      });
-
-      // モジュールオーブ
-      dropModules.forEach(m => {
-        const def = MODULE_DEFINITIONS[m.type];
-        const isNear = Math.hypot(m.x - myPlayer.x, m.y - myPlayer.y) < myPlayer.radius + 35;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, 11, 0, Math.PI * 2);
-        ctx.fillStyle = def.color;
-        ctx.fill();
-        ctx.strokeStyle = isNear ? '#38bdf8' : '#ffffff';
-        ctx.lineWidth = isNear ? 3 : 1.5;
-        ctx.stroke();
-
-        ctx.font = 'bold 9px sans-serif';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText(def.icon, m.x, m.y + 3);
-        ctx.restore();
-      });
-
-      // ドロップコア
-      dropCores.forEach(c => {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = '#facc15';
-        ctx.fill();
-        ctx.strokeStyle = '#ca8a04';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      // BOT描画
-      aiBots.forEach(bot => {
-        if (Math.hypot(bot.x - myPlayer.x, bot.y - myPlayer.y) < viewR) {
-          ctx.save();
-          ctx.translate(bot.x, bot.y);
-          ctx.rotate(bot.angle);
-
-          if (bot.stealth) ctx.globalAlpha = 0.2;
-
-          ctx.beginPath();
-          ctx.arc(0, 0, bot.radius, 0, Math.PI * 2);
-          ctx.fillStyle = bot.spec.color;
-          ctx.fill();
-          ctx.strokeStyle = bot.spec.border;
-          ctx.lineWidth = bot.spec.isBoss ? 4 : 2;
-          ctx.stroke();
-          ctx.restore();
-
-          if (!bot.stealth) {
-            drawEntityHealthBar(bot.x, bot.y, bot.radius, bot.hp, bot.maxHp);
-          }
-        }
-      });
-
-      // リモートプレイヤー描画
-      remotePlayers.forEach(rp => {
-        if (Math.hypot(rp.x - myPlayer.x, rp.y - myPlayer.y) < viewR) {
-          ctx.save();
-          ctx.translate(rp.x, rp.y);
-          ctx.rotate(rp.angle);
-
-          if (rp.inBush) ctx.globalAlpha = 0.35;
-
-          ctx.beginPath();
-          ctx.arc(0, 0, 24, 0, Math.PI * 2);
-          ctx.fillStyle = rp.isEscaping ? '#fbbf24' : (rp.evolved ? '#f59e0b' : '#10b981');
-          ctx.fill();
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 3;
-          ctx.stroke();
-          ctx.restore();
-
-          ctx.font = 'bold 8px sans-serif';
-          ctx.fillStyle = rp.isEscaping ? '#fbbf24' : '#a7f3d0';
-          ctx.textAlign = 'center';
-          ctx.fillText(rp.name, rp.x, rp.y - 30);
-          drawEntityHealthBar(rp.x, rp.y, 24, rp.hp, rp.maxHp);
-        }
-      });
-
-      // 弾丸
-      bullets.forEach(b => {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fillStyle = b.color;
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // 斬撃
-      slashes.forEach(sl => {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(sl.x, sl.y, sl.range, sl.angle - sl.arc / 2, sl.angle + sl.arc / 2);
-        ctx.strokeStyle = sl.isCrit ? '#facc15' : '#f43f5e';
-        ctx.lineWidth = 5;
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      // 自プレイヤー
-      if (myPlayer.isAlive) {
-        ctx.save();
-        ctx.globalAlpha = myPlayer.inBush ? 0.5 : 1.0;
-
-        if (isEscaping) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(myPlayer.x, myPlayer.y, myPlayer.radius + 8, 0, Math.PI * 2);
-          ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 3;
-          ctx.setLineDash([4, 4]);
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        if (isUpgrading) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(myPlayer.x, myPlayer.y, myPlayer.radius + 6, 0, Math.PI * 2);
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([2, 3]);
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        if (myPlayer.evolved) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(myPlayer.x, myPlayer.y, myPlayer.radius + 4, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
-          ctx.fill();
-          ctx.strokeStyle = '#f59e0b';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        ctx.translate(myPlayer.x, myPlayer.y);
-        ctx.rotate(myPlayer.angle);
-
-        ctx.beginPath();
-        ctx.arc(0, 0, myPlayer.radius, 0, Math.PI * 2);
-        ctx.fillStyle = myPlayer.evolved ? '#d97706' : '#0ea5e9';
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(myPlayer.radius - 2, -5);
-        ctx.lineTo(myPlayer.radius + 8, 0);
-        ctx.lineTo(myPlayer.radius - 2, 5);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-
-        ctx.restore();
-
-        drawEntityHealthBar(myPlayer.x, myPlayer.y, myPlayer.radius, myPlayer.hp, myPlayer.maxHp);
-      }
-
-      for (let i = popups.length - 1; i >= 0; i--) {
-        const p = popups[i];
-        ctx.save();
-        ctx.font = 'bold 10px sans-serif';
-        ctx.fillStyle = p.color;
-        ctx.textAlign = 'center';
-        ctx.fillText(p.text, p.x, p.y);
-        ctx.restore();
-        p.y -= 0.6;
-        if (--p.life <= 0) popups.splice(i, 1);
-      }
-
-      ctx.restore();
-      renderRadarMiniMap();
-    }
-
-    // ★ ミニマップの座標・中心描画を完全修正
-    function renderRadarMiniMap() {
-      const mw = 90;
-      const mh = 90;
-      miniCtx.clearRect(0, 0, mw, mh);
-
-      const cx = mw / 2;
-      const cy = mh / 2;
-      const radarRange = 2200; // 索敵範囲
-      const scale = (mw / 2) / radarRange;
-
-      // 背景グリッドサークル
-      miniCtx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
-      miniCtx.lineWidth = 1;
-      miniCtx.beginPath();
-      miniCtx.arc(cx, cy, mw * 0.44, 0, Math.PI * 2);
-      miniCtx.arc(cx, cy, mw * 0.22, 0, Math.PI * 2);
-      miniCtx.stroke();
-
-      // 十字線
-      miniCtx.beginPath();
-      miniCtx.moveTo(cx, 4); miniCtx.lineTo(cx, mh - 4);
-      miniCtx.moveTo(4, cy); miniCtx.lineTo(mw - 4, cy);
-      miniCtx.stroke();
-
-      // ギミック（固定小ドット）
-      fieldGimmicks.forEach(g => {
-        const dx = (g.x - myPlayer.x) * scale;
-        const dy = (g.y - myPlayer.y) * scale;
-        if (Math.hypot(dx, dy) < mw / 2 - 4) {
-          miniCtx.fillStyle = g.type === 'fountain' ? '#34d399' : (g.type === 'teleport' ? '#a855f7' : '#64748b');
-          miniCtx.fillRect(cx + dx - 1, cy + dy - 1, 2, 2);
-        }
-      });
-
-      // 敵BOT
-      aiBots.forEach(b => {
-        const dx = (b.x - myPlayer.x) * scale;
-        const dy = (b.y - myPlayer.y) * scale;
-        if (Math.hypot(dx, dy) < mw / 2 - 4) {
-          miniCtx.fillStyle = b.spec.isBoss ? '#ec4899' : '#f43f5e';
-          miniCtx.beginPath();
-          miniCtx.arc(cx + dx, cy + dy, b.spec.isBoss ? 3 : 2, 0, Math.PI * 2);
-          miniCtx.fill();
-        }
-      });
-
-      // 他プレイヤー
-      remotePlayers.forEach(rp => {
-        const dx = (rp.x - myPlayer.x) * scale;
-        const dy = (rp.y - myPlayer.y) * scale;
-        if (Math.hypot(dx, dy) < mw / 2 - 4) {
-          miniCtx.fillStyle = '#10b981';
-          miniCtx.beginPath();
-          miniCtx.arc(cx + dx, cy + dy, 2.5, 0, Math.PI * 2);
-          miniCtx.fill();
-        }
-      });
-
-      // 自機（中心）
-      miniCtx.fillStyle = '#38bdf8';
-      miniCtx.beginPath();
-      miniCtx.arc(cx, cy, 3, 0, Math.PI * 2);
-      miniCtx.fill();
-
-      // 向きポインタ
-      miniCtx.strokeStyle = '#38bdf8';
-      miniCtx.lineWidth = 1.5;
-      miniCtx.beginPath();
-      miniCtx.moveTo(cx, cy);
-      miniCtx.lineTo(cx + Math.cos(myPlayer.angle) * 7, cy + Math.sin(myPlayer.angle) * 7);
-      miniCtx.stroke();
-    }
-
-    function checkSavePreview() {
-      const banner = document.getElementById('saveStatusBanner');
-      const detail = document.getElementById('saveStatusDetail');
-      const hasSave = loadSavedDataIfValid();
-      if (hasSave) {
-        detail.textContent = `Lv.${myPlayer.level} (コア:${myPlayer.cores} / SP:${myPlayer.sp})`;
-        banner.classList.remove('hidden');
-      } else {
-        banner.classList.add('hidden');
-      }
-    }
-
-    document.getElementById('inputNickname').addEventListener('input', checkSavePreview);
-    document.getElementById('inputRoom').addEventListener('input', checkSavePreview);
-
-    document.querySelectorAll('.class-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.class-btn').forEach(b => {
-          b.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-950/40');
-          b.classList.add('bg-slate-800/50');
-        });
-        btn.classList.add('ring-2', 'ring-rose-400', 'bg-rose-950/40');
-        btn.classList.remove('bg-slate-800/50');
-        myPlayer.baseClass = btn.dataset.class;
-        myPlayer.classType = btn.dataset.class;
-      });
-    });
-
-    document.getElementById('btnJoin').addEventListener('click', () => {
-      sound.init();
-      const n = document.getElementById('inputNickname').value.trim();
-      const r = document.getElementById('inputRoom').value.trim().toUpperCase() || 'OMNI10';
-      myPlayer.name = n || '勇者';
-      roomCode = r;
-
-      const loaded = loadSavedDataIfValid();
-      if (!loaded) {
-        myPlayer.level = 1;
-        myPlayer.exp = 0;
-        myPlayer.nextExp = 40;
-        myPlayer.cores = 0;
-        myPlayer.sp = 0;
-        myPlayer.amulet = 'none';
-        myPlayer.evolved = false;
-        myPlayer.customEvo = null;
-        myPlayer.modules = [];
-        myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, reach: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, escapeSpeed: 0 };
-      }
-
-      // ★ スポーン位置を分散（中央15,000から広範囲にばらけるよう配置）
-      myPlayer.x = 15000 + (Math.random() - 0.5) * 8000;
-      myPlayer.y = 15000 + (Math.random() - 0.5) * 8000;
-      myPlayer.isAlive = true;
-      recalcStats();
-      myPlayer.hp = myPlayer.maxHp;
-
-      initFieldGimmicks();
-      initNetwork(r);
-
-      document.getElementById('hudName').textContent = myPlayer.name;
-      const curCfg = myPlayer.customEvo || CLASS_CONFIGS[myPlayer.baseClass];
-      document.getElementById('hudClass').textContent = curCfg.name.slice(0, 5);
-
-      document.getElementById('lobbyScreen').classList.add('hidden');
-      document.getElementById('gameHud').classList.remove('hidden');
-
-      isPlaying = true;
-      updateLeaderboard();
-      updateModuleSlotsHUD();
-    });
-
-    document.getElementById('btnRespawn').addEventListener('click', () => {
-      purgeSaveData();
-
-      myPlayer.level = 1;
-      myPlayer.exp = 0;
-      myPlayer.nextExp = 40;
-      myPlayer.sp = 0;
-      myPlayer.cores = 0;
-      myPlayer.amulet = 'none';
-      myPlayer.evolved = false;
-      myPlayer.customEvo = null;
-      myPlayer.classType = myPlayer.baseClass;
-      myPlayer.modules = [];
-      myPlayer.upgrades = { maxHp: 0, dmg: 0, speed: 0, regen: 0, armor: 0, crit: 0, critDmg: 0, vampire: 0, magnet: 0, cdr: 0, stamina: 0, staminaRegen: 0, reach: 0, bulletSpeed: 0, baseShield: 0, expBoost: 0, thorns: 0, escapeSpeed: 0 };
-
-      // リスポーンも分散
-      myPlayer.x = 15000 + (Math.random() - 0.5) * 8000;
-      myPlayer.y = 15000 + (Math.random() - 0.5) * 8000;
-      myPlayer.isAlive = true;
-      recalcStats();
-      myPlayer.hp = myPlayer.maxHp;
-      updateModuleSlotsHUD();
-
-      document.getElementById('deathModal').classList.add('hidden');
-      updateLeaderboard();
-      triggerPopup(myPlayer.x, myPlayer.y - 40, '初期状態で再出撃', '#38bdf8');
-    });
-
-    window.onload = () => {
-      checkSavePreview();
-    };
-
-    function loop() {
-      update();
-      render();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  </script>
 </body>
 </html>
