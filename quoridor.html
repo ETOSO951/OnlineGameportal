@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUORIDOR ONLINE - PERFECT</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --bg: #0f172a; --cell: #334155; --p1: #22d3ee; --p2: #f472b6; --wall: #fbbf24; --danger: #ef4444; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; touch-action: none; overflow: hidden; height: 100dvh; }
+        
+        #toast { position: fixed; top: 60px; right: 20px; background: rgba(30, 41, 59, 0.95); color: #fff; padding: 12px 18px; border-radius: 15px 15px 2px 15px; border-right: 4px solid var(--p2); z-index: 1000; opacity: 0; transition: 0.3s; pointer-events: none; max-width: 220px; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        #toast.show { opacity: 1; }
+
+        #setup { padding: 40px 20px; text-align: center; }
+        .header { padding: 8px; background: #1e293b; width: 100%; display: flex; justify-content: space-around; font-size: 0.75rem; border-bottom: 2px solid #334155; }
+        .timer-bar { width: 100%; height: 4px; background: #334155; }
+        #timer-fill { width: 100%; height: 100%; background: var(--p1); transition: width 1s linear; }
+        
+        #board-container { padding: 10px; display: flex; justify-content: center; width: 100%; box-sizing: border-box; }
+        #board { display: grid; grid-template-columns: repeat(8, 28px 10px) 28px; grid-template-rows: repeat(8, 28px 10px) 28px; background: #000; padding: 6px; border: 3px solid #475569; border-radius: 6px; }
+        
+        .cell { background: var(--cell); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .cell.can-move::after { content: ''; width: 8px; height: 8px; background: var(--p1); border-radius: 50%; opacity: 0.6; }
+        .v-wall-slot { width: 10px; height: 28px; background: #1a1a1a; }
+        .h-wall-slot { width: 28px; height: 10px; background: #1a1a1a; }
+        .dot { width: 10px; height: 10px; background: #1a1a1a; }
+        
+        .p-me { width: 20px; height: 20px; background: var(--p1); border-radius: 50%; box-shadow: 0 0 10px var(--p1); z-index: 2; }
+        .p-opp { width: 20px; height: 20px; background: var(--p2); border-radius: 50%; box-shadow: 0 0 10px var(--p2); z-index: 2; }
+        .wall-placed { background: var(--wall) !important; box-shadow: 0 0 8px var(--wall); z-index: 1; }
+        .wall-preview { background: rgba(251, 191, 36, 0.4) !important; }
+        
+        .ui-panel { width: 95%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: auto; padding-bottom: 15px; }
+        .chat-row { display: flex; width: 100%; gap: 8px; }
+        .chat-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #fff; outline: none; }
+        .chat-send { padding: 0 15px; background: #475569; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
+
+        .btn-row { display: flex; width: 100%; gap: 8px; }
+        .mode-btn { flex: 1; padding: 12px; background: #1e293b; border: 2px solid #334155; color: #fff; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .mode-btn.active { border-color: var(--p1); background: #334155; }
+        
+        .surrender-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 8px; border-radius: 5px; font-size: 0.7rem; width: 80px; margin-top: 5px; cursor: pointer; }
+        .confirm-btn { width: 100%; padding: 15px; background: var(--wall); color: #000; border: none; border-radius: 12px; font-weight: bold; display: none; cursor: pointer; }
+        
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div id="overlay">
+    <h1 id="result-title" style="font-size: 3.5rem; margin: 0;">WIN</h1>
+    <p id="result-msg" style="color: #94a3b8; margin: 10px 0 40px;">メッセージ</p>
+</div>
+
+<div id="setup">
+    <h1 style="color:var(--p1); font-size: 2.5rem; margin-bottom: 5px;">QUORIDOR</h1>
+    <p style="color: #64748b; margin-bottom: 30px;">Online Strategy Board Game</p>
+    <input type="text" id="room-id" placeholder="合言葉を決める" style="padding:15px; border-radius:10px; border:none; background:#1e293b; color:#fff; width: 220px; text-align: center; font-size: 1rem;"><br><br>
+    <button onclick="init(true)" style="padding:18px; background:var(--p1); border-radius:12px; font-weight:bold; width:250px; border:none; cursor: pointer; font-size: 1rem;">部屋を作る</button><br>
+    <button onclick="init(false)" style="padding:18px; background:#475569; border-radius:12px; color:#fff; margin-top:12px; width:250px; border:none; cursor: pointer; font-size: 1rem;">参加する</button>
+</div>
+
+<div id="game-ui" class="hidden">
+    <div class="header"><div>自分 壁: <span id="my-walls">10</span></div><div>相手 壁: <span id="opp-walls">10</span></div></div>
+    <div class="timer-bar"><div id="timer-fill"></div></div>
+    <div id="turn-msg" style="text-align:center; padding:8px; font-size:0.85rem; color:var(--wall); font-weight: bold;">接続待機中...</div>
+    
+    <div id="board-container"><div id="board"></div></div>
+
+    <div class="ui-panel">
+        <div class="chat-row">
+            <input type="text" id="chat-msg" class="chat-input" placeholder="メッセージを送る...">
+            <button class="chat-send" onclick="sendChat()">送信</button>
+        </div>
+        <div class="btn-row">
+            <button id="btn-move" class="mode-btn active" onclick="setMode('move')">🚶 移動</button>
+            <button id="btn-wall" class="mode-btn" onclick="setMode('wall')">🚧 壁</button>
+        </div>
+        <button id="btn-confirm" class="confirm-btn" onclick="confirmWallAction()">ここに設置！</button>
+        <button id="btn-surrender" class="surrender-btn" onclick="askSurrender()">🏳 降参</button>
+    </div>
+</div>
+
+<script>
+let peer, conn, isHost, myTurn = false, mode = 'move', gameOver = false;
+let myPos = {r:8, c:4}, oppPos = {r:0, c:4}; 
+let myWallCount = 10, oppWallCount = 10, previewing = null;
+let placedWalls = new Set(), timeLeft = 30, timerInterval;
+const size = 9;
+
+function notify(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function init(h) {
+    const rid = document.getElementById('room-id').value.trim().toLowerCase();
+    if(!rid) return alert("合言葉を入力してください");
+    isHost = h;
+    peer = new Peer(isHost ? rid : rid + "_gst_" + Math.floor(Math.random()*999));
+    peer.on('open', () => {
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game-ui').classList.remove('hidden');
+        if(!isHost) { conn = peer.connect(rid); setupConn(); }
+    });
+    peer.on('connection', c => { conn = c; myTurn = true; setupConn(); });
+    peer.on('error', err => { alert("通信エラー: " + err.type); location.reload(); });
+}
+
+function setupConn() {
+    conn.on('open', () => { updateUI(); startTimer(); notify("対戦相手が接続しました！"); });
+    conn.on('data', d => {
+        if(gameOver) return;
+        if(d.type === 'move') { oppPos = {r: 8 - d.r, c: 8 - d.c}; myTurn = true; startTimer(); }
+        if(d.type === 'wall') { applyWallToData(7 - d.r, 7 - d.c, d.m); oppWallCount--; myTurn = true; startTimer(); }
+        if(d.type === 'chat') { notify(d.msg); }
+        if(d.type === 'gameover') { 
+            const iWin = (d.senderWon === false);
+            endGame(iWin, d.reason); 
+        }
+        updateUI();
+    });
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    if(!myTurn || gameOver) { document.getElementById('timer-fill').style.width = "0%"; return; }
+    timeLeft = 30;
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer-fill').style.width = (timeLeft/30*100) + "%";
+        if(timeLeft <= 0) { clearInterval(timerInterval); forceRandomMove(); }
+    }, 1000);
+}
+
+function askSurrender() {
+    if(gameOver) return;
+    const btn = document.getElementById('btn-surrender');
+    if (btn.innerText === "🏳 降参") {
+        btn.innerText = "本当によろしいですか？";
+        btn.style.width = "160px";
+        setTimeout(() => { if(!gameOver){ btn.innerText = "🏳 降参"; btn.style.width = "80px"; } }, 3000);
+    } else {
+        conn.send({type:'gameover', senderWon: false, reason: '相手が降参しました（あなたの勝利です）'});
+        endGame(false, '降参しました');
+    }
+}
+
+function endGame(win, msg) {
+    gameOver = true;
+    clearInterval(timerInterval);
+    const ov = document.getElementById('overlay');
+    ov.style.display = 'flex';
+    document.getElementById('result-title').innerText = win ? "YOU WIN" : "YOU LOSE";
+    document.getElementById('result-title').style.color = win ? "var(--p1)" : "var(--danger)";
+    document.getElementById('result-msg').innerText = msg || (win ? "ゴールに到達しました！" : "相手が先にゴールしました。");
+}
+
+function forceRandomMove() {
+    const moves = getPossibleMoves();
+    const m = moves[Math.floor(Math.random() * moves.length)];
+    doMove(m.r, m.c);
+}
+
+function sendChat() {
+    const input = document.getElementById('chat-msg');
+    if(!input.value.trim() || gameOver) return;
+    conn.send({type:'chat', msg: "相手: " + input.value});
+    notify("自分: " + input.value);
+    input.value = '';
+}
+
+function isBlocked(r, c, dr, dc) {
+    let wr, wc, type;
+    if (dr === -1) { wr = r - 1; wc = c; type = 'h'; } 
+    else if (dr === 1) { wr = r; wc = c; type = 'h'; } 
+    else if (dc === -1) { wr = r; wc = c - 1; type = 'v'; } 
+    else if (dc === 1) { wr = r; wc = c; type = 'v'; } 
+    if (wr < 0 || wr > 7 || wc < 0 || wc > 7) return false;
+    return placedWalls.has(`${type}-${wr}-${wc}`);
+}
+
+function hasPath(start, goalRow) {
+    let q = [{r: start.r, c: start.c}], v = new Set([`${start.r}-${start.c}`]), h = 0;
+    while(h < q.length) {
+        let curr = q[h++]; if(curr.r === goalRow) return true;
+        [{r:1,c:0},{r:-1,c:0},{r:0,c:1},{r:0,c:-1}].forEach(d => {
+            let nr = curr.r + d.r, nc = curr.c + d.c;
+            if(nr>=0 && nr<9 && nc>=0 && nc<9 && !v.has(`${nr}-${nc}`) && !isBlocked(curr.r, curr.c, d.r, d.c)) {
+                v.add(`${nr}-${nc}`); q.push({r:nr, c:nc});
+            }
+        });
+    }
+    return false;
+}
+
+function getPossibleMoves() {
+    const res = [];
+    [{r:1,c:0},{r:-1,c:0},{r:0,c:1},{r:0,c:-1}].forEach(d => {
+        if(!isBlocked(myPos.r, myPos.c, d.r, d.c)) {
+            let nr = myPos.r + d.r, nc = myPos.c + d.c;
+            if(nr>=0 && nr<9 && nc>=0 && nc<9) {
+                if(nr===oppPos.r && nc===oppPos.c) { // Jump logic
+                    if(!isBlocked(nr, nc, d.r, d.c)) {
+                        let jnr = nr + d.r, jnc = nc + d.c;
+                        if(jnr>=0 && jnr<9 && jnc>=0 && jnc<9) res.push({r:jnr, c:jnc});
+                    }
+                } else { res.push({r:nr, c:nc}); }
+            }
+        }
+    });
+    return res;
+}
+
+function applyWallToData(r, c, m) {
+    placedWalls.add(`${m}-${r}-${c}`);
+    placedWalls.add(m==='v' ? `${m}-${r+1}-${c}` : `${m}-${r}-${c+1}`);
+}
+
+function confirmWallAction() {
+    if(!previewing || myWallCount <= 0 || gameOver) return;
+    const {r,c,m} = previewing;
+    if(placedWalls.has(`${m}-${r}-${c}`)) return;
+    
+    applyWallToData(r,c,m);
+    if(!hasPath(myPos, 0) || !hasPath(oppPos, 8)) {
+        placedWalls.delete(`${m}-${r}-${c}`);
+        placedWalls.delete(m==='v' ? `${m}-${r+1}-${c}` : `${m}-${r}-${c+1}`);
+        return notify("道を完全に塞ぐことはできません！");
+    }
+    
+    myWallCount--;
+    conn.send({type:'wall', r, c, m});
+    myTurn = false; updateUI();
+}
+
+function doMove(r, c) {
+    if(gameOver || !myTurn) return;
+    myPos = {r, c}; 
+    conn.send({type:'move', r, c});
+    if(r === 0) { 
+        conn.send({type:'gameover', senderWon: true, reason: '相手がゴールに到達しました'});
+        endGame(true); 
+    }
+    myTurn = false; updateUI();
+}
+
+function render() {
+    const b = document.getElementById('board'); b.innerHTML = '';
+    const canMoves = myTurn && mode === 'move' && !gameOver ? getPossibleMoves() : [];
+    for(let r=0; r<size; r++) {
+        for(let c=0; c<size; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell' + (canMoves.some(m=>m.r===r && m.c===c) ? ' can-move' : '');
+            if(r===myPos.r && c===myPos.c) cell.innerHTML = `<div class="p-me"></div>`;
+            if(r===oppPos.r && c===oppPos.c) cell.innerHTML = `<div class="p-opp"></div>`;
+            cell.onclick = () => { if(myTurn && mode==='move') doMove(r,c); };
+            b.appendChild(cell);
+            if(c < size-1) {
+                const v = document.createElement('div');
+                v.className = 'v-wall-slot' + (placedWalls.has(`v-${r}-${c}`) ? ' wall-placed' : '');
+                v.id = `v-${r}-${c}`; b.appendChild(v);
+            }
+        }
+        if(r < size-1) {
+            for(let c=0; c<size; c++) {
+                const h = document.createElement('div');
+                h.className = 'h-wall-slot' + (placedWalls.has(`h-${r}-${c}`) ? ' wall-placed' : '');
+                h.id = `h-${r}-${c}`; b.appendChild(h);
+                if(c < size-1) b.appendChild(Object.assign(document.createElement('div'),{className:'dot'}));
+            }
+        }
+    }
+    document.getElementById('board-container').ontouchmove = (e) => {
+        if(!myTurn || mode !== 'wall' || gameOver) return;
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if(!target?.id?.includes('-')) return;
+        let [m, r, c] = target.id.split('-').map((v,i)=>i===0?v:parseInt(v));
+        if(r > 7) r = 7; if(c > 7) c = 7;
+        document.querySelectorAll('.wall-preview').forEach(el => el.classList.remove('wall-preview'));
+        previewing = {r, c, m};
+        document.getElementById(`${m}-${r}-${c}`)?.classList.add('wall-preview');
+        document.getElementById(m==='v' ? `${m}-${r+1}-${c}` : `${m}-${r}-${c+1}`)?.classList.add('wall-preview');
+        document.getElementById('btn-confirm').style.display = 'block';
+    };
+}
+
+function setMode(m) { mode = m; updateUI(); document.getElementById('btn-confirm').style.display='none'; }
+function updateUI() {
+    if(gameOver) return;
+    document.getElementById('my-walls').innerText = myWallCount;
+    document.getElementById('opp-walls').innerText = oppWallCount;
+    document.getElementById('turn-msg').innerText = myTurn ? "あなたの番です" : "相手の番です";
+    document.getElementById('turn-msg').style.color = myTurn ? "var(--p1)" : "#94a3b8";
+    document.getElementById('btn-move').className = mode==='move' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('btn-wall').className = mode==='wall' ? 'mode-btn active' : 'mode-btn';
+    render();
+}
+</script>
+</body>
+</html>
