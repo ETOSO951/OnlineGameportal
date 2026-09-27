@@ -93,10 +93,9 @@ const ALL_SKILLS = {
     back:     { name: "足止め", cost: 65, dur: 80 },
     impact:   { name: "衝撃",   cost: 25, dur: 30 },
     ascend:   { name: "昇天",   cost: 100, dur: 300 },
-    // ★追加技
-    quake:    { name: "地震",   cost: 45, dur: 200 }, // 画面振れ
-    heavy:    { name: "超重力", cost: 55, dur: 240 }, // 極大重力
-    narrow:   { name: "超極狭", cost: 60, dur: 180 }  // 隙間50%極小化
+    quake:    { name: "地震",   cost: 45, dur: 200 },
+    heavy:    { name: "超重力", cost: 55, dur: 240 },
+    narrow:   { name: "超極狭", cost: 60, dur: 180 }
 };
 
 // --- ハプニング定義（追加含む全8種） ---
@@ -106,7 +105,6 @@ const HAPPENINGS = [
     { name: "★妨害側MP全回復！", apply: () => { mp = 100; } },
     { name: "★スローモーション！", apply: () => { activeHappenings.slow = 300; } },
     { name: "★超高速ダッシュ！", apply: () => { activeHappenings.fast = 300; } },
-    // ★追加ハプニング
     { name: "★暗闇の呪い！", apply: () => { activeSkills.blind = 180; } },
     { name: "★超乱気流ブレイク！", apply: () => { activeHappenings.turb = 450; } },
     { name: "★重力反転ワールド！", apply: () => { activeSkills.rev = 180; } }
@@ -189,7 +187,6 @@ function useHandSlot(slotIdx) {
     activeSkills[skillKey] = skill.dur;
     conn.send({ type: "skill", skill: skillKey, dur: skill.dur });
 
-    // 山札から別の技をランダムに補充
     const available = Object.keys(ALL_SKILLS).filter(k => !currentHand.includes(k));
     currentHand[slotIdx] = available[Math.floor(Math.random() * available.length)];
 }
@@ -206,7 +203,6 @@ function startTurn() {
     activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
     lastStageIndex = 0;
 
-    // ★修正ポイント: サボタージュ側に切り替わるたびに自動で技（手札）を更新
     if(!isAttacker()) {
         setupDeck();
     }
@@ -259,7 +255,6 @@ function update(dt) {
     document.getElementById('s2').innerText = scores.p2;
     document.getElementById('stage-display').innerText = stage.name;
 
-    // サボタージュ側のMP回復 ＋ 劣勢時ブースト
     if (!isAttacker()) {
         let baseRecovery = 4.8;
         let deficit = isHost ? (scores.p1 - scores.p2) : (scores.p2 - scores.p1);
@@ -269,7 +264,6 @@ function update(dt) {
         if (mp > 100) mp = 100;
         document.getElementById('mp-bar').style.width = mp + "%";
 
-        // 手札ボタンのUI更新
         currentHand.forEach((key, idx) => {
             const btn = document.getElementById(`slot-${idx}`);
             const sk = ALL_SKILLS[key];
@@ -291,7 +285,6 @@ function update(dt) {
         return;
     }
 
-    // 停止（Freeze）中
     if (activeSkills.freeze > 0) {
         activeSkills.freeze -= 60 * dt;
         return;
@@ -299,7 +292,6 @@ function update(dt) {
 
     checkStageProgress();
 
-    // 物理演算
     let g = stage.g;
     if (activeSkills.gravUp > 0) g *= 2.0;
     if (activeSkills.heavy > 0) g *= 3.5;
@@ -314,7 +306,6 @@ function update(dt) {
     bird.y += bird.v * fpsAdj;
     bird.rot = Math.max(-0.5, Math.min(0.5, bird.v * 0.1));
 
-    // 土管生成
     if (frame % stage.interval === 0) {
         pipes.push({ 
             x: 330, gapY: Math.random() * 200 + 100, 
@@ -328,13 +319,11 @@ function update(dt) {
         });
     }
 
-    // 移動速度
     let baseSpd = stage.speed * (activeSkills.speed > 0 ? 2.5 : 1.5) * 2;
     if (activeHappenings.slow > 0) baseSpd *= 0.6;
     if (activeHappenings.fast > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
 
-    // 隙間計算（縮小・極狭スキル）
     let gapMultiplier = stage.gap;
     if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
     if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
@@ -343,26 +332,25 @@ function update(dt) {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         
-        // ★修正ポイント: 土管の衝突判定（ミス判定）の正確な計算
+        // ★修正された衝突判定
         if (activeSkills.ghost <= 0 && !p.isFake) {
             let hitRadius = activeSkills.giant > 0 ? 20 : 11;
             let pipeWidth = 52;
             let actualGapHeight = 130 * gapMultiplier;
 
-            // X軸方向の重複チェック
+            // X軸方向の重複チェック（鳥が土管の横範囲に入っているか）
             if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + pipeWidth) {
-                // Y軸方向の隙間（安全エリア）から外れた場合ミス
                 let safeTop = myGapY;
                 let safeBottom = myGapY + actualGapHeight;
 
+                // Y軸方向の隙間から外れている（＝上または下の土管に当たっている）場合
                 if ((bird.y - hitRadius < safeTop) || (bird.y + hitRadius > safeBottom)) {
                     die();
                 }
             }
         }
         
-        // スコア加算
-        if (moveSpd > 0 && !p.isFake && !p.passed && p.x < bird.x) { 
+        if (moveSpd > 0 && !p.isFake && !p.passed && p.x + 52 < bird.x) { 
             p.passed = true; 
             scores[currentAttacker]++; 
         }
@@ -371,7 +359,6 @@ function update(dt) {
     if (pipes.length > 0 && pipes[0].x < -100) pipes.shift();
     if (bird.y < 0 || bird.y > 480) die();
 
-    // タイマー減衰
     Object.keys(activeSkills).forEach(k => {
         if (activeSkills[k] > 0) {
             let decay = (k === 'impact') ? 270 : 60;
@@ -449,14 +436,12 @@ function drawBackground(stage) {
 function draw() {
     ctx.save();
 
-    // 地震（quake）スキル演出
     if (activeSkills.quake > 0) {
         let qx = (Math.random() - 0.5) * 10;
         let qy = (Math.random() - 0.5) * 10;
         ctx.translate(qx, qy);
     }
 
-    // 上下反転（flip）スキル発動中
     if (activeSkills.flip > 0) {
         ctx.translate(0, 480);
         ctx.scale(1, -1);
@@ -497,7 +482,6 @@ function draw() {
     drawBird(ctx, bird);
     ctx.restore();
     
-    // 暗闇(Blind)
     if (activeSkills.blind > 0) {
         let g = ctx.createRadialGradient(bird.x, bird.y, 20, bird.x, bird.y, 90);
         g.addColorStop(0, "transparent"); g.addColorStop(1, "black");
@@ -528,7 +512,6 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// --- 入力・UI ---
 const flap = (e) => { 
     if (e && e.target && e.target.closest('#skill-panel')) return;
     if (isAttacker() && !isGameOver) { 
