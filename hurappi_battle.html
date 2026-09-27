@@ -11,7 +11,6 @@
         canvas { display: block; width: 320px; height: 480px; background: #70c5ce; border: 2px solid #333; }
         #ui { background: rgba(0,0,0,0.9); padding: 5px; display: flex; justify-content: space-around; font-size: 14px; border-bottom: 2px solid #444; }
         
-        /* 旧デザインのまま手札4枠＋リロールボタンを配置 */
         #skill-panel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #111; padding: 5px; width: 310px; margin: 0 auto; box-sizing: border-box; }
         .skill-btn { font-size: 10px; padding: 8px 0; background: #333; color: #ccc; border: 1px solid #555; border-radius: 3px; cursor: pointer; text-align: center; }
         .skill-btn.active-skill { border-color: #f8e71c; color: #f8e71c; box-shadow: 0 0 5px #f8e71c; }
@@ -60,7 +59,7 @@
     </div>
 
 <script>
-// --- 初期の全13ステージ定義（完全維持） ---
+// --- 初期の全13ステージ定義 ---
 const STAGES = [
     { name: "NORMAL", bg: "#70c5ce", pipe: "#73bf2e", interval: 105, speed: 1.0, gap: 1.0, g:0.28, j:-5.2 },
     { name: "DUSK", bg: "#e67e22", pipe: "#a35200", interval: 100, speed: 1.1, gap: 1.0, g:0.28, j:-5.2 },
@@ -77,11 +76,11 @@ const STAGES = [
     { name: "METEOR", bg: "#000000", pipe: "#73bf2e", interval: 95, speed: 1.3, gap: 0.85, g:0.28, j:-5.2, move:true }
 ];
 
-// --- スキルマスタ（新技含む全14種） ---
+// --- スキルマスタ（新技含む全17種） ---
 const ALL_SKILLS = {
-    shrink:   { name: "隙間狭", cost: 35, dur: 220 }, // 新技: 隙間40%縮小
-    flip:     { name: "天地反転", cost: 65, dur: 180 }, // 新技: 画面上下反転
-    freeze:   { name: "停止",   cost: 35, dur: 45 },  // 新技: 時空静止
+    shrink:   { name: "隙間狭", cost: 35, dur: 220 },
+    flip:     { name: "天地反転", cost: 65, dur: 180 },
+    freeze:   { name: "停止",   cost: 35, dur: 45 },
     speed:    { name: "高速",   cost: 25, dur: 300 },
     move:     { name: "揺れ",   cost: 30, dur: 300 },
     blind:    { name: "暗闇",   cost: 50, dur: 300 },
@@ -93,16 +92,24 @@ const ALL_SKILLS = {
     giant:    { name: "巨大化", cost: 40, dur: 300 },
     back:     { name: "足止め", cost: 65, dur: 80 },
     impact:   { name: "衝撃",   cost: 25, dur: 30 },
-    ascend:   { name: "昇天",   cost: 100, dur: 300 }
+    ascend:   { name: "昇天",   cost: 100, dur: 300 },
+    // ★追加技
+    quake:    { name: "地震",   cost: 45, dur: 200 }, // 画面振れ
+    heavy:    { name: "超重力", cost: 55, dur: 240 }, // 極大重力
+    narrow:   { name: "超極狭", cost: 60, dur: 180 }  // 隙間50%極小化
 };
 
-// --- ハプニング定義 ---
+// --- ハプニング定義（追加含む全8種） ---
 const HAPPENINGS = [
     { name: "★低重力モード！", apply: () => { activeHappenings.lowG = 300; } },
     { name: "★乱気流発生！", apply: () => { activeHappenings.turb = 300; } },
     { name: "★妨害側MP全回復！", apply: () => { mp = 100; } },
     { name: "★スローモーション！", apply: () => { activeHappenings.slow = 300; } },
-    { name: "★超高速ダッシュ！", apply: () => { activeHappenings.fast = 300; } }
+    { name: "★超高速ダッシュ！", apply: () => { activeHappenings.fast = 300; } },
+    // ★追加ハプニング
+    { name: "★暗闇の呪い！", apply: () => { activeSkills.blind = 180; } },
+    { name: "★超乱気流ブレイク！", apply: () => { activeHappenings.turb = 450; } },
+    { name: "★重力反転ワールド！", apply: () => { activeSkills.rev = 180; } }
 ];
 
 // --- グローバル変数 ---
@@ -198,6 +205,12 @@ function startTurn() {
     activeSkills = {};
     activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
     lastStageIndex = 0;
+
+    // ★修正ポイント: サボタージュ側に切り替わるたびに自動で技（手札）を更新
+    if(!isAttacker()) {
+        setupDeck();
+    }
+
     showStatus(isAttacker() ? "YOUR TURN" : "SABOTAGE", isAttacker() ? "#2ecc71" : "#e74c3c");
 }
 
@@ -246,7 +259,7 @@ function update(dt) {
     document.getElementById('s2').innerText = scores.p2;
     document.getElementById('stage-display').innerText = stage.name;
 
-    // サボタージュ側のMP回復 ＋ 劣勢時ブースト（ビハインド・バフ）
+    // サボタージュ側のMP回復 ＋ 劣勢時ブースト
     if (!isAttacker()) {
         let baseRecovery = 4.8;
         let deficit = isHost ? (scores.p1 - scores.p2) : (scores.p2 - scores.p1);
@@ -289,14 +302,15 @@ function update(dt) {
     // 物理演算
     let g = stage.g;
     if (activeSkills.gravUp > 0) g *= 2.0;
+    if (activeSkills.heavy > 0) g *= 3.5;
     if (activeSkills.impact > 0) g *= 3.0;
     if (activeSkills.rev > 0) g *= -1;
-    if (activeSkills.flip > 0) g *= -1; // 上下反転時
-    if (activeHappenings.lowG > 0) g *= 0.45; // 低重力
+    if (activeSkills.flip > 0) g *= -1;
+    if (activeHappenings.lowG > 0) g *= 0.45;
     if (activeSkills.ascend > 0) g = Math.abs(g) * -0.35;
 
     bird.v += g * fpsAdj; 
-    if (activeHappenings.turb > 0) bird.v += (Math.random() - 0.5) * 0.8; // 乱気流
+    if (activeHappenings.turb > 0) bird.v += (Math.random() - 0.5) * 1.5;
     bird.y += bird.v * fpsAdj;
     bird.rot = Math.max(-0.5, Math.min(0.5, bird.v * 0.1));
 
@@ -320,19 +334,28 @@ function update(dt) {
     if (activeHappenings.fast > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
 
-    // 隙間計算（縮小スキルで40%縮小）
+    // 隙間計算（縮小・極狭スキル）
     let gapMultiplier = stage.gap;
     if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
+    if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
 
     pipes.forEach(p => {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
         
-        // 衝突判定
+        // ★修正ポイント: 土管の衝突判定（ミス判定）の正確な計算
         if (activeSkills.ghost <= 0 && !p.isFake) {
-            let hitSize = activeSkills.giant > 0 ? 24 : 12;
-            if (bird.x + hitSize > p.x && bird.x - hitSize < p.x + 52) {
-                if (bird.y - (hitSize-2) < myGapY || bird.y + (hitSize-2) > myGapY + 130 * gapMultiplier) {
+            let hitRadius = activeSkills.giant > 0 ? 20 : 11;
+            let pipeWidth = 52;
+            let actualGapHeight = 130 * gapMultiplier;
+
+            // X軸方向の重複チェック
+            if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + pipeWidth) {
+                // Y軸方向の隙間（安全エリア）から外れた場合ミス
+                let safeTop = myGapY;
+                let safeBottom = myGapY + actualGapHeight;
+
+                if ((bird.y - hitRadius < safeTop) || (bird.y + hitRadius > safeBottom)) {
                     die();
                 }
             }
@@ -377,7 +400,7 @@ function checkWinner() {
     }
 }
 
-// --- 描画（完全な旧描画） ---
+// --- 描画 ---
 function drawBird(ctx, bird) { 
     ctx.save(); ctx.translate(bird.x, bird.y); ctx.rotate(bird.rot); 
     const wPos = Math.sin(frame * 0.4) * 7; 
@@ -426,6 +449,13 @@ function drawBackground(stage) {
 function draw() {
     ctx.save();
 
+    // 地震（quake）スキル演出
+    if (activeSkills.quake > 0) {
+        let qx = (Math.random() - 0.5) * 10;
+        let qy = (Math.random() - 0.5) * 10;
+        ctx.translate(qx, qy);
+    }
+
     // 上下反転（flip）スキル発動中
     if (activeSkills.flip > 0) {
         ctx.translate(0, 480);
@@ -437,6 +467,7 @@ function draw() {
     
     let gapMultiplier = stage.gap;
     if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
+    if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
 
     pipes.forEach(p => {
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
