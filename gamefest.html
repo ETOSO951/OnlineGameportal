@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GAME FEST 15 - ULTIMATE REBORN</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --main: #00f2ff; --bg: #050508; --accent: #ff00ff; --win: #00ff88; --lose: #ff4444; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Arial Black', sans-serif; text-align: center; overflow: hidden; touch-action: manipulation; }
+        .screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .active { display: flex; }
+        .header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-around; background: rgba(0,0,0,0.9); padding: 12px 0; border-bottom: 2px solid var(--main); z-index: 100; }
+        .pts { color: var(--main); font-size: 1.4rem; font-weight: bold; }
+        .btn { background: var(--main); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 5px; font-size: 1rem; transition: 0.2s; }
+        .btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; opacity: 0.5; }
+        input { padding: 15px; width: 80%; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; text-align: center; font-size: 1.2rem; margin-bottom: 15px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 400px; overflow-y: auto; max-height: 60vh; }
+        .countdown { font-size: 5rem; font-weight: bold; color: var(--accent); }
+        .game-btn { font-size: 1.2rem; padding: 15px; margin: 5px; min-width: 80px; background: #1a1a1a; border: 2px solid var(--main); color: white; border-radius: 10px; }
+        #final-result-title { font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 0 30px currentColor; }
+        .score-board { font-size: 2.5rem; display: flex; gap: 30px; margin: 30px 0; align-items: center; justify-content: center; }
+        .score-num { font-size: 4rem; color: var(--main); }
+        #debug-log { position: fixed; bottom: 0; width: 100%; font-size: 9px; color: #0f0; background: rgba(0,0,0,0.7); text-align: left; padding: 3px; pointer-events: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+<div id="debug-log">Status: Ready</div>
+
+<div class="header">
+    <div>YOU: <span id="my-total" class="pts">0</span></div>
+    <div id="round-info" style="font-size:0.7rem; color:#888;">READY</div>
+    <div>OPP: <span id="opp-total" class="pts">0</span></div>
+</div>
+
+<div id="screen-setup" class="screen active">
+    <h1 style="color:var(--main)">GAME FEST 15</h1>
+    <input type="text" id="room-id" placeholder="合言葉">
+    <div id="setup-btns">
+        <div style="margin-bottom:15px;">
+            <label><input type="radio" name="m-count" value="5" checked> 5戦制</label>
+            <label style="margin-left:20px;"><input type="radio" name="m-count" value="10"> 10戦制</label>
+        </div>
+        <button class="btn" onclick="initConn(true)">① 対戦を作成 (親)</button>
+        <button class="btn" onclick="initConn(false)" style="background:#444; color:#fff; margin-top:10px;">② 参加する (子)</button>
+    </div>
+    <div id="waiting-ui" style="display:none;"><p class="countdown" style="font-size: 1.5rem;">WAITING...</p></div>
+</div>
+
+<div id="screen-lobby" class="screen">
+    <h2 id="turn-msg">待機中...</h2>
+    <div id="menu-container" class="menu-grid"></div>
+</div>
+
+<div id="screen-preview" class="screen">
+    <div id="chaos-notice" style="background:var(--accent); color:white; padding:5px 15px; border-radius:5px; font-weight:bold; font-size:0.8rem; display:none;">⚠️ RANDOM ⚠️</div>
+    <h2 id="pre-title" style="color:var(--main); margin:10px 0 5px;"></h2>
+    <p id="pre-desc" style="font-size:0.9rem; color:#ccc; margin-bottom:20px;"></p>
+    <div id="count-num" class="countdown">3</div>
+</div>
+
+<div id="screen-game" class="screen">
+    <div id="game-msg" style="margin-bottom:20px; font-weight:bold; color:var(--main); font-size:1.6rem; min-height: 2rem;"></div>
+    <div id="game-stage" style="width:100%; display:flex; flex-wrap:wrap; justify-content:center;"></div>
+</div>
+
+<div id="screen-result" class="screen">
+    <div id="final-result-title">RESULT</div>
+    <div class="score-board">
+        <div>YOU<br><span id="final-my-pts" class="score-num">0</span></div>
+        <div style="font-size:2rem;">VS</div>
+        <div>OPP<br><span id="final-opp-pts" class="score-num">0</span></div>
+    </div>
+    <h2 id="final-msg" style="font-size: 1.8rem;"></h2>
+    <button class="btn" onclick="location.reload()" style="max-width: 200px;">タイトルへ</button>
+</div>
+
+<script>
+let peer, conn, isHost, myTotal=0, oppTotal=0, round=1, maxRound=5, p1Res=null;
+let isTransitioning = false; 
+
+const GAMES = {
+    'stop': {n:'秒数止め', d:'指定秒数ピッタリで止めろ！'},
+    'calc': {n:'高速計算', d:'計算問題を相手より早く解け！'},
+    'black': {n:'白タップ', d:'白くなったら即叩け！'},
+    'order': {n:'順序タップ', d:'1から6まで順番に数字を叩け！'},
+    'grid': {n:'★叩き', d:'出現した★を最速で叩き出せ！'},
+    'arrow': {n:'向き当て', d:'矢印の向きを素早く選べ！'},
+    'odd': {n:'仲間外れ', d:'違う漢字を1つだけ探せ！'},
+    'color': {n:'色文字判定', d:'文字の色と意味が一致してるか！'},
+    'just': {n:'0.5秒止め', d:'0.5秒を体内時計で刻め！'},
+    'count': {n:'文字数', d:'「あ」がいくつあるか数えろ！'},
+    'memory': {n:'数字記憶', d:'一瞬出た4桁の数字を打て！'},
+    'sort': {n:'大小仕分け', d:'5より「大きい」か「小さい」か！'},
+    'wait': {n:'3秒停止', d:'「待て」が消えた瞬間に叩け！'},
+    'fast': {n:'10回連打', d:'10回タップする速さを競え！'},
+    'match': {n:'二択クイズ', d:'正しい方を爆速で選べ！'}
+};
+
+function log(m) { document.getElementById('debug-log').innerText = "Status: " + m; }
+
+function initConn(h) {
+    let rid = document.getElementById('room-id').value.replace(/[^a-z0-9]/gi, '').toLowerCase();
+    if(rid.length < 3) return alert("合言葉は3文字以上！");
+    isHost = h;
+    maxRound = parseInt(document.querySelector('input[name="m-count"]:checked').value);
+    document.getElementById('setup-btns').style.display = 'none';
+    document.getElementById('waiting-ui').style.display = 'block';
+    const myId = isHost ? rid : rid + "_gst_" + Math.floor(Math.random()*999);
+    peer = new Peer(myId);
+    peer.on('open', (id) => {
+        if(isHost) { peer.on('connection', c => { if(!conn){conn=c; setupData();} }); }
+        else { conn = peer.connect(rid); setupData(); }
+    });
+}
+
+function setupData() {
+    conn.on('open', () => {
+        if(isHost) {
+            setTimeout(() => {
+                conn.send({type:'sync', m:0, o:0, r:1, max:maxRound, end:false});
+                updateLobby();
+            }, 500);
+        }
+    });
+    conn.on('data', d => {
+        if(d.type==='pre') runPreview(d.g, d.c);
+        if(d.type==='act') handleAct(d.score, false);
+        if(d.type==='fin') finalize(d.w);
+        if(d.type==='sync') { 
+            // ★ ホストかゲストかに応じて得点を自分の変数に正しく割り当てる
+            if(isHost) {
+                myTotal = d.m; oppTotal = d.o;
+            } else {
+                myTotal = d.o; oppTotal = d.m;
+            }
+            round = d.r; 
+            maxRound = d.max;
+            p1Res = null;
+            if(d.end) showFinalResult(); else updateLobby();
+        }
+    });
+}
+
+function updateLobby() {
+    showScreen('screen-lobby');
+    isTransitioning = false; 
+    document.getElementById('my-total').innerText = myTotal;
+    document.getElementById('opp-total').innerText = oppTotal;
+    document.getElementById('round-info').innerText = `ROUND ${round} / ${maxRound}`;
+    
+    const hasControl = (myTotal < oppTotal) || (myTotal === oppTotal && isHost);
+    document.getElementById('turn-msg').innerText = hasControl ? "あなたのターン！" : "相手が選択中...";
+    
+    const menu = document.getElementById('menu-container'); 
+    menu.innerHTML = '';
+    Object.keys(GAMES).forEach(id => {
+        const b = document.createElement('button'); 
+        b.className = 'btn';
+        let bonus = "";
+        if(maxRound === 5 && round === 5) bonus = " [2倍]";
+        else if(maxRound === 10 && round === 9) bonus = " [2倍]";
+        else if(maxRound === 10 && round === 10) bonus = " [3倍]";
+        b.innerText = GAMES[id].n + bonus;
+        b.disabled = !hasControl || isTransitioning;
+        b.onclick = () => {
+            if(isTransitioning) return;
+            isTransitioning = true;
+            const chaos = Math.random() < 0.2;
+            const finalG = chaos ? Object.keys(GAMES)[Math.floor(Math.random() * Object.keys(GAMES).length)] : id;
+            conn.send({type: 'pre', g: finalG, c: chaos});
+            runPreview(finalG, chaos);
+        };
+        menu.appendChild(b);
+    });
+}
+
+function runPreview(g, chaos) {
+    p1Res = null; showScreen('screen-preview');
+    document.getElementById('pre-title').innerText = GAMES[g].n;
+    document.getElementById('pre-desc').innerText = GAMES[g].d;
+    document.getElementById('chaos-notice').style.display = chaos ? 'block' : 'none';
+    let cnt = 3; const cntEl = document.getElementById('count-num'); cntEl.innerText = cnt;
+    const t = setInterval(() => {
+        cnt--; cntEl.innerText = cnt;
+        if(cnt <= 0) { clearInterval(t); setupGame(g); }
+    }, 1000);
+}
+
+function setupGame(g) {
+    showScreen('screen-game');
+    const stage = document.getElementById('game-stage'); stage.innerHTML = '';
+    const msg = document.getElementById('game-msg'); const st = Date.now();
+    let done = false;
+    const finish = (sc) => { if(!done){ done=true; conn.send({type:'act', score:sc}); handleAct(sc, true); } };
+
+    switch(g) {
+        case 'stop':
+            const target = [3, 5, 8][Math.floor(Math.random()*3)];
+            msg.innerText = `${target}秒で止めろ！`;
+            stage.innerHTML = `<button id="g-btn" class="game-btn" style="width:150px;height:150px;border-radius:50%;">START</button>`;
+            let r=false, sT;
+            document.getElementById('g-btn').onclick = function(){
+                if(!r){ sT=Date.now(); r=true; this.innerText="STOP!"; }
+                else{ const d=Math.abs(target*1000-(Date.now()-sT)); finish(d); this.innerText=(d/1000).toFixed(2); }
+            };
+            break;
+        case 'calc':
+            const a=Math.floor(Math.random()*25), b=Math.floor(Math.random()*25);
+            msg.innerText = `${a} + ${b} = ?`;
+            stage.innerHTML = `<input type="number" id="ans" pattern="\\d*" inputmode="numeric" style="width:120px;"><button id="ok" class="game-btn">OK</button>`;
+            document.getElementById('ok').onclick=() => { if(parseInt(document.getElementById('ans').value)===(a+b)) finish(Date.now()-st); };
+            break;
+        case 'black':
+            msg.innerText = "白くなったら叩け！";
+            stage.innerHTML = `<button id="g-btn" class="game-btn" style="width:180px;height:180px;background:#000;">WAIT</button>`;
+            let ready=false; const timer=setTimeout(()=>{ ready=true; const gb=document.getElementById('g-btn'); gb.style.background="#fff"; gb.innerText="NOW!"; }, 1500+Math.random()*3000);
+            document.getElementById('g-btn').onclick=function(){ clearTimeout(timer); finish(ready ? (Date.now()-(st+1500)):5000); };
+            break;
+        case 'order':
+            msg.innerText = "1〜6を順に！"; let cur=1;
+            [1,2,3,4,5,6].sort(()=>Math.random()-0.5).forEach(v=>{
+                const b=document.createElement('button'); b.className='game-btn'; b.innerText=v;
+                b.onclick=()=>{ if(v===cur){ cur++; b.style.opacity=0.3; if(cur>6) finish(Date.now()-st); } };
+                stage.appendChild(b);
+            });
+            break;
+        case 'grid':
+            msg.innerText = "★を叩け！";
+            setTimeout(()=>{ stage.innerHTML=`<button class="game-btn" style="font-size:3rem;">★</button>`; stage.firstChild.onclick=()=>finish(Date.now()-st); }, 1000+Math.random()*2000);
+            break;
+        case 'arrow':
+            const ds=['↑','↓','←','→']; const aD=ds[Math.floor(Math.random()*4)];
+            msg.innerText=`「 ${aD} 」を選べ！`;
+            ds.forEach(d=>{ const b=document.createElement('button'); b.className='game-btn'; b.innerText=d; b.onclick=()=>{ if(d===aD) finish(Date.now()-st); }; stage.appendChild(b); });
+            break;
+        case 'odd':
+            const chars = Math.random()>0.5 ? {m:'犬',o:'太'} : {m:'右',o:'石'};
+            msg.innerText="仲間外れは？";
+            const gd=Array(12).fill(chars.m); gd[Math.floor(Math.random()*12)]=chars.o;
+            gd.forEach(v=>{ const b=document.createElement('button'); b.className='game-btn'; b.innerText=v; b.onclick=()=>{ if(v===chars.o) finish(Date.now()-st); }; stage.appendChild(b); });
+            break;
+        case 'color':
+            const cs=['RED','BLUE','YELLOW'], cv=['red','blue','yellow'];
+            const i1=Math.floor(Math.random()*3), i2=Math.floor(Math.random()*3);
+            msg.innerText="色と文字は一致？";
+            stage.innerHTML=`<div style="font-size:3rem; color:${cv[i2]}">${cs[i1]}</div>`;
+            ['YES','NO'].forEach(v=>{ const b=document.createElement('button'); b.className='game-btn'; b.innerText=v; b.onclick=()=>{ if((v==='YES')===(i1===i2)) finish(Date.now()-st); }; stage.appendChild(b); });
+            break;
+        case 'just':
+            msg.innerText="0.50秒で止めろ！";
+            stage.innerHTML=`<button id="g-btn" class="game-btn">START</button>`;
+            let jR=false, jS;
+            document.getElementById('g-btn').onclick=function(){ if(!jR){ jS=Date.now(); jR=true; this.innerText="STOP!"; } else{ finish(Math.abs(500-(Date.now()-jS))); } };
+            break;
+        case 'count':
+            const num=Math.floor(Math.random()*4)+3;
+            msg.innerText="「あ」は何個？";
+            const tx=("あ".repeat(num)+"め".repeat(8-num)).split('').sort(()=>Math.random()-0.5).join('');
+            stage.innerHTML=`<div style="font-size:1.5rem;">${tx}</div>`;
+            [num, num+1, num-1].sort(()=>Math.random()-0.5).forEach(v=>{ const b=document.createElement('button'); b.className='game-btn'; b.innerText=v; b.onclick=()=>{ if(v===num) finish(Date.now()-st); }; stage.appendChild(b); });
+            break;
+        case 'memory':
+            const code=Math.floor(1000+Math.random()*8999);
+            msg.innerText="数字を覚えろ！"; stage.innerHTML=`<div style="font-size:3rem;">${code}</div>`;
+            setTimeout(()=>{ stage.innerHTML=`<input type="number" id="mI" style="width:100px;font-size:2rem;"><button id="mB" class="game-btn">OK</button>`; document.getElementById('mB').onclick=()=>{ if(parseInt(document.getElementById('mI').value)===code) finish(Date.now()-st); }; }, 1200);
+            break;
+        case 'sort':
+            const tN=Math.floor(Math.random()*10); msg.innerText=`${tN} は 5より...`;
+            ['大きい','小さい'].forEach(v=>{ const b=document.createElement('button'); b.className='game-btn'; b.innerText=v; b.onclick=()=>{ if((v==='大きい')===(tN>5)) finish(Date.now()-st); }; stage.appendChild(b); });
+            break;
+        case 'wait':
+            msg.innerText="「待て」が消えたら！"; stage.innerHTML=`<div id="wB" style="font-size:2rem; padding:20px; border:2px solid #fff;">待て</div>`;
+            const wT=2000+Math.random()*2000; setTimeout(()=>{ const wb=document.getElementById('wB'); if(wb){ wb.innerText="叩け！"; wb.onclick=()=>finish(Date.now()-(st+wT)); } }, wT);
+            break;
+        case 'fast':
+            let c=0; stage.innerHTML=`<button id="g-btn" class="game-btn" style="width:150px;height:150px;">TAP!</button>`;
+            document.getElementById('g-btn').onclick=function(){ c++; this.innerText=c; if(c>=10) finish(Date.now()-st); };
+            break;
+        case 'match':
+            const quizList = [
+                // --- 常識・雑学 ---
+                { q: "パンダの尻尾は「白」である", a: "○" },
+                { q: "トランプのジョーカーを除く合計は 52枚 である", a: "○" },
+                { q: "コアラの指の数は 5本 である", a: "○" },
+                { q: "ペンギンは空を飛ぶことができる", a: "×" },
+                { q: "日本で一番面積が小さい都道府県は「香川県」である", a: "○" },
+                { q: "「1円玉」の直径はちょうど 2cm である", a: "○" },
+                { q: "タラバガニは「ヤドカリ」の仲間である", a: "○" },
+                { q: "「SOS」は Save Our Ship の略である", a: "×" }, // 諸説あるが元々は意味を持たない信号
+                { q: "バナナは「木」ではなく「草」の仲間である", a: "○" },
+                { q: "世界一高い山は「エベレスト」である", a: "○" },
+                { q: "世界一長い川は「アマゾン川」である", a: "×" }, // ナイル川
+                { q: "金魚の記憶力は 3秒 しかない", a: "×" }, // 数ヶ月覚えられる
+                
+                // --- 理科・数学 ---
+                { q: "水は 100度 で沸騰し 0度 で凍る", a: "○" },
+                { q: "光の速さは音の速さより「遅い」", a: "×" },
+                { q: "三角形の三つの角を足すと 180度 になる", a: "○" },
+                { q: "11 × 11 の答えは 121 である", a: "○" },
+                { q: "素数の中で唯一の偶数は 2 である", a: "○" },
+                { q: "昆虫の足の数は 8本 である", a: "×" }, // 6本
+                { q: "太陽系で一番大きい惑星は「木星」である", a: "○" },
+                { q: "ダイヤモンドは「炭素」からできている", a: "○" },
+                
+                // --- 日本・言葉 ---
+                { q: "日本の都道府県の数は「48」である", a: "×" }, // 47
+                { q: "「小春日和」は春の陽気のことである", a: "×" }, // 秋から冬の暖かい日
+                { q: "千円札の肖像画は「野口英世」である", a: "○" },
+                { q: "「情けは人のためならず」は、人のためにならないという意味だ", a: "×" }, // 巡り巡って自分のためになる
+                { q: "一石二鳥の「鳥」は 2羽 である", a: "○" },
+                { q: "カメレオンは背景に関係なく気分で色を変える", a: "○" }, // 背景擬態より感情優先
+                
+                // --- ひっかけ・難問 ---
+                { q: "1から10まで全部足すと 55 になる", a: "○" },
+                { q: "オリンピックの五輪の輪は 5色 である", a: "○" },
+                { q: "イチゴの表面の粒々は「種」である", a: "×" }, // 果実（種は中にある）
+                { q: "クジラは「魚類」である", a: "×" }, // 哺乳類
+                { q: "「煮詰まる」は物事が行き詰まるという意味だ", a: "×" }, // 結論が出る直前の状態
+                { q: "1km は 1,000,000mm である", a: "○" } // 1km=1000m=100000cm=1000000mm
+            ];
+            
+            // ランダムに選定
+            const quiz = quizList[Math.floor(Math.random() * quizList.length)];
+            msg.innerText = quiz.q;
+            msg.style.fontSize = "1.2rem"; // 長文対策
+
+            ['○', '×'].forEach(v => {
+                const b = document.createElement('button');
+                b.className = 'game-btn';
+                b.style.fontSize = '2.5rem';
+                b.style.width = '120px';
+                b.innerText = v;
+                b.onclick = () => {
+                    if (v === quiz.a) {
+                        finish(Date.now() - st);
+                    } else {
+                        // お手つきペナルティ（5秒加算）
+                        finish(5000); 
+                    }
+                };
+                stage.appendChild(b);
+            });
+            break;
+    }
+}
+
+function handleAct(score, fromMe) {
+    if (p1Res === null) {
+        p1Res = { score: score, isMe: fromMe };
+        if(fromMe) document.getElementById('game-msg').innerText = "相手を待っています...";
+    } else if (isHost) {
+        let hS = p1Res.isMe ? p1Res.score : score;
+        let gS = p1Res.isMe ? score : p1Res.score;
+        let w = (hS <= gS) ? 'host' : 'guest';
+        conn.send({ type: 'fin', w: w });
+        finalize(w);
+    }
+}
+
+function finalize(w) {
+    let p = 10;
+    if (maxRound === 5 && round === 5) p = 20;
+    else if (maxRound === 10) { if(round===9) p=20; if(round===10) p=30; }
+
+    // ホストの視点で計算
+    let hostScore = (isHost) ? myTotal : oppTotal;
+    let guestScore = (isHost) ? oppTotal : myTotal;
+
+    if (w === 'host') hostScore += p; else guestScore += p;
+    
+    // 自分の変数に反映
+    if (isHost) { myTotal = hostScore; oppTotal = guestScore; }
+    else { myTotal = guestScore; oppTotal = hostScore; }
+
+    const amIWin = (isHost && w === 'host') || (!isHost && w === 'guest');
+    const msgEl = document.getElementById('game-msg');
+    msgEl.innerText = amIWin ? `WIN! (+${p}pts)` : "LOSE...";
+    msgEl.style.color = amIWin ? 'var(--win)' : 'var(--lose)';
+
+    setTimeout(() => {
+        if (isHost) {
+            let isEnd = (round >= maxRound);
+            if (!isEnd) round++;
+            // ホスト・ゲストの順序で送信
+            conn.send({type: 'sync', m: hostScore, o: guestScore, r: round, max: maxRound, end: isEnd});
+            if(isEnd) showFinalResult(); else updateLobby();
+        }
+    }, 2000);
+}
+
+function showFinalResult() {
+    showScreen('screen-result');
+    document.getElementById('final-my-pts').innerText = myTotal;
+    document.getElementById('final-opp-pts').innerText = oppTotal;
+    const msg = document.getElementById('final-msg');
+    if (myTotal > oppTotal) msg.innerText = "VICTORY!";
+    else if (myTotal < oppTotal) msg.innerText = "DEFEAT...";
+    else msg.innerText = "DRAW";
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
