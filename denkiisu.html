@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Electric Chair - Ultimate Connect</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --primary: #ed1c24; --bg: #050505; --panel: #1a1a1a; --accent: #00e5ff; }
+        body { font-family: 'Courier New', monospace; background: var(--bg); color: white; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
+        
+        /* 演出 */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); pointer-events: none; }
+        #overlay.checking { display: flex; animation: pulse 1s infinite; }
+        #overlay.flash-red { display: flex; background: var(--primary); animation: flash 0.1s 10; }
+        #overlay.flash-green { display: flex; background: #00ff00; animation: fadeout 1s forwards; }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes fadeout { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .result-text { font-size: 3.5rem; font-weight: bold; text-shadow: 0 0 20px #000; }
+
+        /* セットアップ */
+        .setup-ui { background: var(--panel); padding: 25px; border: 2px solid #333; border-radius: 15px; margin-top: 20px; }
+        input[type="text"] { width: 80%; padding: 12px; background: #000; color: var(--accent); border: 1px solid var(--accent); border-radius: 5px; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 10px; flex-direction: column; align-items: center; }
+        button.primary-btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; width: 220px; font-size: 1rem; cursor: pointer; }
+        
+        /* ゲーム画面 */
+        .stats { display: flex; justify-content: space-between; padding: 15px; background: #111; border-radius: 10px; border-bottom: 2px solid #333; margin-bottom: 10px; }
+        .score-val { font-size: 2rem; color: #0f0; font-weight: bold; }
+        .miss-val { color: var(--primary); font-size: 1.2rem; letter-spacing: 3px; }
+        #status { height: 60px; display: flex; align-items: center; justify-content: center; color: #ffeb3b; font-weight: bold; font-size: 1rem; text-transform: uppercase; padding: 0 10px; }
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
+        .chair { aspect-ratio: 1; background: #222; border: 2px solid #444; color: white; font-size: 1.2rem; font-weight: bold; border-radius: 8px; transition: 0.2s; }
+        .chair:disabled { opacity: 0.3; cursor: not-allowed; }
+        .chair.scanning { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .chair.safe { background: #004d00; border-color: #00ff00; }
+        .chair.shock { background: var(--primary); border-color: #fff; }
+
+        /* チャットエリア */
+        .chat-section { margin-top: 20px; max-width: 360px; margin-left: auto; margin-right: auto; }
+        .chat-area { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        .chat-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 8px; border-radius: 5px; font-size: 0.7rem; }
+        .free-chat { display: flex; gap: 5px; }
+        .free-chat input { flex-grow: 1; margin-bottom: 0; font-size: 0.9rem; padding: 8px; }
+        .free-chat button { background: var(--accent); color: #000; border: none; padding: 0 15px; border-radius: 5px; font-weight: bold; }
+
+        #chat-popup { position: fixed; top: 20%; left: 0; width: 100%; color: var(--accent); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px #000; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; }
+        #debug-log { position: fixed; bottom: 0; width: 100%; font-size: 9px; color: #0f0; background: rgba(0,0,0,0.8); text-align: left; padding: 5px; pointer-events: none; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="overlay"><div id="overlay-content" class="result-text"></div></div>
+    <div id="chat-popup"></div>
+    <div id="debug-log">Status: ID待機中</div>
+
+    <h2 style="margin:10px 0; color:var(--primary); letter-spacing:2px;">ELECTRIC CHAIR</h2>
+    
+    <div id="setup" class="setup-ui">
+        <input type="text" id="room-id" placeholder="合言葉 (例: denki7)">
+        <div class="btn-group" id="setup-btns">
+            <button class="primary-btn" style="background:#333;" onclick="initConnection(true)">① 親 (仕掛ける側から開始)</button>
+            <button class="primary-btn" onclick="initConnection(false)">② 子 (座る側から開始)</button>
+        </div>
+        <div id="loading-msg" class="hidden">接続中...</div>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="stats">
+            <div class="score-box">YOU<br><span id="my-score" class="score-val">0</span><div id="my-miss" class="miss-val"></div></div>
+            <div class="score-box">OPP<br><span id="opp-score" class="score-val">0</span><div id="opp-miss" class="miss-val"></div></div>
+        </div>
+        <div id="status"></div>
+        <div class="grid" id="grid"></div>
+
+        <div class="chat-section">
+            <div class="chat-area">
+                <button class="chat-btn" onclick="sendChat('そこ、電気ですよ')">そこ、電気ですよ</button>
+                <button class="chat-btn" onclick="sendChat('今、迷いましたね？')">今、迷いましたね？</button>
+            </div>
+            <div class="free-chat">
+                <input type="text" id="free-msg" placeholder="メッセージを入力..." onkeydown="if(event.key==='Enter') sendFreeChat()">
+                <button onclick="sendFreeChat()">送信</button>
+            </div>
+        </div>
+        <button style="color:#555; background:none; border:none; text-decoration:underline; font-size:0.8rem; margin-top:15px;" onclick="giveUp()">棄権 (DOCTOR STOP)</button>
+    </div>
+
+<script>
+let peer, conn, role = "";
+let myScore = 0, oppScore = 0, myMiss = 0, oppMiss = 0;
+let trapIndex = -1, usedChairs = new Set();
+let isProcessing = false;
+
+function log(m) { document.getElementById('debug-log').innerText = "Log: " + m; }
+
+function initConnection(isHost) {
+    const rid = document.getElementById('room-id').value.replace(/[^a-z0-9]/gi, '').toLowerCase();
+    if(rid.length < 3) return alert("合言葉は3文字以上の英数字で！");
+
+    document.getElementById('setup-btns').classList.add('hidden');
+    document.getElementById('loading-msg').classList.remove('hidden');
+
+    const myId = isHost ? rid : rid + "_gst_" + Math.floor(Math.random()*999);
+    peer = new Peer(myId);
+
+    peer.on('open', (id) => {
+        log(isHost ? "親機として待機中..." : "接続中...");
+        if(isHost) {
+            role = "defender"; // 親は仕掛ける側
+            peer.on('connection', c => { 
+                conn = c; 
+                setupGame(); 
+            });
+        } else {
+            role = "attacker"; // 子は座る側
+            conn = peer.connect(rid);
+            setupGame();
+        }
+    });
+
+    peer.on('error', e => {
+        log("Error: " + e.type);
+        alert("接続失敗: " + e.type + "\n合言葉を確認してください。");
+        location.reload();
+    });
+}
+
+function setupGame() {
+    conn.on('open', () => {
+        log("Connected!");
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game-ui').classList.remove('hidden');
+        renderGrid();
+        nextRound();
+
+        conn.on('data', data => {
+            if(data.type === 'set') { 
+                trapIndex = data.val; 
+                updateStatus("相手がセット完了！椅子を選べ。"); 
+            }
+            else if(data.type === 'res') { runEffect(data.val, data.shock, false); }
+            else if(data.type === 'chat') { showChat("OPP: " + data.msg); }
+            else if(data.type === 'hover') { toggleHover(data.val, data.isHover); }
+            else if(data.type === 'giveup') { alert("相手が棄権しました。勝利！"); location.reload(); }
+        });
+    });
+}
+
+function renderGrid() {
+    const g = document.getElementById('grid'); g.innerHTML = '';
+    for(let i=1; i<=12; i++) {
+        const b = document.createElement('button');
+        b.className = 'chair'; b.id = `chair-${i}`; b.innerText = i;
+        
+        // すでに使われた椅子は無効化
+        if(usedChairs.has(i)) {
+            b.disabled = true;
+            // 過去の結果表示を維持
+            // ここでは簡易的に色を付けるロジックを呼ぶか、個別に判定
+        }
+
+        b.onclick = () => act(i);
+        
+        // 相手への「迷い」演出
+        b.onmouseenter = () => { if(role === "attacker" && trapIndex !== -1) conn.send({type:'hover', val:i, isHover:true}); };
+        b.onmouseleave = () => { if(role === "attacker" && trapIndex !== -1) conn.send({type:'hover', val:i, isHover:false}); };
+        // スマホ用
+        b.ontouchstart = () => { if(role === "attacker" && trapIndex !== -1) conn.send({type:'hover', val:i, isHover:true}); };
+        b.ontouchend = () => { if(role === "attacker" && trapIndex !== -1) conn.send({type:'hover', val:i, isHover:false}); };
+        
+        g.appendChild(b);
+    }
+}
+
+function nextRound() {
+    isProcessing = false;
+    if (role === "defender") {
+        trapIndex = -1;
+        updateStatus("電気を仕掛けてください (1-12)");
+    } else {
+        updateStatus("相手のセットを待っています...");
+    }
+}
+
+function act(n) {
+    if(isProcessing || usedChairs.has(n)) return;
+
+    if(role === "defender" && trapIndex === -1) {
+        // 仕掛けるフェーズ
+        trapIndex = n; 
+        conn.send({type:'set', val:n});
+        updateStatus(`${n}番にセット。相手の反応を待て...`);
+    } else if(role === "attacker" && trapIndex !== -1) {
+        // 座るフェーズ
+        isProcessing = true;
+        const s = (n === trapIndex);
+        runEffect(n, s, true);
+        conn.send({type:'res', val:n, shock:s});
+        trapIndex = -1; // リセット
+    }
+}
+
+async function runEffect(num, isShock, isMe) {
+    const overlay = document.getElementById('overlay');
+    const content = document.getElementById('overlay-content');
+    
+    overlay.className = 'checking';
+    content.innerText = "CHECKING...";
+    content.style.color = "white";
+    
+    await new Promise(r => setTimeout(r, 2000)); 
+
+    if(isShock) {
+        overlay.className = 'flash-red';
+        content.innerText = "SHOCK!!";
+        if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
+    } else {
+        overlay.className = 'flash-green';
+        content.innerText = "SAFE";
+        content.style.color = "#00ff00";
+    }
+
+    await new Promise(r => setTimeout(r, 1500));
+    overlay.className = '';
+    processResult(num, isShock, isMe);
+}
+
+function processResult(n, s, me) {
+    usedChairs.add(n);
+    const b = document.getElementById(`chair-${n}`);
+    if(s) {
+        if(b) b.classList.add('shock');
+        if(me) { myScore = 0; myMiss++; } else { oppScore = 0; oppMiss++; }
+    } else {
+        if(b) b.classList.add('safe');
+        if(me) myScore += n; else oppScore += n;
+    }
+    updateDisplay();
+    
+    if(checkWin()) return;
+    
+    // 攻守交代
+    role = (role === "attacker") ? "defender" : "attacker"; 
+    nextRound();
+}
+
+function toggleHover(n, isH) {
+    const b = document.getElementById(`chair-${n}`);
+    if(b && !usedChairs.has(n)) isH ? b.classList.add('scanning') : b.classList.remove('scanning');
+}
+
+function sendChat(msg) { 
+    if(conn && conn.open) {
+        conn.send({type:'chat', msg: msg}); 
+        showChat("YOU: " + msg); 
+    }
+}
+
+function sendFreeChat() {
+    const input = document.getElementById('free-msg');
+    const msg = input.value.trim();
+    if(msg) {
+        sendChat(msg);
+        input.value = "";
+    }
+}
+
+function showChat(msg) {
+    const p = document.getElementById('chat-popup');
+    p.innerText = msg; p.style.opacity = 1;
+    setTimeout(() => { p.style.opacity = 0; }, 3000);
+}
+
+function giveUp() { if(confirm("棄権しますか？")) { conn.send({type:'giveup'}); location.reload(); } }
+
+function checkWin() {
+    let winMsg = "";
+    if(myScore >= 30 || oppMiss >= 3) winMsg = "YOU WIN!";
+    else if(oppScore >= 30 || myMiss >= 3) winMsg = "OPPONENT WIN!";
+    else if(usedChairs.size >= 12) winMsg = myScore >= oppScore ? "YOU WIN!" : "OPPONENT WIN!";
+    
+    if(winMsg) { 
+        updateStatus(winMsg); 
+        setTimeout(() => { alert(winMsg); location.reload(); }, 500);
+        return true; 
+    }
+    return false;
+}
+
+function updateDisplay() {
+    document.getElementById('my-score').innerText = myScore;
+    document.getElementById('opp-score').innerText = oppScore;
+    document.getElementById('my-miss').innerText = "⚡".repeat(myMiss);
+    document.getElementById('opp-miss').innerText = "⚡".repeat(oppMiss);
+}
+
+function updateStatus(m) { document.getElementById('status').innerText = m; }
+</script>
+</body>
+</html>
