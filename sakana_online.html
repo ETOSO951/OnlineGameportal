@@ -70,7 +70,7 @@
   <div id="emoteZone" class="absolute inset-0 pointer-events-none z-30"></div>
 
   <!-- Global Toast -->
-  <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-cyan-400 text-cyan-300 font-bold text-xs shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none -translate-y-4 max-w-[90vw] text-center break-words">
+  <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-cyan-400 text-cyan-300 font-bold text-xs shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none -translate-y-4 max-w-[90vw] text-center break-words leading-relaxed">
     Ready
   </div>
 
@@ -522,15 +522,15 @@
       const code = err.code || "";
       const msg = err.message || "";
       if (code === "permission-denied" || msg.includes("permission-denied")) {
-        return "権限エラー: Firestoreのルールで書き込みが拒否されています。";
+        return "【権限エラー】Firestoreのセキュリティルールで操作が拒否されています。ルールを確認してください。";
       }
       if (code === "failed-precondition" || msg.includes("index")) {
-        return "インデックスエラー: コンソールでインデックスを作成してください。";
+        return "【インデックス未作成】クエリに必要なインデックスがFirebaseコンソール上にありません。";
       }
       if (code === "unavailable" || msg.includes("network")) {
-        return "通信エラー: ネットワーク接続を確認してください。";
+        return "【通信エラー】Firestoreサーバーへの接続に失敗しました。";
       }
-      return `${code}: ${msg}`;
+      return `${code ? `[${code}] ` : ""}${msg}`;
     }
 
     function withTimeout(promise, ms, errorMsg) {
@@ -562,7 +562,7 @@
 };
 
         if (firebaseConfig.apiKey.includes("YOUR_ACTUAL_API_KEY")) {
-          throw new Error("キーが初期値です。firebaseConfigを貼り付けてください（BOT戦は遊べます）");
+          throw new Error("APIキーが初期値です。firebaseConfigを貼り付けてください（BOT戦は遊べます）");
         }
 
         const app = initializeApp(firebaseConfig);
@@ -584,7 +584,7 @@
         
         let hint = formatFirebaseError(err);
         if (err.code === "auth/admin-restricted-operation" || err.code === "auth/operation-not-allowed") {
-          hint = "Firebaseの「Authentication」で「匿名」を有効にしてください。";
+          hint = "Firebaseコンソールの Authentication > Sign-in method で「匿名」を有効にしてください。";
         }
         errDetail.innerText = hint;
         errDetail.classList.remove('hidden');
@@ -1001,13 +1001,16 @@
     }
 
     // ==========================================
-    // クイックマッチ (単一条件クエリでインデックス不要化)
+    // クイックマッチ (単一条件クエリ)
     // ==========================================
     async function startQuickMatch() {
       sound.init();
-      if (!currentUser || !db) {
-        showToast('Firebase未接続のためBOT戦を開始します');
-        startSoloBotMatch(2);
+      if (!db) {
+        showToast('Firestoreが初期化されていません。設定を確認してください');
+        return;
+      }
+      if (!currentUser) {
+        showToast('認証処理中です。完了するまで数秒待ってから再度お試しください');
         return;
       }
 
@@ -1015,7 +1018,6 @@
 
       try {
         const roomsRef = collection(db, 'rooms');
-        // whereを1つのみにして複合インデックスエラーを根本回避
         const q = query(
           roomsRef,
           where('status', '==', 'waiting'),
@@ -1025,7 +1027,7 @@
         const snap = await withTimeout(
           getDocs(q),
           6000,
-          "Firestore接続がタイムアウトしました。ルールと通信環境を確認してください。"
+          "Firestore接続がタイムアウトしました。ルールと通信環境を確認してください"
         );
 
         let targetRoom = null;
@@ -1095,12 +1097,17 @@
     }
 
     // ==========================================
-    // 合言葉ルーム
+    // 合言葉ルーム (診断チェック付き)
     // ==========================================
     async function createFriendRoom() {
       sound.init();
-      if (!currentUser || !db) {
-        showToast('Firebaseサーバー未接続です');
+
+      if (!db) {
+        showToast('【未接続】Firestoreが初期化されていません。firebaseConfigを確認してください。');
+        return;
+      }
+      if (!currentUser) {
+        showToast('【未認証】匿名認証が完了していません。数秒待つかAuthenticationの「匿名」を確認してください。');
         return;
       }
 
@@ -1130,7 +1137,7 @@
             createdAt: Date.now()
           }),
           6000,
-          "ルーム作成がタイムアウトしました。Firestoreのルール等を確認してください。"
+          "ルーム作成がタイムアウトしました。Firestoreのセキュリティルールを確認してください。"
         );
 
         document.getElementById('roomModal').classList.add('hidden');
@@ -1149,10 +1156,15 @@
 
     async function joinFriendRoom(code) {
       sound.init();
-      if (!currentUser || !db) {
-        showToast('Firebaseサーバー未接続です');
+      if (!db) {
+        showToast('【未接続】Firestoreが初期化されていません');
         return;
       }
+      if (!currentUser) {
+        showToast('【未認証】認証完了まで数秒待ってから再度押してください');
+        return;
+      }
+
       const clean = code.trim();
       if (!clean) {
         showToast('合言葉を入力してください');
@@ -1226,6 +1238,7 @@
 
         listenToDuelRoom(roomId);
       } catch (e) {
+        console.error("Room join error:", e);
         showToast(formatFirebaseError(e));
       }
     }
@@ -1433,7 +1446,8 @@
       document.getElementById('btnQuickMatch').onclick = startQuickMatch;
 
       document.getElementById('btnFriendMatch').onclick = () => {
-        sound.init(); document.getElementById('roomModal').classList.remove('hidden');
+        sound.init(); 
+        document.getElementById('roomModal').classList.remove('hidden');
       };
       document.getElementById('btnCloseRoomModal').onclick = () => {
         document.getElementById('roomModal').classList.add('hidden');
