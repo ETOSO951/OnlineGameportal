@@ -70,7 +70,7 @@
   <div id="emoteZone" class="absolute inset-0 pointer-events-none z-30"></div>
 
   <!-- Global Toast -->
-  <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-slate-900/95 border border-cyan-400 text-cyan-300 font-bold text-xs shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none -translate-y-4 max-w-[90vw] text-center">
+  <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-cyan-400 text-cyan-300 font-bold text-xs shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none -translate-y-4 max-w-[90vw] text-center break-words">
     Ready
   </div>
 
@@ -514,7 +514,23 @@
       setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', '-translate-y-4');
-      }, 3000);
+      }, 5000);
+    }
+
+    function formatFirebaseError(err) {
+      if (!err) return "不明なエラー";
+      const code = err.code || "";
+      const msg = err.message || "";
+      if (code === "permission-denied" || msg.includes("permission-denied")) {
+        return "権限エラー: Firestoreのルールで書き込みが拒否されています。";
+      }
+      if (code === "failed-precondition" || msg.includes("index")) {
+        return "インデックスエラー: コンソールでインデックスを作成してください。";
+      }
+      if (code === "unavailable" || msg.includes("network")) {
+        return "通信エラー: ネットワーク接続を確認してください。";
+      }
+      return `${code}: ${msg}`;
     }
 
     function withTimeout(promise, ms, errorMsg) {
@@ -553,7 +569,7 @@
         db = getFirestore(app);
         auth = getAuth(app);
 
-        const cred = await withTimeout(signInAnonymously(auth), 6000, "認証サーバーへの接続がタイムアウトしました");
+        const cred = await withTimeout(signInAnonymously(auth), 8000, "認証サーバーへの接続がタイムアウトしました");
         currentUser = cred.user;
 
         connDot.className = "w-2 h-2 rounded-full bg-emerald-400";
@@ -566,7 +582,7 @@
         statusLabel.innerText = "OFFLINE (BOT戦のみプレイ可能)";
         statusLabel.className = "text-amber-400 font-cyber font-bold";
         
-        let hint = err.message || err.code;
+        let hint = formatFirebaseError(err);
         if (err.code === "auth/admin-restricted-operation" || err.code === "auth/operation-not-allowed") {
           hint = "Firebaseの「Authentication」で「匿名」を有効にしてください。";
         }
@@ -614,9 +630,6 @@
       for (let i = 0; i < initCount; i++) spawnFish();
     }
 
-    // ==========================================
-    // ゲーム開始・実行処理
-    // ==========================================
     function startCountdownAndPlay() {
       document.getElementById('waitingOverlay').classList.add('hidden');
       document.getElementById('lobbyScreen').classList.add('hidden');
@@ -956,7 +969,7 @@
         }
       }, (e) => {
         console.warn('Room sync error:', e);
-        showToast('通信切断エラー: ' + (e.message || e.code));
+        showToast(formatFirebaseError(e));
       });
     }
 
@@ -988,7 +1001,7 @@
     }
 
     // ==========================================
-    // クイックマッチ (クエリ最適化＆タイムアウト保護)
+    // クイックマッチ (単一条件クエリでインデックス不要化)
     // ==========================================
     async function startQuickMatch() {
       sound.init();
@@ -1002,23 +1015,23 @@
 
       try {
         const roomsRef = collection(db, 'rooms');
+        // whereを1つのみにして複合インデックスエラーを根本回避
         const q = query(
           roomsRef,
-          where('type', '==', 'quick'),
           where('status', '==', 'waiting'),
-          limit(5)
+          limit(10)
         );
 
         const snap = await withTimeout(
           getDocs(q),
-          5000,
-          "Firestoreへの接続がタイムアウトしました。管理画面でFirestore Databaseが作成されているか確認してください。"
+          6000,
+          "Firestore接続がタイムアウトしました。ルールと通信環境を確認してください。"
         );
 
         let targetRoom = null;
         snap.forEach(docSnap => {
           const d = docSnap.data();
-          if (!targetRoom && d.players && !d.players.includes(currentUser.uid)) {
+          if (!targetRoom && d.type === 'quick' && d.players && !d.players.includes(currentUser.uid)) {
             targetRoom = { id: docSnap.id, ...d };
           }
         });
@@ -1038,7 +1051,7 @@
               [`names.p${mySlot}`]: myPlayerName,
               status: 'playing'
             }),
-            5000,
+            6000,
             "部屋への参加書き込みがタイムアウトしました"
           );
 
@@ -1064,7 +1077,7 @@
               alive: { p1: true, p2: true },
               createdAt: Date.now()
             }),
-            5000,
+            6000,
             "部屋の作成書き込みがタイムアウトしました"
           );
 
@@ -1077,12 +1090,12 @@
         }
       } catch (err) {
         console.error("Matchmaking error:", err);
-        showToast('マッチングエラー: ' + (err.message || err.code));
+        showToast(formatFirebaseError(err));
       }
     }
 
     // ==========================================
-    // 合言葉ルーム (クエリ最適化＆タイムアウト保護)
+    // 合言葉ルーム
     // ==========================================
     async function createFriendRoom() {
       sound.init();
@@ -1116,7 +1129,7 @@
             alive: { p1: true, p2: true, p3: true, p4: true },
             createdAt: Date.now()
           }),
-          5000,
+          6000,
           "ルーム作成がタイムアウトしました。Firestoreのルール等を確認してください。"
         );
 
@@ -1130,7 +1143,7 @@
         listenToDuelRoom(roomId);
       } catch (e) {
         console.error("Room create error:", e);
-        showToast('作成失敗: ' + (e.message || e.code));
+        showToast(formatFirebaseError(e));
       }
     }
 
@@ -1152,13 +1165,12 @@
         const q = query(
           roomsRef,
           where('code', '==', clean),
-          where('status', '==', 'waiting'),
           limit(1)
         );
 
         const snap = await withTimeout(
           getDocs(q),
-          5000,
+          6000,
           "部屋検索がタイムアウトしました"
         );
 
@@ -1170,6 +1182,11 @@
         const docSnap = snap.docs[0];
         const target = docSnap.data();
         const roomId = docSnap.id;
+
+        if (target.status !== 'waiting') {
+          showToast('その部屋は既に対戦中か終了しています');
+          return;
+        }
 
         const existingPlayers = target.players || [];
         if (existingPlayers.includes(currentUser.uid)) {
@@ -1193,7 +1210,7 @@
             [`names.p${mySlot}`]: myPlayerName,
             status: isFull ? 'playing' : 'waiting'
           }),
-          5000,
+          6000,
           "参加書き込みがタイムアウトしました"
         );
 
@@ -1209,7 +1226,7 @@
 
         listenToDuelRoom(roomId);
       } catch (e) {
-        showToast('参加失敗: ' + (e.message || e.code));
+        showToast(formatFirebaseError(e));
       }
     }
 
