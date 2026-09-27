@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CARD DUEL - PRO</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --red: #ff4d4d; --blue: #00d2ff; --yellow: #ffea00; --purple: #d400ff; --bg: #050505; --gold: #ffd700; }
+        body { background: var(--bg); color: white; font-family: 'Avenir Next', sans-serif; text-align: center; margin: 0; padding: 10px; overflow: hidden; }
+        
+        #connection-status { font-size: 0.8rem; color: #00ff88; margin-bottom: 10px; min-height: 1.2em; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* 勝敗演出 */
+        #result-screen { position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; flex-direction: column; background: rgba(0,0,0,0.95); }
+        .win-text { font-size: 5rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px var(--gold); animation: pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+        .lose-text { font-size: 4rem; font-weight: 900; color: #666; animation: glitch 0.2s infinite; }
+        @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes glitch { 0% { transform: translate(0); } 50% { transform: translate(-3px, 2px); } 100% { transform: translate(3px, -2px); } }
+
+        .setup-ui { background: #111; padding: 25px; border-radius: 20px; border: 2px solid #333; margin: 20px auto; max-width: 400px; }
+        input { padding: 14px; width: 85%; margin-bottom: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 8px; }
+        .hidden { display: none !important; }
+        
+        /* ステータス表示 */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .player-box { background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .hp-val { font-size: 2.2rem; font-weight: 900; color: #00ff88; }
+        
+        /* 手札 */
+        .hand { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; min-height: 100px; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed #333; }
+        .card { width: 70px; height: 105px; border: 2px solid #fff; border-radius: 8px; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .card.selected { transform: translateY(-15px); border-color: var(--red); box-shadow: 0 5px 15px rgba(255,0,0,0.3); }
+        
+        /* 攻撃選択 */
+        .attack-selector { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
+        .atk-btn { flex: 1; padding: 12px 0; border-radius: 10px; border: 2px solid transparent; cursor: pointer; opacity: 0.4; color: #fff; font-weight: bold; font-size: 0.7rem; }
+        .atk-btn.active { opacity: 1; border-color: white; transform: scale(1.05); }
+
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .action-btn { background: var(--red); color: white; border: none; padding: 16px; font-weight: 900; border-radius: 12px; width: 100%; cursor: pointer; font-size: 1.2rem; box-shadow: 0 5px 0 #990000; }
+        .action-btn:disabled { background: #333; color: #666; box-shadow: none; transform: translateY(3px); }
+
+        /* チャット */
+        .chat-container { background: #000; height: 150px; border: 1px solid #333; margin-top: 15px; display: flex; flex-direction: column; border-radius: 10px; }
+        #chat-logs { flex: 1; overflow-y: auto; text-align: left; padding: 10px; font-size: 0.8rem; color: #aaa; line-height: 1.5; }
+        .chat-input-area { display: flex; border-top: 1px solid #222; }
+        #chat-input { flex: 1; border: none; padding: 12px; background: #111; color: white; outline: none; }
+        
+        /* エフェクト */
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        .flash-red { animation: flash 0.4s; }
+        @keyframes flash { 50% { background: rgba(255,0,0,0.5); } }
+    </style>
+</head>
+<body>
+
+    <div id="result-screen">
+        <div id="result-main-text" class="win-text">VICTORY</div>
+        <div id="result-sub-text" style="color:#888; margin-top:15px;"></div>
+        <button style="margin-top:30px; padding:10px 30px; border-radius:20px; cursor:pointer;" onclick="location.reload()">タイトルへ</button>
+    </div>
+
+    <div id="overlay">
+        <h2 id="battle-type" style="margin:0;"></h2>
+        <div id="battle-main" style="font-size: 4.5rem; font-weight:900;"></div>
+        <p id="battle-result" style="font-size: 1.6rem; color: #ffeb3b; height: 1.5em;"></p>
+    </div>
+
+    <h2 style="margin: 10px 0 2px 0; letter-spacing: 2px;">CARD DUEL</h2>
+    <div id="connection-status">OFFLINE</div>
+
+    <div id="setup" class="setup-ui">
+        <input type="text" id="room-id" placeholder="合言葉を入力">
+        <button class="action-btn" style="background:#00d2ff; box-shadow:0 5px 0 #008eb3; color:#000;" onclick="startPeer(true)">ホストとして部屋を作る</button>
+        <div style="margin:10px; color:#444;">OR</div>
+        <button class="action-btn" style="background:#fff; box-shadow:0 5px 0 #999; color:#000;" onclick="startPeer(false)">ゲストとして参加する</button>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="stats-grid">
+            <div id="my-box" class="player-box">YOU<br><span id="my-hp" class="hp-val">500</span></div>
+            <div id="opp-box" class="player-box">OPP<br><span id="opp-hp" class="hp-val">500</span></div>
+        </div>
+        
+        <div class="attack-selector" id="atk-selector"></div>
+        
+        <div id="my-hand" class="hand"></div>
+        
+        <button id="ready-btn" class="action-btn" onclick="onReady()" disabled>攻撃色を選択してください</button>
+        
+        <div class="chat-container">
+            <div id="chat-logs"></div>
+            <div class="chat-input-area"><input type="text" id="chat-input" placeholder="メッセージ..." onkeydown="if(event.key==='Enter') sendChat()"><button style="padding:0 20px; background:#333; color:#fff; border:none; cursor:pointer;" onclick="sendChat()">送る</button></div>
+        </div>
+    </div>
+
+<script>
+const SETTINGS = {
+    'red':    { name: 'RED',    color: '#ff4d4d', cost: 20, damage: 80 },
+    'blue':   { name: 'BLUE',   color: '#00d2ff', cost: 10, damage: 40 },
+    'yellow': { name: 'YELLOW', color: '#ffea00', cost: 30, damage: 120 },
+    'purple': { name: 'PURPLE', color: '#d400ff', cost: 40, damage: 200 }
+};
+
+let peer, conn, isHost, myHp = 500, oppHp = 500, turn = 1, myHand = [], selectedIndices = new Set(), attackColor = null, myData = null, oppData = null, isProcessing = false;
+
+function setStatus(msg, color="#00ff88") { 
+    const el = document.getElementById('connection-status');
+    el.innerText = msg; el.style.color = color; 
+}
+
+function startPeer(host) {
+    const rid = document.getElementById('room-id').value.trim().toLowerCase();
+    if(!rid) return alert("合言葉を入力してください");
+    isHost = host;
+    const peerId = isHost ? rid : rid + "_gst_" + Math.random().toString(36).slice(2, 6);
+    peer = new Peer(peerId);
+    setStatus("接続中...", "#ffea00");
+
+    peer.on('open', () => {
+        if(isHost) {
+            setStatus("待機中: ID [" + rid + "]", "#00d2ff");
+            peer.on('connection', c => { conn = c; setupGame(); });
+        } else {
+            conn = peer.connect(rid);
+            setupGame();
+        }
+    });
+}
+
+function setupGame() {
+    conn.on('open', () => {
+        setStatus("対戦中", "#00ff88");
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game-ui').classList.remove('hidden');
+        initAttackButtons();
+        if(isHost) {
+            myHand = Array.from({length:5}, () => Object.keys(SETTINGS)[Math.floor(Math.random()*4)]);
+            conn.send({ type: 'init', hand: Array.from({length:5}, () => Object.keys(SETTINGS)[Math.floor(Math.random()*4)]) });
+            updateUI();
+        }
+    });
+    conn.on('data', data => {
+        if(data.type === 'init') { myHand = data.hand; updateUI(); }
+        if(data.type === 'sync') { 
+            oppData = data; 
+            oppHp = data.hp; // 相手から届いた「相手自身の最新HP」を反映
+            updateUI();
+            checkBothReady(); 
+        }
+        if(data.type === 'hp_final') {
+            oppHp = data.hp; // ターン終了時の最終同期
+            updateUI();
+        }
+        if(data.type === 'chat') addChat(data.msg, false, data.isSys);
+    });
+}
+
+function initAttackButtons() {
+    const container = document.getElementById('atk-selector');
+    container.innerHTML = '';
+    Object.keys(SETTINGS).forEach(key => {
+        const btn = document.createElement('div');
+        btn.className = 'atk-btn'; btn.style.backgroundColor = SETTINGS[key].color;
+        btn.style.color = key === 'yellow' ? '#000' : '#fff';
+        btn.innerHTML = `威力:${SETTINGS[key].damage}<br>コスト:${SETTINGS[key].cost}`;
+        btn.onclick = () => {
+            if(isProcessing) return;
+            attackColor = key;
+            document.querySelectorAll('.atk-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('ready-btn').disabled = false;
+            document.getElementById('ready-btn').innerText = `${key.toUpperCase()}で攻撃！`;
+        };
+        container.appendChild(btn);
+    });
+}
+
+function updateUI() {
+    const myContainer = document.getElementById('my-hand');
+    myContainer.innerHTML = '';
+    myHand.forEach((type, i) => {
+        const el = document.createElement('div');
+        el.className = `card ${selectedIndices.has(i) ? 'selected' : ''}`;
+        el.style.background = SETTINGS[type].color;
+        el.style.color = type === 'yellow' ? '#000' : '#fff';
+        el.innerHTML = `<b>${SETTINGS[type].name}</b><br>C:${SETTINGS[type].cost}`;
+        el.onclick = () => {
+            if(isProcessing) return;
+            if(selectedIndices.has(i)) selectedIndices.delete(i);
+            else selectedIndices.add(i);
+            updateUI();
+        };
+        myContainer.appendChild(el);
+    });
+    document.getElementById('my-hp').innerText = myHp;
+    document.getElementById('opp-hp').innerText = oppHp;
+}
+
+function onReady() {
+    if(!attackColor || isProcessing) return;
+    isProcessing = true;
+    document.getElementById('ready-btn').disabled = true;
+
+    // 手札コスト計算
+    const discardedCards = myHand.filter((_, i) => selectedIndices.has(i));
+    myHand = myHand.filter((_, i) => !selectedIndices.has(i));
+    selectedIndices.clear();
+
+    const mult = (1 + (turn - 1) * 0.1);
+    const costDmg = Math.ceil(discardedCards.reduce((s, t) => s + SETTINGS[t].cost, 0) * mult);
+    myHp -= costDmg;
+    trigger('my-box', 'flash-red');
+
+    const logMsg = `[TURN ${turn}] コストで ${costDmg} ダメージを受けました`;
+    addChat(logMsg, true, true);
+    if(conn) conn.send({ type: 'chat', msg: logMsg, isSys: true });
+
+    // 自分のHPを含めて送信
+    myData = { type: 'sync', hp: myHp, hand: myHand, atkColor: attackColor };
+    conn.send(myData);
+    updateUI();
+    checkBothReady();
+}
+
+async function checkBothReady() {
+    if(!myData || !oppData) return;
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+    const mult = (1 + (turn - 1) * 0.1);
+
+    // お互いの攻撃処理
+    await battleStep("YOUR ATTACK", myData.atkColor, oppData.hand, true, mult);
+    await battleStep("ENEMY ATTACK", oppData.atkColor, myHand, false, mult);
+
+    overlay.style.display = 'none';
+    
+    // バトル後の最終的なHPを相互に確定させる
+    conn.send({ type: 'hp_final', hp: myHp });
+    
+    finalizeTurn();
+}
+
+async function battleStep(type, color, targetHand, isMyAtk, mult) {
+    const main = document.getElementById('battle-main');
+    const res = document.getElementById('battle-result');
+    document.getElementById('battle-type').innerText = type;
+    document.getElementById('battle-type').style.color = isMyAtk ? "#00d2ff" : "#ff4d4d";
+    main.innerText = color.toUpperCase();
+    main.style.color = SETTINGS[color].color;
+    res.innerText = "...";
+    await new Promise(r => setTimeout(r, 1000));
+
+    const dmg = Math.ceil(SETTINGS[color].damage * mult);
+    if(targetHand.includes(color)) {
+        res.innerText = "REFLECTED!!";
+        if(isMyAtk) { myHp -= Math.floor(dmg/2); trigger('my-box', 'flash-red'); }
+        else { oppHp -= Math.floor(dmg/2); myHand.splice(myHand.indexOf(color), 1); trigger('opp-box', 'flash-red'); }
+    } else {
+        res.innerText = `HIT!! -${dmg}`;
+        if(isMyAtk) { oppHp -= dmg; trigger('opp-box', 'shake'); }
+        else { myHp -= dmg; trigger('my-box', 'shake'); }
+    }
+    updateUI();
+    await new Promise(r => setTimeout(r, 1200));
+}
+
+function finalizeTurn() {
+    for(let i=0; i<3; i++) myHand.push(Object.keys(SETTINGS)[Math.floor(Math.random()*4)]);
+    turn++;
+    myData = null; oppData = null; attackColor = null; isProcessing = false;
+    document.querySelectorAll('.atk-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('ready-btn').innerText = "攻撃色を選択してください";
+    updateUI();
+    if(myHp <= 0 || oppHp <= 0) showFinalResult();
+}
+
+function showFinalResult() {
+    const screen = document.getElementById('result-screen');
+    const main = document.getElementById('result-main-text');
+    const sub = document.getElementById('result-sub-text');
+    screen.style.display = 'flex';
+    if(myHp <= 0 && oppHp <= 0) { main.innerText = "DRAW"; sub.innerText = "同時撃破！"; }
+    else if(myHp <= 0) { main.innerText = "DEFEATED"; main.className = "lose-text"; sub.innerText = "敗北しました..."; }
+    else { main.innerText = "VICTORY"; main.className = "win-text"; sub.innerText = "勝利しました！"; }
+}
+
+function trigger(id, cls) { 
+    const el = document.getElementById(id); 
+    el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); 
+}
+
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if(!msg || !conn) return;
+    conn.send({ type: 'chat', msg: msg, isSys: false });
+    addChat(msg, true, false);
+    input.value = '';
+}
+
+function addChat(msg, isMe, isSys) {
+    const logs = document.getElementById('chat-logs');
+    const div = document.createElement('div');
+    if(isSys) { div.style.color = "#888"; div.style.fontStyle = "italic"; div.innerText = ">> " + msg; }
+    else { div.style.color = isMe ? "#00d2ff" : "#ff4d4d"; div.innerText = (isMe ? "YOU: " : "OPP: ") + msg; }
+    logs.appendChild(div);
+    logs.scrollTop = logs.scrollHeight;
+}
+</script>
+</body>
+</html>
