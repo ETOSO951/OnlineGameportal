@@ -3,372 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Wizard: Definitive Edition</title>
+    <title>Flappy Wizard: Ultimate Battle</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        #wrapper { position: relative; width: 320px; margin: 0 auto; }
-        canvas { display: block; width: 320px; height: 480px; background: #70c5ce; border: 2px solid #333; }
-        #ui { background: rgba(0,0,0,0.9); padding: 5px; display: flex; justify-content: space-around; font-size: 14px; border-bottom: 2px solid #444; }
-        #skill-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #111; padding: 5px; width: 310px; margin: 0 auto; }
-        .skill-btn { font-size: 10px; padding: 6px 0; background: #333; color: #ccc; border: 1px solid #555; border-radius: 3px; cursor: pointer; }
-        #status-msg { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; pointer-events: none; z-index: 10; }
-        .setup { text-align: center; padding: 50px 20px; }
-        #peer-status { font-size: 12px; color: #aaa; margin-top: 5px; }
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --accent: #66fcf1;
+            --accent-hot: #ff007f;
+        }
+        body { 
+            margin: 0; background: var(--bg-color); color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow: hidden; touch-action: none; user-select: none;
+        }
+        #wrapper { position: relative; width: 340px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        canvas { display: block; width: 340px; height: 480px; background: #000; border: 2px solid #333; border-radius: 4px 4px 0 0; }
+        
+        #ui { 
+            background: rgba(15, 23, 42, 0.95); padding: 8px 12px; display: flex; 
+            justify-content: space-between; align-items: center; font-size: 13px; 
+            border-bottom: 2px solid #334155; font-weight: bold;
+        }
+        .score-box { display: flex; flex-direction: column; align-items: center; }
+        .score-val { font-size: 20px; font-family: monospace; }
+        .p1-color { color: #38bdf8; }
+        .p2-color { color: #f43f5e; }
+        
+        #mp-container { 
+            background: #1e293b; height: 10px; width: 340px; margin: 0 auto; position: relative;
+        }
+        #mp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #0284c7, #38bdf8, #818cf8); transition: width 0.05s linear; }
+        #mp-text { position: absolute; right: 5px; top: -14px; font-size: 10px; font-family: monospace; color: #38bdf8; }
+
+        #skill-panel { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; 
+            background: var(--panel-bg); padding: 8px; width: 324px; margin: 0 auto; 
+            border-radius: 0 0 8px 8px; border: 2px solid #333; border-top: none;
+        }
+        .skill-btn { 
+            position: relative; font-size: 10px; padding: 8px 2px; background: #334155; 
+            color: #f8fafc; border: 1px solid #475569; border-radius: 4px; cursor: pointer; 
+            font-weight: bold; transition: 0.1s; text-align: center;
+        }
+        .skill-btn:active { transform: scale(0.95); }
+        .skill-btn.disabled { opacity: 0.4; cursor: not-allowed; border-color: #333; }
+        .skill-btn.active-skill { border-color: var(--accent-hot); box-shadow: 0 0 8px var(--accent-hot); }
+
+        #status-msg { 
+            position: absolute; top: 35%; width: 100%; text-align: center; 
+            font-size: 26px; font-weight: 900; text-shadow: 0 0 10px #000, 2px 2px 2px #000; 
+            pointer-events: none; z-index: 10; letter-spacing: 1px;
+        }
+        .setup { text-align: center; padding: 40px 15px; max-width: 320px; margin: 0 auto; }
+        .setup input { 
+            padding: 12px; width: 80%; border-radius: 6px; border: 1px solid #475569; 
+            background: #1e293b; color: #fff; font-size: 16px; margin-bottom: 15px; text-align: center;
+        }
+        .setup button { 
+            width: 85%; padding: 12px; margin: 6px 0; border: none; font-weight: bold; 
+            border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
+        }
+        .btn-host { background: #0284c7; color: white; }
+        .btn-guest { background: #10b981; color: white; }
         .hidden { display: none !important; }
+        #peer-status { font-size: 12px; color: #94a3b8; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen" class="setup">
-        <h1 style="color:#f8e71c; margin-bottom:0;">FLAPPY WIZARD</h1>
-        <div id="peer-status">オフライン</div>
-        <br>
-        <input type="text" id="room-id" placeholder="合言葉を入れる" style="padding:10px; border-radius:5px; border:none;"><br><br>
-        <button onclick="initPeer(true)" style="padding:10px 20px; background:#e67e22; border:none; color:#fff; font-weight:bold; border-radius:5px;">1P作成 (Host)</button>
-        <button onclick="initPeer(false)" style="padding:10px 20px; background:#2ecc71; border:none; color:#fff; font-weight:bold; border-radius:5px;">2P参加 (Guest)</button>
+        <h1 style="color:var(--accent); margin-bottom:4px; font-size:26px;">FLAPPY WIZARD</h1>
+        <p style="font-size:12px; color:#94a3b8; margin-top:0;">DUEL SPELLCASTER EDITION</p>
+        <input type="text" id="room-id" placeholder="合言葉（Room ID）を入力"><br>
+        <button class="btn-host" onclick="initPeer(true)">⚔️ 部屋を作成 (1P/Host)</button>
+        <button class="btn-guest" onclick="initPeer(false)">🛡️ 部屋に参加 (2P/Guest)</button>
+        <div id="peer-status">オフライン: 合言葉を決めて接続してください</div>
     </div>
 
     <div id="game-screen" class="hidden">
-        <div id="ui">
-            <div>1P: <span id="s1">0</span></div>
-            <div id="stage-display" style="color:#f8e71c; font-weight:bold;">NORMAL</div>
-            <div>2P: <span id="s2">0</span></div>
-        </div>
         <div id="wrapper">
-            <canvas id="gameCanvas" width="320" height="480"></canvas>
+            <div id="ui">
+                <div class="score-box p1-color">1P: <span id="s1" class="score-val">0</span></div>
+                <div style="text-align:center;">
+                    <div id="stage-display" style="color:#fbbf24; font-size:12px;">STAGE 1</div>
+                    <div id="role-indicator" style="font-size:10px; color:#cbd5e1;">WAITING</div>
+                </div>
+                <div class="score-box p2-color">2P: <span id="s2" class="score-val">0</span></div>
+            </div>
+
+            <canvas id="gameCanvas" width="340" height="480"></canvas>
             <div id="status-msg"></div>
-        </div>
-        <div style="background:#222; height:8px; width:320px; margin:0 auto;"><div id="mp-bar" style="height:100%; width:0%; background:#00d4ff;"></div></div>
-        <div id="skill-panel">
-            <button class="skill-btn" onclick="useSkill('speed', 25)">高速(25)</button>
-            <button class="skill-btn" onclick="useSkill('move', 30)">揺れ(30)</button>
-            <button class="skill-btn" onclick="useSkill('blind', 50)">暗闇(50)</button>
-            <button class="skill-btn" onclick="useSkill('rev', 65)">反転(65)</button>
-            <button class="skill-btn" onclick="useSkill('ghost', 30)">透明(45)</button>
-            <button class="skill-btn" onclick="useSkill('fake', 25)">分身(35)</button>
-            <button class="skill-btn" onclick="useSkill('gravUp', 25)">重力+(30)</button>
-            <button class="skill-btn" onclick="useSkill('highJump', 30)">強跳(30)</button>
-            <button class="skill-btn" onclick="useSkill('giant', 35)">巨大化(50)</button>
-<button class="skill-btn" onclick="useSkill('back', 55)">足止め(55)</button>
-<button class="skill-btn" onclick="useSkill('impact', 20)">衝撃(20)</button>
-<button class="skill-btn" onclick="useSkill('ascend', 100)">昇天(100)</button>
+
+            <div id="mp-container">
+                <div id="mp-bar"></div>
+                <span id="mp-text">MP: 0</span>
+            </div>
+
+            <div id="skill-panel">
+                <button class="skill-btn" id="sk-speed" onclick="triggerSkill('speed', 25)">加速<br>(25)</button>
+                <button class="skill-btn" id="sk-move" onclick="triggerSkill('move', 30)">波状<br>(30)</button>
+                <button class="skill-btn" id="sk-blind" onclick="triggerSkill('blind', 45)">盲目<br>(45)</button>
+                <button class="skill-btn" id="sk-rev" onclick="triggerSkill('rev', 60)">逆重力<br>(60)</button>
+                <button class="skill-btn" id="sk-ghost" onclick="triggerSkill('ghost', 30)">幻影<br>(30)</button>
+                <button class="skill-btn" id="sk-fake" onclick="triggerSkill('fake', 35)">偽壁<br>(35)</button>
+                <button class="skill-btn" id="sk-gravUp" onclick="triggerSkill('gravUp', 30)">重化<br>(30)</button>
+                <button class="skill-btn" id="sk-giant" onclick="triggerSkill('giant', 40)">巨体<br>(40)</button>
+                <button class="skill-btn" id="sk-back" onclick="triggerSkill('back', 50)">引き戻し<br>(50)</button>
+                <button class="skill-btn" id="sk-highJump" onclick="triggerSkill('highJump', 35)">暴跳<br>(35)</button>
+                <button class="skill-btn" id="sk-impact" onclick="triggerSkill('impact', 20)">メテオ<br>(20)</button>
+                <button class="skill-btn" id="sk-ascend" onclick="triggerSkill('ascend', 90)">無重力<br>(90)</button>
+            </div>
         </div>
     </div>
 
 <script>
-// --- 定数・ステージ定義 ---
+// --- Web Audio API（効果音シンセサイザー） ---
+const AudioEngine = {
+    ctx: null,
+    init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    playJump() {
+        if (!this.ctx) return;
+        let osc = this.ctx.createOscillator(), g = this.ctx.createGain();
+        osc.connect(g); g.connect(this.ctx.destination);
+        osc.type = "sine"; osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(640, this.ctx.currentTime + 0.1);
+        g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+    },
+    playCrash() {
+        if (!this.ctx) return;
+        let b = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.25, this.ctx.sampleRate),
+            d = b.getChannelData(0);
+        for(let i=0; i<b.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.05));
+        let src = this.ctx.createBufferSource(); src.buffer = b;
+        let g = this.ctx.createGain(); g.gain.value = 0.3;
+        src.connect(g); g.connect(this.ctx.destination);
+        src.start();
+    },
+    playCast() {
+        if (!this.ctx) return;
+        let osc = this.ctx.createOscillator(), g = this.ctx.createGain();
+        osc.connect(g); g.connect(this.ctx.destination);
+        osc.type = "triangle"; osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.25);
+        g.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.25);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+    }
+};
+
+// --- ステージ拡張定義 ---
 const STAGES = [
-    { name: "NORMAL", bg: "#70c5ce", pipe: "#73bf2e", interval: 105, speed: 1.0, gap: 1.0, g:0.28, j:-5.2 },
-    { name: "DUSK", bg: "#e67e22", pipe: "#a35200", interval: 100, speed: 1.1, gap: 1.0, g:0.28, j:-5.2 },
-    { name: "NIGHT", bg: "#2c3e50", pipe: "#576574", interval: 105, speed: 1.0, gap: 1.05, g:0.28, j:-5.2, move:true },
-    { name: "CAVERN", bg: "#4d4d4d", pipe: "#808080", interval: 105, speed: 1.0, gap: 0.95, g:0.28, j:-5.2 },
-    { name: "DESERT", bg: "#d4a70f", pipe: "#e6c28d", interval: 105, speed: 1.0, gap: 1.0, g:0.32, j:-5.2 },
-    { name: "OCEAN", bg: "#2980b9", pipe: "#16a085", interval: 80, speed: 0.9, gap: 1.15, g:0.14, j:-2.5 },
-    { name: "CYBER", bg: "#8e44ad", pipe: "#c39bd3", interval: 100, speed: 1.2, gap: 1.3, g:0.26, j:-5.2, move:true },
-    { name: "FOREST", bg: "#27ae60", pipe: "#1e8449", interval: 90, speed: 1.1, gap: 0.85, g:0.28, j:-5.2 },
-    { name: "MANSION", bg: "#cece78", pipe: "#773477", interval: 65, speed: 0.8, gap: 1.1, g:0.28, j:-5.2, move:true },
-    { name: "SNOWY", bg: "#8888aa", pipe: "#bdc3c7", interval: 75, speed: 1.3, gap: 0.85, g:0.28, j:-5.2 },
-    { name: "MAGMA", bg: "#c0392b", pipe: "#e74c3c", interval: 120, speed: 1.8, gap: 0.8, g:0.28, j:-5.2 },
-    { name: "SPACE", bg: "#000000", pipe: "#34495e", interval: 95, speed: 1.5, gap: 0.9, g:-0.28, j:5.2 },
-    { name: "METEOR", bg: "#000000", pipe: "#73bf2e", interval: 95, speed: 1.3, gap: 0.85, g:0.28, j:-5.2, move:true }
+    { name: "ASTRAL SKY", bgTop: "#0f2027", bgBot: "#203a43", pipe: "#00adb5", interval: 100, speed: 1.1, gap: 1.1, g:0.27, j:-5.2 },
+    { name: "NEON CITY", bgTop: "#2b1055", bgBot: "#7597de", pipe: "#ff007f", interval: 95, speed: 1.25, gap: 1.0, g:0.28, j:-5.3, move:true },
+    { name: "VERDANT RUIN", bgTop: "#134e5e", bgBot: "#71b280", pipe: "#55efc4", interval: 90, speed: 1.2, gap: 0.95, g:0.29, j:-5.2 },
+    { name: "MAGMA CORE", bgTop: "#4a00e0", bgBot: "#8e2de2", pipe: "#ff7675", interval: 85, speed: 1.35, gap: 0.9, g:0.30, j:-5.4 },
+    { name: "COSMIC VOID", bgTop: "#000000", bgBot: "#1a1a2e", pipe: "#f39c12", interval: 80, speed: 1.45, gap: 0.88, g:0.31, j:-5.5, move:true }
 ];
 
-// --- グローバル変数 ---
 let peer, conn, isHost = false;
 let sessionStages = [];
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let scores = { p1: 0, p2: 0 }, currentAttacker = "p1", mp = 0, frame = 0;
-let bird = { x: 60, y: 240, v: 0, rot: 0 }, pipes = [], stars = [];
-let activeSkills = { speed:0, move:0, blind:0, rev:0, ghost:0, fake:0, gravUp:0, highJump:0 };
+let bird = { x: 70, y: 240, v: 0, rot: 0 };
+let pipes = [], particles = [], stars = [];
+let activeSkills = {};
 let isGameOver = false;
+let shakeTime = 0;
 
-// --- 通信・初期化 ---
 function initPeer(host) {
+    AudioEngine.init();
     const rid = document.getElementById('room-id').value.trim().toLowerCase();
     if(!rid) return alert("合言葉を入力してください");
     isHost = host;
     const status = document.getElementById('peer-status');
-    status.innerText = isHost ? "マッチング待機中..." : "接続中...";
+    status.innerText = isHost ? "ルーム作成完了。対戦相手を待機中..." : "ルームに接続中...";
 
-    peer = new Peer(isHost ? rid : rid + "_gst" + Math.floor(Math.random()*999));
-    
+    peer = new Peer(isHost ? rid : rid + "_gst" + Math.floor(Math.random()*9999));
     peer.on('open', () => { if(!isHost) { conn = peer.connect(rid); setupConn(); } });
     peer.on('connection', c => { conn = c; setupConn(); });
-    peer.on('error', () => status.innerText = "エラー: 合言葉を確認してください");
+    peer.on('error', (err) => { status.innerText = "通信エラー: ID重複または回線切断"; });
 }
 
 function setupConn() {
     conn.on('open', () => {
         if(isHost) {
-            const pool = STAGES.filter(s => s.name !== "NORMAL" && s.name !== "METEOR");
-            const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 3);
-            sessionStages = [STAGES[0], ...shuffled, STAGES[STAGES.length-1]];
+            sessionStages = [...STAGES];
             conn.send({ type: "init", stages: sessionStages });
         }
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
-        for(let i=0; i<40; i++) stars.push({x:Math.random()*320, y:Math.random()*480, s:Math.random()*2});
-        startTurn();
+        for(let i=0; i<45; i++) stars.push({x:Math.random()*340, y:Math.random()*480, s:Math.random()*2 + 0.5, a:Math.random()});
+        startRound();
         requestAnimationFrame(gameLoop);
     });
     conn.on('data', data => {
         if(data.type === "init") sessionStages = data.stages;
-        if(data.type === "sync" && !isAttacker()) {
-            bird.y = data.birdY; bird.rot = data.birdRot;
-            pipes = data.pipes; scores = data.scores; frame = data.frame; activeSkills = data.skills;
+        if(data.type === "sync" && !isHost) {
+            bird = data.bird; pipes = data.pipes; scores = data.scores;
+            frame = data.frame; activeSkills = data.skills;
+            currentAttacker = data.currentAttacker;
         }
-        if(data.type === "skill") activeSkills[data.skill] = 300;
-        if(data.type === "die") switchTurn();
+        if(data.type === "skill") {
+            activeSkills[data.skill] = data.duration;
+            AudioEngine.playCast();
+            createSparks(bird.x, bird.y, '#e879f9');
+        }
+        if(data.type === "flap" && isHost) doFlap();
+        if(data.type === "die" && isHost) handleDeath();
     });
 }
 
 function isAttacker() { return (isHost && currentAttacker === "p1") || (!isHost && currentAttacker === "p2"); }
 
-function startTurn() {
+function startRound() {
     bird.y = 240; bird.v = 0; pipes = []; frame = 0;
-    Object.keys(activeSkills).forEach(k => activeSkills[k] = 0);
-    showStatus(isAttacker() ? "YOUR TURN" : "SABOTAGE", isAttacker() ? "#2ecc71" : "#e74c3c");
+    activeSkills = {};
+    const attackerText = isAttacker() ? "あなたの飛行ターン！逃げ切れ！" : "妨害ターン！呪文で撃墜せよ！";
+    showStatus(attackerText, isAttacker() ? "#38bdf8" : "#f43f5e");
+    document.getElementById('role-indicator').innerText = isAttacker() ? "▶ RUNNER" : "⚡ SABOTEUR";
+    document.getElementById('role-indicator').style.color = isAttacker() ? "#38bdf8" : "#f43f5e";
 }
 
 function getStage() {
     const s = scores[currentAttacker];
-    return sessionStages[Math.min(Math.floor(s / 20), 4)] || STAGES[0];
+    const idx = Math.min(Math.floor(s / 15), sessionStages.length - 1);
+    return sessionStages[idx] || STAGES[0];
 }
 
-// --- 更新ロジック ---
+// --- パーティクル・演出システム ---
+function createSparks(x, y, color) {
+    for (let i = 0; i < 12; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 1.0, color
+        });
+    }
+}
 
-function update(dt) {
-    const fpsAdj = dt * 60; 
-    frame++; 
-    const stage = getStage();
+function triggerShake(intensity) { shakeTime = intensity; }
 
+// --- スキル管理 ---
+const SKILLS_CONFIG = {
+    speed: { cost: 25, dur: 240 },
+    move: { cost: 30, dur: 320 },
+    blind: { cost: 45, dur: 220 },
+    rev: { cost: 60, dur: 180 },
+    ghost: { cost: 30, dur: 200 },
+    fake: { cost: 35, dur: 260 },
+    gravUp: { cost: 30, dur: 200 },
+    giant: { cost: 40, dur: 260 },
+    back: { cost: 50, dur: 90 },
+    highJump: { cost: 35, dur: 220 },
+    impact: { cost: 20, dur: 25 },
+    ascend: { cost: 90, dur: 180 }
+};
+
+function triggerSkill(s, cost) {
+    if (isAttacker() || mp < cost || (activeSkills[s] && activeSkills[s] > 0)) return;
+    mp -= cost;
+    AudioEngine.playCast();
+    const dur = SKILLS_CONFIG[s].dur;
+    activeSkills[s] = dur;
+    conn.send({ type: "skill", skill: s, duration: dur });
+}
+
+function updateUI() {
     document.getElementById('s1').innerText = scores.p1;
     document.getElementById('s2').innerText = scores.p2;
-    document.getElementById('stage-display').innerText = stage.name;
+    document.getElementById('stage-display').innerText = getStage().name;
 
     if (!isAttacker()) {
-        if (mp < 100) mp += 4.8 * dt; 
-        if (mp > 100) mp = 100;
-        document.getElementById('mp-bar').style.width = mp + "%";
-        Object.keys(activeSkills).forEach(k => {
-            if (activeSkills[k] > 0) activeSkills[k] -= 60 * dt; 
-        });
-        return;
+        if (mp < 100) mp = Math.min(100, mp + 0.12);
     }
+    document.getElementById('mp-bar').style.width = mp + "%";
+    document.getElementById('mp-text').innerText = `MP: ${Math.floor(mp)}/100`;
 
-    // --- 物理演算 (衝撃・昇天・重力対応) ---
-    let g = stage.g;
-    if (activeSkills.gravUp > 0) g *= 2.0;
-    if (activeSkills.impact > 0) g *= 2.0; // 衝撃: 一瞬の超重力
-    if (activeSkills.rev > 0) g *= -1;
-    if (activeSkills.ascend > 0) g = Math.abs(g) * -0.35; // 昇天: 重力反転
+    // ボタンの活性・発動中表示
+    Object.keys(SKILLS_CONFIG).forEach(k => {
+        const btn = document.getElementById(`sk-${k}`);
+        if (!btn) return;
+        const conf = SKILLS_CONFIG[k];
+        if (isAttacker() || mp < conf.cost) {
+            btn.classList.add('disabled');
+        } else {
+            btn.classList.remove('disabled');
+        }
+        if (activeSkills[k] > 0) {
+            btn.classList.add('active-skill');
+        } else {
+            btn.classList.remove('active-skill');
+        }
+    });
+}
 
-    bird.v += g * fpsAdj; 
-    bird.y += bird.v * fpsAdj;
-    bird.rot = Math.max(-0.5, Math.min(0.5, bird.v * 0.1));
+// --- 物理演算と判定 ---
+function update(dt) {
+    const fpsAdj = dt * 60;
+    frame++;
+    const stage = getStage();
 
-    // --- 土管生成ロジック (分身強化版) ---
-    // 1. 本物の土管（通常の間隔で生成）
-    if (frame % stage.interval === 0) {
-        pipes.push({ 
-            x: 330, gapY: Math.random() * 200 + 100, 
-            passed: false, off: Math.random() * 10, isFake: false 
-        });
-    }
-    // 2. 分身の土管（スキル発動中、本物の合間に生成）
-    // 本物の生成間隔の半分（interval / 2）のタイミングでフェイクを差し込む
-    if (activeSkills.fake > 0 && (frame + Math.floor(stage.interval / 5)) % stage.interval === 0) {
-        pipes.push({ 
-            x: 330, gapY: Math.random() * 200 + 100, 
-            passed: false, off: Math.random() * 10, isFake: true 
-        });
-    }
+    updateUI();
 
-    // --- 移動と衝突判定 (足止め・巨大化対応) ---
-    let baseSpd = stage.speed * (activeSkills.speed > 0 ? 2.5 : 1.5) * 2;
-    let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
+    // スキル減衰
+    Object.keys(activeSkills).forEach(k => {
+        if (activeSkills[k] > 0) activeSkills[k] -= fpsAdj;
+    });
 
-    pipes.forEach(p => {
-        p.x -= moveSpd * fpsAdj;
-        let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
-        
-        // 衝突判定
-        if (activeSkills.ghost <= 0 && !p.isFake) {
-            let hitSize = activeSkills.giant > 0 ? 24 : 12; // 巨大化
-            if (bird.x + hitSize > p.x && bird.x - hitSize < p.x + 52) {
-                if (bird.y - (hitSize-2) < myGapY || bird.y + (hitSize-2) > myGapY + 130 * stage.gap) {
-                    die();
+    if (shakeTime > 0) shakeTime -= fpsAdj;
+
+    // パーティクル更新
+    particles.forEach(p => {
+        p.x += p.vx * fpsAdj; p.y += p.vy * fpsAdj;
+        p.life -= 0.03 * fpsAdj;
+    });
+    particles = particles.filter(p => p.life > 0);
+
+    // アタッカー側（飛行担当）のみ衝突・物理を判定
+    if (isHost) {
+        let g = stage.g;
+        if (activeSkills.gravUp > 0) g *= 1.8;
+        if (activeSkills.impact > 0) g *= 3.5;
+        if (activeSkills.rev > 0) g *= -1;
+        if (activeSkills.ascend > 0) g = -0.15;
+
+        bird.v += g * fpsAdj;
+        bird.y += bird.v * fpsAdj;
+        bird.rot = Math.max(-0.6, Math.min(0.7, bird.v * 0.08));
+
+        // 土管生成
+        if (frame % stage.interval === 0) {
+            pipes.push({ x: 360, gapY: Math.random() * 190 + 90, passed: false, off: Math.random()*10, isFake: false });
+        }
+        if (activeSkills.fake > 0 && (frame + Math.floor(stage.interval / 2)) % stage.interval === 0) {
+            pipes.push({ x: 360, gapY: Math.random() * 190 + 90, passed: false, off: Math.random()*10, isFake: true });
+        }
+
+        // 土管移動と当たり判定
+        let spd = stage.speed * (activeSkills.speed > 0 ? 2.3 : 1.6) * 1.8;
+        if (activeSkills.back > 0) spd = -spd * 0.8;
+
+        pipes.forEach(p => {
+            p.x -= spd * fpsAdj;
+            let gapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.06 + p.off) * 35 : 0);
+
+            if (activeSkills.ghost <= 0 && !p.isFake) {
+                let hitRadius = activeSkills.giant > 0 ? 22 : 12;
+                if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + 48) {
+                    if (bird.y - hitRadius < gapY || bird.y + hitRadius > gapY + 120 * stage.gap) {
+                        handleDeath();
+                    }
                 }
             }
-        }
-        
-        // スコア加算（フェイク土管はカウントしない）
-        if (moveSpd > 0 && !p.isFake && !p.passed && p.x < bird.x) { 
-            p.passed = true; 
-            scores[currentAttacker]++; 
-        }
-    });
+            if (spd > 0 && !p.isFake && !p.passed && p.x < bird.x) {
+                p.passed = true;
+                scores[currentAttacker]++;
+                createSparks(bird.x, bird.y, '#facc15');
+            }
+        });
 
-    if (pipes.length > 0 && pipes[0].x < -100) pipes.shift();
-    if (bird.y < 0 || bird.y > 480) die();
-
-    // スキルタイマー減少
-    Object.keys(activeSkills).forEach(k => {
-        if (activeSkills[k] > 0) {
-            let decay = (k === 'impact') ? 270 : 1; // 衝撃はすぐ終わる
-            activeSkills[k] -= decay * dt; 
-            if (activeSkills[k] < 0) activeSkills[k] = 0;
-        }
-    });
-}
-
-function die() { conn.send({ type: "die" }); switchTurn(); }
-
-function switchTurn() {
-    if(currentAttacker === "p1") { currentAttacker = "p2"; startTurn(); }
-    else { checkWinner(); }
-}
-
-function checkWinner() {
-    if((scores.p1 >= 100 || scores.p2 >= 100) && scores.p1 !== scores.p2) {
-        isGameOver = true;
-        showStatus(scores.p1 > scores.p2 ? "1P WIN!" : "2P WIN!", "#f8e71c");
-    } else {
-        currentAttacker = "p1"; startTurn();
+        pipes = pipes.filter(p => p.x > -80);
+        if (bird.y < 0 || bird.y > 480) handleDeath();
     }
 }
 
-// --- 描画 (統合版) ---
-function drawBird(ctx, bird) { 
-    ctx.save(); ctx.translate(bird.x, bird.y); ctx.rotate(bird.rot); 
-    const wPos = Math.sin(frame * 0.4) * 7; 
-    ctx.fillStyle = "#f8e71c"; ctx.strokeStyle = "#000"; ctx.lineWidth = 2; 
-    ctx.beginPath(); ctx.ellipse(0, 0, 16, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(-8, wPos, 8, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(8, -5, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
-    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(10, -5, 2, 0, Math.PI * 2); ctx.fill(); 
-    ctx.fillStyle = "#f15a24"; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(22, 4); ctx.lineTo(12, 8); ctx.closePath(); ctx.fill(); ctx.stroke(); 
-    ctx.restore(); 
-} 
-
-function drawPipe(x, y, isTop, stage, gap) { 
-    const w = 52, capH = 26; 
-    ctx.save(); 
-    ctx.fillStyle = stage.pipe; ctx.strokeStyle = "#000"; ctx.lineWidth = 3; 
-    const bodyY = isTop ? 0 : y + gap + capH; 
-    const bodyH = isTop ? y : 480 - (y + gap + capH); 
-    ctx.fillRect(x, bodyY, w, bodyH); ctx.strokeRect(x, bodyY, w, bodyH); 
-    ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.fillRect(x + 5, bodyY, 10, bodyH); 
-    ctx.fillStyle = stage.pipe; 
-    ctx.fillRect(x - 4, isTop ? y : y + gap, w + 8, capH); ctx.strokeRect(x - 4, isTop ? y : y + gap, w + 8, capH); 
-    ctx.restore(); 
-}
-
-function drawBackground(stage) {
-    ctx.fillStyle = stage.bg; ctx.fillRect(0, 0, 320, 480);
-    ctx.save();
-    if(stage.name === "NORMAL") {
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        for(let i=0; i<3; i++) {
-            let cx = (60 + i*140 + frame*0.3) % 400 - 60;
-            ctx.beginPath(); ctx.arc(cx, 100, 30, 0, 7); ctx.arc(cx+25, 85, 25, 0, 7); ctx.fill();
-        }
-    }
-    if(/NIGHT|SPACE|METEOR/.test(stage.name)) {
-        ctx.fillStyle = "#fff"; stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
-    }
-    if(stage.name === "CAVERN") {
-        ctx.fillStyle = "#553311";
-        for(let i=0; i<8; i++) { ctx.beginPath(); ctx.moveTo(i*40, 0); ctx.lineTo(i*40+20, 50); ctx.lineTo(i*40+40, 0); ctx.fill(); }
-    }
-    ctx.restore();
-}
-
-function draw() {
+function doFlap() {
     const stage = getStage();
-    drawBackground(stage);
-    
-    pipes.forEach(p => {
-        let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
-        ctx.save();
-        if (activeSkills.ghost > 0) {
-            ctx.globalAlpha = 0.02; 
-        } else if (p.isFake) {
-            ctx.globalAlpha = 0.9;
+    let jump = stage.j;
+    if (activeSkills.highJump > 0) jump *= 1.45;
+    if (activeSkills.rev > 0) jump *= -1;
+    bird.v = jump;
+    AudioEngine.playJump();
+    createSparks(bird.x - 8, bird.y + 4, '#ffffff');
+}
+
+function handleDeath() {
+    AudioEngine.playCrash();
+    triggerShake(14);
+    createSparks(bird.x, bird.y, '#f43f5e');
+    if (isHost) {
+        if (currentAttacker === "p1") {
+            currentAttacker = "p2";
+            startRound();
         } else {
-            ctx.globalAlpha = 1.0;
+            // ラウンド決着判定
+            if (scores.p1 !== scores.p2) {
+                isGameOver = true;
+                const winText = scores.p1 > scores.p2 ? "🏆 1Pの完全勝利！" : "🏆 2Pの完全勝利！";
+                showStatus(winText, "#f8e71c");
+            } else {
+                currentAttacker = "p1";
+                startRound();
+            }
         }
-        drawPipe(p.x, myGapY, true, stage, 130 * stage.gap);
-        drawPipe(p.x, myGapY, false, stage, 130 * stage.gap);
+    } else {
+        conn.send({ type: "die" });
+    }
+}
+
+// --- 描画レンダラー ---
+function draw() {
+    ctx.save();
+    if (shakeTime > 0) {
+        ctx.translate((Math.random() - 0.5) * shakeTime, (Math.random() - 0.5) * shakeTime);
+    }
+
+    const stage = getStage();
+
+    // 背景グラデーション
+    let grad = ctx.createLinearGradient(0, 0, 0, 480);
+    grad.addColorStop(0, stage.bgTop); grad.addColorStop(1, stage.bgBot);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, 340, 480);
+
+    // 星屑アニメーション
+    ctx.fillStyle = "#fff";
+    stars.forEach(s => {
+        ctx.globalAlpha = 0.3 + 0.7 * Math.sin(frame * 0.05 + s.a * 10);
+        ctx.fillRect(s.x, s.y, s.s, s.s);
+    });
+    ctx.globalAlpha = 1.0;
+
+    // 土管描画
+    pipes.forEach(p => {
+        let gapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.06 + p.off) * 35 : 0);
+        ctx.save();
+        if (activeSkills.ghost > 0) ctx.globalAlpha = 0.15;
+        if (p.isFake) ctx.globalAlpha = 0.5;
+
+        // パイプ上部
+        ctx.fillStyle = stage.pipe;
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 2.5;
+        
+        ctx.fillRect(p.x, 0, 48, gapY);
+        ctx.strokeRect(p.x, 0, 48, gapY);
+        // キャップ
+        ctx.fillRect(p.x - 3, gapY - 20, 54, 20);
+        ctx.strokeRect(p.x - 3, gapY - 20, 54, 20);
+
+        // パイプ下部
+        let botY = gapY + 120 * stage.gap;
+        ctx.fillRect(p.x, botY, 48, 480 - botY);
+        ctx.strokeRect(p.x, botY, 48, 480 - botY);
+        // キャップ
+        ctx.fillRect(p.x - 3, botY, 54, 20);
+        ctx.strokeRect(p.x - 3, botY, 54, 20);
+
         ctx.restore();
     });
 
-    // --- プレイヤーの描画修正 ---
+    // パーティクル描画
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // プレイヤー描画
     ctx.save();
-    // 昇天(ascend)中は少し青白く、巨大化(giant)中は1.5倍に
-    if (activeSkills.ascend > 0) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#fff";
-    }
-    if (activeSkills.giant > 0) {
-        // birdの座標を中心に拡大するために一旦translate
-        ctx.translate(bird.x, bird.y);
-        ctx.scale(1.75, 1.75);
-        ctx.translate(-bird.x, -bird.y);
-    }
-    drawBird(ctx, bird);
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rot);
+    if (activeSkills.giant > 0) ctx.scale(1.7, 1.7);
+    if (activeSkills.ascend > 0) { ctx.shadowBlur = 15; ctx.shadowColor = "#38bdf8"; }
+
+    // 本体
+    ctx.fillStyle = currentAttacker === "p1" ? "#38bdf8" : "#f43f5e";
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 翼
+    ctx.fillStyle = "#ffffff";
+    const flapOffset = Math.sin(frame * 0.4) * 6;
+    ctx.beginPath(); ctx.ellipse(-6, flapOffset, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
+    // 目
+    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(8, -4, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#000000"; ctx.beginPath(); ctx.arc(9, -4, 1.8, 0, Math.PI*2); ctx.fill();
+    // くちばし
+    ctx.fillStyle = "#f59e0b"; ctx.beginPath();
+    ctx.moveTo(13, -1); ctx.lineTo(21, 3); ctx.lineTo(13, 6); ctx.closePath(); ctx.fill();
     ctx.restore();
-    
-    // 暗闇(Blind)
+
+    // 暗闇（Blind）マスク演出
     if (activeSkills.blind > 0) {
-        let g = ctx.createRadialGradient(bird.x, bird.y, 20, bird.x, bird.y, 90);
-        g.addColorStop(0, "transparent"); g.addColorStop(1, "black");
-        ctx.fillStyle = g; ctx.fillRect(0, 0, 320, 480);
+        let grad = ctx.createRadialGradient(bird.x, bird.y, 25, bird.x, bird.y, 110);
+        grad.addColorStop(0, "rgba(0,0,0,0)");
+        grad.addColorStop(1, "rgba(5,5,10,0.98)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 340, 480);
     }
+
+    ctx.restore();
 }
 
-let lastTime = 0; // 前回のフレーム時間を保持
-
+let lastTime = 0;
 function gameLoop(timestamp) {
     if (isGameOver) return;
-
-    // 最初のフレームでは lastTime が 0 なので調整
     if (!lastTime) lastTime = timestamp;
-
-    // 前回の実行からの経過時間（秒単位）を計算
-    const dt = (timestamp - lastTime) / 1000; 
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
     lastTime = timestamp;
 
-    // ブラウザのタブが裏に回った時などに dt が巨大化するのを防ぐガード（最大0.1秒）
-    const limitedDt = Math.min(dt, 0.1);
-
-    update(limitedDt); 
+    update(dt);
     draw();
 
-    // ホスト側（アタッカー側）がデータを同期
-    if (isAttacker()) {
-        conn.send({ 
-            type: "sync", 
-            birdY: bird.y, 
-            birdRot: bird.rot, 
-            pipes, 
-            scores, 
-            frame, 
-            skills: activeSkills 
+    if (isHost && conn) {
+        conn.send({
+            type: "sync", bird, pipes, scores, frame,
+            skills: activeSkills, currentAttacker
         });
     }
     requestAnimationFrame(gameLoop);
 }
 
-// --- 操作・UI ---
-function useSkill(s, c) { if(!isAttacker() && mp >= c) { mp -= c; conn.send({ type: "skill", skill: s }); activeSkills[s]=300; } }
-const flap = () => { if(isAttacker() && !isGameOver) { const stage = getStage(); bird.v = (activeSkills.highJump>0 ? stage.j*1.4 : stage.j) * (activeSkills.rev>0?-1:1); } };
-window.addEventListener('mousedown', flap);
-window.addEventListener('touchstart', e => { e.preventDefault(); flap(); });
-function showStatus(t, c) { const m = document.getElementById('status-msg'); m.innerText = t; m.style.color = c; setTimeout(() => { if(!isGameOver) m.innerText=""; }, 2000); }
+// --- 入力ハンドラー ---
+function handleInput(e) {
+    if (e && e.target && e.target.closest('#skill-panel')) return; // スキル押し時はジャンプ抑止
+    AudioEngine.init();
+    if (isAttacker()) {
+        if (isHost) doFlap();
+        else conn.send({ type: "flap" });
+    }
+}
+window.addEventListener('mousedown', handleInput);
+window.addEventListener('touchstart', (e) => { handleInput(e); }, { passive: true });
 
+function showStatus(text, color) {
+    const el = document.getElementById('status-msg');
+    el.innerText = text; el.style.color = color;
+    setTimeout(() => { if (!isGameOver) el.innerText = ""; }, 2200);
+}
 </script>
 </body>
 </html>
