@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Duel: Overdrive Fixed</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --p1: #00f2ff; --p2: #ff007b; --bg: #020205; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Orbitron', sans-serif; overflow: hidden; touch-action: none; }
+        .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; background: var(--bg); }
+        .screen.active { display: flex; }
+        h1 { color: #fff; font-size: 3rem; margin: 0; text-shadow: 0 0 20px var(--p1), 0 0 40px var(--p1); letter-spacing: 10px; }
+        input { padding: 15px; width: 260px; border-radius: 5px; border: 2px solid #fff; background: #000; color: #fff; font-size: 1.2rem; margin: 20px 0; text-align: center; outline: none; }
+        .btn { padding: 15px 40px; border-radius: 5px; border: 2px solid #fff; background: transparent; color: #fff; font-weight: bold; cursor: pointer; margin: 8px; width: 240px; transition: 0.3s; }
+        .btn:hover { background: #fff; color: #000; box-shadow: 0 0 30px #fff; }
+        #hud { position: absolute; top: 0; width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; padding: 10px; pointer-events: none; z-index: 20; }
+        .hp-container { width: 100%; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .hp-bar { width: 160px; height: 18px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; border: 1px solid #fff; }
+        .hp-fill { height: 100%; transition: width 0.1s; }
+        #heat-display { font-size: 1.2rem; font-weight: bold; color: #ffae00; text-shadow: 0 0 10px #ffae00; margin-top: 5px; }
+        canvas { background: #000; display: block; border-left: 1px solid #222; border-right: 1px solid #222; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<div id="setup-screen" class="screen active">
+    <h1>NEON DUEL</h1>
+    <div style="color: #888; margin-top: 10px;">- OVERDRIVE -</div>
+    <input type="text" id="room-id" placeholder="ROOM ID">
+    <button class="btn" onclick="initPeer(true)">HOST CREATE</button>
+    <button class="btn" onclick="initPeer(false)">GUEST JOIN</button>
+    <div id="status-area" style="margin-top:20px; color: var(--p1);">READY</div>
+</div>
+
+<div id="game-screen" class="screen" style="justify-content: flex-start;">
+    <div id="hud">
+        <div class="hp-container">
+            <div class="hp-bar"><div id="my-hp-fill" class="hp-fill" style="background:var(--p2); width:100%"></div></div>
+            <div class="hp-bar"><div id="opp-hp-fill" class="hp-fill" style="background:var(--p1); width:100%"></div></div>
+        </div>
+        <div id="heat-display">DAMAGE x1.0</div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<div id="result-screen" class="screen">
+    <div id="result-text" style="font-size: 5rem; font-weight: 900;"></div>
+    <button class="btn" onclick="location.reload()">REMATCH</button>
+</div>
+
+<script>
+let peer, conn, isHost = false;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 400, H = 640;
+canvas.width = W; canvas.height = H;
+
+const MAX_HP = 500;
+let myPos = { x: W/2, y: H-120 }, oppPos = { x: W/2, y: 120 };
+let myBullets = [], oppBullets = [];
+let myHp = MAX_HP, oppHp = MAX_HP;
+let item = null, isGameOver = false;
+
+let gameStartTime = 0;
+let heatMultiplier = 1.0;
+let myWeapon = 'NORMAL', hasBarrier = false;
+let isGigaReady = false;
+let damageMul = 1, bulletSizeMul = 1, bulletSpeedMul = 1;
+
+function initPeer(host) {
+    const rid = document.getElementById('room-id').value.trim().toLowerCase();
+    if(rid.length < 3) return alert("Room ID required");
+    isHost = host;
+    const myId = isHost ? rid : rid + "_gst_" + Math.floor(Math.random()*999);
+    peer = new Peer(myId);
+    peer.on('open', () => {
+        document.getElementById('status-area').innerText = isHost ? "WAITING FOR GUEST..." : "CONNECTING...";
+        if(isHost) peer.on('connection', c => { conn = c; setupGame(); });
+        else { conn = peer.connect(rid); conn.on('open', setupGame); }
+    });
+}
+
+function setupGame() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('game-screen').classList.add('active');
+    gameStartTime = Date.now();
+    
+    conn.on('data', data => {
+        if(data.type === "SYNC") {
+            oppPos.x = W - data.pos.x; oppPos.y = H - data.pos.y;
+            oppHp = data.hp;
+            if(!isHost) {
+                heatMultiplier = data.heat;
+                item = data.item ? { x: W - data.item.x, y: H - data.item.y, type: data.item.type } : null;
+            }
+        } else if(data.type === "FIRE") {
+            data.bullets.forEach(b => {
+                oppBullets.push({ x: W-b.x, y: H-b.y, vx: -b.vx, vy: -b.vy, r: b.r, dmg: b.dmg });
+            });
+        } else if(data.type === "ITEM_GET" && isHost) {
+            item = null; // ゲストが取ったので消す
+        } else if(data.type === "END") showFinal(data.win);
+    });
+
+    const move = e => {
+        if(isGameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        const tx = (t.clientX - rect.left) * (W / rect.width);
+        const ty = (t.clientY - rect.top) * (H / rect.height);
+        if(ty > H/2 + 20) { myPos.x = tx; myPos.y = ty; }
+        else if(e.type === 'touchstart' || e.type === 'mousedown') fire(tx, ty);
+    };
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); move(e); }, {passive:false});
+    canvas.addEventListener('mousedown', move);
+
+    // 通信頻度を抑えるためのタイマー
+    setInterval(() => {
+        if(!conn || isGameOver) return;
+        conn.send({ 
+            type: "SYNC", 
+            pos: myPos, 
+            hp: myHp, 
+            heat: heatMultiplier,
+            item: isHost ? item : undefined 
+        });
+    }, 50);
+
+    if(isHost) setInterval(spawnItem, 5000);
+    requestAnimationFrame(gameLoop);
+}
+
+function fire(tx, ty) {
+    const angle = Math.atan2(ty - myPos.y, tx - myPos.x);
+    let newB = [];
+    const bRadius = isGigaReady ? 35 : 7 * bulletSizeMul;
+    const bDmg = (isGigaReady ? 100 : 10) * damageMul * heatMultiplier;
+    const bSpd = 10 * bulletSpeedMul;
+
+    const createB = (a) => ({ x: myPos.x, y: myPos.y, vx: Math.cos(a)*bSpd, vy: Math.sin(a)*bSpd, r: bRadius, dmg: bDmg });
+
+    if(myWeapon === '3WAY') [-0.2, 0, 0.2].forEach(a => newB.push(createB(angle+a)));
+    else newB.push(createB(angle));
+
+    if(isGigaReady) isGigaReady = false;
+    myBullets.push(...newB);
+    // 射撃時のみ即時送信
+    conn.send({ type: "FIRE", bullets: newB });
+}
+
+function spawnItem() {
+    if(!isHost || item) return;
+    const types = ['HEAL', '3WAY', 'BARRIER', 'GIGA', 'POWER', 'BIG', 'SPEED'];
+    item = { x: Math.random()*(W-100)+50, y: H/2, type: types[Math.floor(Math.random()*types.length)] };
+}
+
+function applyItemEffect(type) {
+    if(type === 'HEAL') myHp = Math.min(MAX_HP, myHp + 100);
+    if(type === '3WAY') { myWeapon = '3WAY'; setTimeout(()=>myWeapon='NORMAL', 7000); }
+    if(type === 'BARRIER') { hasBarrier = true; setTimeout(()=>hasBarrier=false, 5000); }
+    if(type === 'GIGA') isGigaReady = true;
+    if(type === 'POWER') { damageMul = 2; setTimeout(()=>damageMul = 1, 7000); }
+    if(type === 'BIG') { bulletSizeMul = 2.0; setTimeout(()=>bulletSizeMul = 1, 7000); }
+    if(type === 'SPEED') { bulletSpeedMul = 1.6; setTimeout(()=>bulletSpeedMul = 1, 7000); }
+}
+
+function gameLoop() {
+    if(isGameOver) return;
+
+    if(isHost) {
+        let elapsed = (Date.now() - gameStartTime) / 1000;
+        heatMultiplier = Math.min(5.0, 1.0 + Math.floor(elapsed / 10) * 0.2);
+    }
+    document.getElementById('heat-display').innerText = `DAMAGE x${heatMultiplier.toFixed(1)}`;
+
+    // 自弾の更新とアイテム取得判定
+    for(let i = myBullets.length - 1; i >= 0; i--) {
+        let b = myBullets[i];
+        b.x += b.vx; b.y += b.vy;
+        
+        if(item && Math.hypot(b.x - item.x, b.y - item.y) < 30) {
+            applyItemEffect(item.type);
+            if(!isHost) conn.send({ type: "ITEM_GET" });
+            item = null;
+            myBullets.splice(i, 1);
+            continue;
+        }
+        if(b.y < -50 || b.y > H+50 || b.x < -50 || b.x > W+50) myBullets.splice(i, 1);
+    }
+
+    // 敵弾の更新と被弾判定
+    for(let i = oppBullets.length - 1; i >= 0; i--) {
+        let b = oppBullets[i];
+        b.x += b.vx; b.y += b.vy;
+        if(Math.hypot(b.x - myPos.x, b.y - myPos.y) < b.r + 15) {
+            if(!hasBarrier) myHp -= b.dmg;
+            oppBullets.splice(i, 1);
+            if(myHp <= 0) { myHp = 0; conn.send({ type: "END", win: true }); showFinal(false); }
+            continue;
+        }
+        if(b.y > H + 50 || b.y < -50) oppBullets.splice(i, 1);
+    }
+
+    document.getElementById('my-hp-fill').style.width = (myHp / MAX_HP * 100) + "%";
+    document.getElementById('opp-hp-fill').style.width = (oppHp / MAX_HP * 100) + "%";
+    
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+function draw() {
+    ctx.fillStyle = "rgba(0, 0, 5, 0.6)"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = `rgb(${heatMultiplier*40}, 40, 60)`; 
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+    
+    if(item) {
+        const colors = { HEAL:"#fff", '3WAY':"#ff0", BARRIER:"#0f0", GIGA:"#f0f", POWER:"#f00", BIG:"#0ff", SPEED:"#ffa500" };
+        ctx.shadowBlur = 20; ctx.shadowColor = colors[item.type];
+        ctx.fillStyle = colors[item.type];
+        ctx.beginPath(); ctx.arc(item.x, item.y, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#000"; ctx.font = "bold 16px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(item.type[0], item.x, item.y+6);
+    }
+
+    drawShip(myPos.x, myPos.y, "var(--p1)", true, hasBarrier);
+    drawShip(oppPos.x, oppPos.y, "var(--p2)", false, false);
+
+    ctx.shadowBlur = 10;
+    myBullets.forEach(b => {
+        ctx.shadowColor = "white"; ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+    });
+    oppBullets.forEach(b => {
+        ctx.shadowColor = "var(--p2)"; ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+}
+
+function drawShip(x, y, color, isMe, shielded) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.shadowBlur = 25; ctx.shadowColor = color;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
+    if(shielded) {
+        ctx.strokeStyle = "#0f0"; ctx.lineWidth = 3; ctx.shadowColor = "#0f0";
+        ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.fillStyle = "#fff"; ctx.shadowBlur = 0;
+    ctx.beginPath();
+    if(isMe) { ctx.moveTo(0, -20); ctx.lineTo(-18, 15); ctx.lineTo(18, 15); }
+    else { ctx.moveTo(0, 20); ctx.lineTo(-18, -15); ctx.lineTo(18, -15); }
+    ctx.fill();
+    ctx.restore();
+}
+
+function showFinal(win) {
+    if(isGameOver) return;
+    isGameOver = true;
+    document.getElementById('result-screen').classList.add('active');
+    const t = document.getElementById('result-text');
+    t.innerText = win ? "VICTORY" : "DEFEAT";
+    t.style.color = win ? "var(--p1)" : "var(--p2)";
+    t.style.textShadow = `0 0 40px ${win ? "var(--p1)" : "var(--p2)"}`;
+}
+</script>
+</body>
+</html>
