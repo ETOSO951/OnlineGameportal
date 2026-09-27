@@ -205,7 +205,7 @@
         <i class="fa-solid fa-chevron-right text-pink-400 text-xs"></i>
       </button>
 
-      <!-- BOT戦（Firebaseに関係なく100%即座に動く） -->
+      <!-- BOT戦 -->
       <div class="flex gap-2">
         <button id="btnPracticeSolo2P" class="flex-1 p-2.5 rounded-2xl bg-slate-900 border border-cyan-500/40 active:scale-95 transition text-left flex items-center gap-2 hover:border-cyan-400">
           <span class="text-lg">🤖</span>
@@ -409,7 +409,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { 
+      getFirestore, doc, setDoc, updateDoc, onSnapshot, 
+      collection, getDocs, deleteDoc, query, where, limit 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     let auth = null, db = null, currentUser = null;
     const canvas = document.getElementById('gameCanvas');
@@ -514,7 +517,6 @@
       }, 3000);
     }
 
-    // タイムアウト付きPromise（Firestoreの無限待機を防止）
     function withTimeout(promise, ms, errorMsg) {
       return Promise.race([
         promise,
@@ -523,7 +525,7 @@
     }
 
     // ==========================================
-    // ▼▼▼ Firebase 初期化 ▼▼▼
+    // Firebase 初期化
     // ==========================================
     async function initFirebase() {
       const statusLabel = document.getElementById('connStatusLabel');
@@ -531,17 +533,16 @@
       const errDetail = document.getElementById('connErrorDetail');
 
       try {
-        // ★★★ あなたのFirebase設定を貼り付けてください ★★★
+        // ★ご自身のFirebase設定を貼り付けてください★
         const firebaseConfig = {
-  apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
-  authDomain: "sakana-online.firebaseapp.com",
-  databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
-  projectId: "sakana-online",
-  storageBucket: "sakana-online.firebasestorage.app",
-  messagingSenderId: "389239928158",
-  appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
-  measurementId: "G-V166BQY0Q1"
-};
+          apiKey: "AIzaSyYOUR_ACTUAL_API_KEY_HERE",
+          authDomain: "your-project-id.firebaseapp.com",
+          projectId: "your-project-id",
+          storageBucket: "your-project-id.appspot.com",
+          messagingSenderId: "1234567890",
+          appId: "1:1234567890:web:abcdef123456"
+        };
+
         if (firebaseConfig.apiKey.includes("YOUR_ACTUAL_API_KEY")) {
           throw new Error("キーが初期値です。firebaseConfigを貼り付けてください（BOT戦は遊べます）");
         }
@@ -612,7 +613,7 @@
     }
 
     // ==========================================
-    // ▼▼▼ ゲーム開始・実行処理（完全修正） ▼▼▼
+    // ゲーム開始・実行処理
     // ==========================================
     function startCountdownAndPlay() {
       document.getElementById('waitingOverlay').classList.add('hidden');
@@ -645,7 +646,6 @@
     }
 
     function executeGameStart() {
-      // ★超重要：ロビーやモーダルを必ず隠す★
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('roomModal').classList.add('hidden');
       document.getElementById('waitingOverlay').classList.add('hidden');
@@ -709,7 +709,6 @@
       }, 1000);
     }
 
-    // BOT戦の起動（通信を一切使わず即座にスタート）
     function startSoloBotMatch(playerCount) {
       sound.init();
       isAIMode = true;
@@ -879,7 +878,7 @@
     }
 
     // ==========================================
-    // ▼▼▼ ルーム同期リスナー ▼▼▼
+    // ルーム同期リスナー
     // ==========================================
     function listenToDuelRoom(roomId) {
       if (roomUnsubscribe) roomUnsubscribe();
@@ -987,42 +986,47 @@
     }
 
     // ==========================================
-    // ▼▼▼ クイックマッチ (5秒タイムアウト保護付き) ▼▼▼
+    // クイックマッチ (クエリ最適化＆タイムアウト保護)
     // ==========================================
     async function startQuickMatch() {
       sound.init();
       if (!currentUser || !db) {
-        showToast('Firebaseサーバー未接続のためBOT戦を開始します');
+        showToast('Firebase未接続のためBOT戦を開始します');
         startSoloBotMatch(2);
         return;
       }
 
-      showToast('オンライン対戦部屋を検索中...');
+      showToast('待機中のルームを検索中...');
 
       try {
-        const roomsColl = collection(db, 'rooms');
-        
-        // 5秒でタイムアウトさせ、Firestore未作成やルール拒否で固まらないようにする
+        const roomsRef = collection(db, 'rooms');
+        const q = query(
+          roomsRef,
+          where('type', '==', 'quick'),
+          where('status', '==', 'waiting'),
+          limit(5)
+        );
+
         const snap = await withTimeout(
-          getDocs(roomsColl),
+          getDocs(q),
           5000,
           "Firestoreへの接続がタイムアウトしました。管理画面でFirestore Databaseが作成されているか確認してください。"
         );
 
-        let found = null;
+        let targetRoom = null;
         snap.forEach(docSnap => {
           const d = docSnap.data();
-          if (d.type === 'quick' && d.status === 'waiting' && (!d.players || !d.players.includes(currentUser.uid))) {
-            found = { id: docSnap.id, ...d };
+          if (!targetRoom && d.players && !d.players.includes(currentUser.uid)) {
+            targetRoom = { id: docSnap.id, ...d };
           }
         });
 
-        if (found) {
-          const roomRef = doc(db, 'rooms', found.id);
-          const players = found.players || [found.player1];
+        if (targetRoom) {
+          const roomRef = doc(db, 'rooms', targetRoom.id);
+          const players = targetRoom.players || [];
           players.push(currentUser.uid);
           mySlot = players.length;
-          currentRoomId = found.id;
+          currentRoomId = targetRoom.id;
           totalPlayers = 2;
           isAIMode = false;
 
@@ -1036,12 +1040,12 @@
             "部屋への参加書き込みがタイムアウトしました"
           );
 
-          listenToDuelRoom(found.id);
+          listenToDuelRoom(targetRoom.id);
         } else {
           mySlot = 1;
           isAIMode = false;
           totalPlayers = 2;
-          const newRoomId = 'quick_' + Math.random().toString(36).substring(2, 8);
+          const newRoomId = 'quick_' + Math.random().toString(36).substring(2, 9);
           currentRoomId = newRoomId;
           const roomRef = doc(db, 'rooms', newRoomId);
 
@@ -1051,7 +1055,6 @@
               rule: selectedRule,
               status: 'waiting',
               capacity: 2,
-              player1: currentUser.uid,
               players: [currentUser.uid],
               names: { p1: myPlayerName, p2: 'P2' },
               scores: { p1: 0, p2: 0 },
@@ -1072,12 +1075,12 @@
         }
       } catch (err) {
         console.error("Matchmaking error:", err);
-        showToast('エラー: ' + (err.message || err.code));
+        showToast('マッチングエラー: ' + (err.message || err.code));
       }
     }
 
     // ==========================================
-    // ▼▼▼ 合言葉ルーム (タイムアウト保護付き) ▼▼▼
+    // 合言葉ルーム (クエリ最適化＆タイムアウト保護)
     // ==========================================
     async function createFriendRoom() {
       sound.init();
@@ -1143,34 +1146,44 @@
 
       showToast('部屋を検索中...');
       try {
-        const roomsColl = collection(db, 'rooms');
+        const roomsRef = collection(db, 'rooms');
+        const q = query(
+          roomsRef,
+          where('code', '==', clean),
+          where('status', '==', 'waiting'),
+          limit(1)
+        );
+
         const snap = await withTimeout(
-          getDocs(roomsColl),
+          getDocs(q),
           5000,
           "部屋検索がタイムアウトしました"
         );
 
-        let target = null;
-        snap.forEach(docSnap => {
-          const d = docSnap.data();
-          if (d.code === clean && d.status === 'waiting') target = { id: docSnap.id, ...d };
-        });
-
-        if (!target) {
+        if (snap.empty) {
           showToast('該当の合言葉の部屋が見つかりません');
           return;
         }
 
-        const roomRef = doc(db, 'rooms', target.id);
+        const docSnap = snap.docs[0];
+        const target = docSnap.data();
+        const roomId = docSnap.id;
+
         const existingPlayers = target.players || [];
+        if (existingPlayers.includes(currentUser.uid)) {
+          showToast('既に参加している部屋です');
+          return;
+        }
+
         existingPlayers.push(currentUser.uid);
         mySlot = existingPlayers.length;
-        currentRoomId = target.id;
+        currentRoomId = roomId;
         isAIMode = false;
         totalPlayers = target.capacity || 2;
         selectedRule = target.rule || 'standard';
 
         const isFull = existingPlayers.length >= target.capacity;
+        const roomRef = doc(db, 'rooms', roomId);
 
         await withTimeout(
           updateDoc(roomRef, {
@@ -1192,7 +1205,7 @@
           document.getElementById('waitingOverlay').classList.remove('hidden');
         }
 
-        listenToDuelRoom(target.id);
+        listenToDuelRoom(roomId);
       } catch (e) {
         showToast('参加失敗: ' + (e.message || e.code));
       }
@@ -1396,11 +1409,8 @@
         showToast('戦績スタッツをリセットしました');
       };
 
-      // BOT戦ボタン（100%確実に即座に動作）
       document.getElementById('btnPracticeSolo2P').onclick = () => startSoloBotMatch(2);
       document.getElementById('btnPracticeSolo4P').onclick = () => startSoloBotMatch(4);
-
-      // オンライン対戦ボタン
       document.getElementById('btnQuickMatch').onclick = startQuickMatch;
 
       document.getElementById('btnFriendMatch').onclick = () => {
