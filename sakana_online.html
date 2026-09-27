@@ -569,12 +569,8 @@
 
     async function initFirebase() {
       try {
-        appId = typeof __app_id !== 'undefined' ? __app_id : 'deep-sea-battle-4p';
-        let firebaseConfig = null;
-        if (typeof __firebase_config !== 'undefined') {
-          firebaseConfig = JSON.parse(__firebase_config);
-        } else {
-          firebaseConfig = {
+        // ▼▼▼ ここをご自身のFirebase設定にそのまま置き換えてください ▼▼▼
+        const firebaseConfig = {
   apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
   authDomain: "sakana-online.firebaseapp.com",
   databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
@@ -584,23 +580,20 @@
   appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
   measurementId: "G-V166BQY0Q1"
 };
-        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
 
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          const cred = await signInWithCustomToken(auth, __initial_auth_token);
-          currentUser = cred.user;
-        } else {
-          const cred = await signInAnonymously(auth);
-          currentUser = cred.user;
-        }
+        // 匿名ログインを実行
+        const cred = await signInAnonymously(auth);
+        currentUser = cred.user;
+
         document.getElementById('connStatusLabel').innerText = 'オンラインサーバー接続完了 (ONLINE READY)';
       } catch (err) {
-        console.warn('Firebase init fallback:', err.message);
-        document.getElementById('connStatusLabel').innerText = 'ソロ/ローカルBOT練習モード利用可能';
+        console.error('Firebase接続エラー:', err);
+        document.getElementById('connStatusLabel').innerText = '接続失敗: ' + err.message;
       }
     }
 
