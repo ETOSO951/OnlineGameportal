@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Wizard: Ultimate Edition</title>
+    <title>Flappy Wizard: Stable Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; user-select: none; }
@@ -12,7 +12,7 @@
         #ui { background: rgba(0,0,0,0.9); padding: 5px; display: flex; justify-content: space-around; font-size: 14px; border-bottom: 2px solid #444; }
         
         #skill-panel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #111; padding: 5px; width: 310px; margin: 0 auto; box-sizing: border-box; }
-        .skill-btn { font-size: 10px; padding: 8px 0; background: #333; color: #ccc; border: 1px solid #555; border-radius: 3px; cursor: pointer; text-align: center; }
+        .skill-btn { font-size: 9px; padding: 6px 0; background: #333; color: #ccc; border: 1px solid #555; border-radius: 3px; cursor: pointer; text-align: center; }
         .skill-btn.active-skill { border-color: #f8e71c; color: #f8e71c; box-shadow: 0 0 5px #f8e71c; }
         .skill-btn.disabled { opacity: 0.35; cursor: not-allowed; }
         #reroll-btn { background: #442211; color: #f8e71c; border-color: #884422; }
@@ -48,7 +48,6 @@
         </div>
         <div style="background:#222; height:8px; width:320px; margin:0 auto;"><div id="mp-bar" style="height:100%; width:0%; background:#00d4ff;"></div></div>
         
-        <!-- 手札4枚 + リロールボタン -->
         <div id="skill-panel">
             <button class="skill-btn" id="slot-0" onclick="useHandSlot(0)"></button>
             <button class="skill-btn" id="slot-1" onclick="useHandSlot(1)"></button>
@@ -59,12 +58,9 @@
     </div>
 
 <script>
-// --- Web Audio API による効果音システム ---
 let audioCtx = null;
 function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
 function playSE(type) {
@@ -72,11 +68,9 @@ function playSE(type) {
         initAudio();
         if (!audioCtx) return;
         const now = audioCtx.currentTime;
-
         if (type === 'flap') {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sine';
             osc.frequency.setValueAtTime(300, now);
             osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
             gain.gain.setValueAtTime(0.15, now);
@@ -103,21 +97,10 @@ function playSE(type) {
             gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(now); osc.stop(now + 0.4);
-        } else if (type === 'roulette') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(400 + Math.random() * 200, now);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(now); osc.stop(now + 0.05);
         } else if (type === 'win') {
-            const notes = [440, 554, 659, 880];
-            notes.forEach((freq, idx) => {
+            [440, 554, 659, 880].forEach((freq, idx) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, now + idx * 0.1);
                 gain.gain.setValueAtTime(0.2, now + idx * 0.1);
                 gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
@@ -128,7 +111,6 @@ function playSE(type) {
     } catch(e) {}
 }
 
-// --- ステージ定義 ---
 const STAGES = [
     { name: "NORMAL", bg: "#70c5ce", pipe: "#73bf2e", interval: 105, speed: 1.0, gap: 1.0, g:0.28, j:-5.2 },
     { name: "DUSK", bg: "#e67e22", pipe: "#a35200", interval: 100, speed: 1.1, gap: 1.0, g:0.28, j:-5.2 },
@@ -145,16 +127,12 @@ const STAGES = [
     { name: "METEOR", bg: "#000000", pipe: "#73bf2e", interval: 95, speed: 1.3, gap: 0.85, g:0.28, j:-5.2, move:true }
 ];
 
-// --- スキルマスタ（全20種） ---
 const ALL_SKILLS = {
-    shrink:   { name: "隙間狭", cost: 35, dur: 220 },
-    flip:     { name: "天地反転", cost: 65, dur: 180 },
-    freeze:   { name: "停止",   cost: 35, dur: 45 },
     speed:    { name: "高速",   cost: 25, dur: 300 },
     move:     { name: "揺れ",   cost: 30, dur: 300 },
     blind:    { name: "暗闇",   cost: 50, dur: 300 },
     rev:      { name: "反転",   cost: 65, dur: 300 },
-    ghost:    { name: "透明",   cost: 30, dur: 300 },
+    ghost:    { name: "透明",   cost: 30, dur: 300 }, // 強化：土管判定は残し、姿がほぼ見えなくなる
     fake:     { name: "分身",   cost: 25, dur: 300 },
     gravUp:   { name: "重力+",  cost: 25, dur: 300 },
     highJump: { name: "強跳",   cost: 30, dur: 300 },
@@ -162,31 +140,23 @@ const ALL_SKILLS = {
     back:     { name: "足止め", cost: 65, dur: 80 },
     impact:   { name: "衝撃",   cost: 25, dur: 30 },
     ascend:   { name: "昇天",   cost: 100, dur: 300 },
-    quake:    { name: "地震",   cost: 45, dur: 200 },
-    heavy:    { name: "超重力", cost: 55, dur: 240 },
-    narrow:   { name: "超極狭", cost: 60, dur: 180 },
-    flash:    { name: "閃光",   cost: 40, dur: 120 },
-    drain:    { name: "減速罠", cost: 45, dur: 200 },
-    wind:     { name: "強風",   cost: 35, dur: 180 }
+    magnet:   { name: "磁石",   cost: 35, dur: 200 },
+    flash:    { name: "閃光",   cost: 45, dur: 180 },
+    quake:    { name: "地震",   cost: 40, dur: 250 }  // NEW
 };
 
-// --- ハプニング定義（全12種） ---
 const HAPPENINGS = [
     { name: "★低重力モード！", apply: () => { activeHappenings.lowG = 300; } },
     { name: "★乱気流発生！", apply: () => { activeHappenings.turb = 300; } },
     { name: "★妨害側MP全回復！", apply: () => { mp = 100; } },
     { name: "★スローモーション！", apply: () => { activeHappenings.slow = 300; } },
-    { name: "★超高速ダッシュ！", apply: () => { activeHappenings.fast = 300; } },
-    { name: "★暗闇の呪い！", apply: () => { activeSkills.blind = 180; } },
-    { name: "★超乱気流ブレイク！", apply: () => { activeHappenings.turb = 450; } },
-    { name: "★重力反転ワールド！", apply: () => { activeSkills.rev = 180; } },
-    { name: "★超巨大化フィーバー！", apply: () => { activeSkills.giant = 250; } },
-    { name: "★極小・隙間地獄！", apply: () => { activeSkills.narrow = 200; } },
-    { name: "★地震パニック！", apply: () => { activeSkills.quake = 180; } },
-    { name: "★強制足止めストップ！", apply: () => { activeSkills.back = 120; } }
+    { name: "★土管の隙間シャッフル！", apply: () => { 
+        pipes.forEach(p => { p.gapY = Math.random() * 200 + 100; });
+    } },
+    { name: "★スピード狂モード！", apply: () => { activeHappenings.speedUp = 250; } },
+    { name: "★強制パニックジャンプ！", apply: () => { activeHappenings.panic = 220; } } // NEW
 ];
 
-// --- グローバル変数 ---
 let peer, conn, isHost = false;
 let sessionStages = [];
 const canvas = document.getElementById('gameCanvas');
@@ -194,12 +164,11 @@ const ctx = canvas.getContext('2d');
 let scores = { p1: 0, p2: 0 }, currentAttacker = "p1", mp = 0, frame = 0;
 let bird = { x: 60, y: 240, v: 0, rot: 0 }, pipes = [], stars = [];
 let activeSkills = {};
-let activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
+let activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0 };
 let currentHand = [];
 let lastStageIndex = 0;
 let isGameOver = false;
 
-// --- 通信・初期化 ---
 function initPeer(host) {
     initAudio();
     const rid = document.getElementById('room-id').value.trim().toLowerCase();
@@ -247,7 +216,6 @@ function setupConn() {
 
 function isAttacker() { return (isHost && currentAttacker === "p1") || (!isHost && currentAttacker === "p2"); }
 
-// --- デッキ・手札システム ---
 function setupDeck() {
     const keys = Object.keys(ALL_SKILLS);
     currentHand = [];
@@ -267,28 +235,21 @@ function useHandSlot(slotIdx) {
     activeSkills[skillKey] = skill.dur;
     playSE('skill');
     conn.send({ type: "skill", skill: skillKey, dur: skill.dur });
-
-    // ★修正: 技発動時はスロットを自動で別スキルに変えず、使用済みにするだけ（またはそのまま維持）
-    // ユーザー要望「技発動時にはラインナップが更新されないように」
 }
 
 function rerollHand() {
     if(isAttacker() || mp < 15) return;
     mp -= 15;
     playSE('skill');
-    setupDeck(); // ここでのみ手札全体のラインナップが更新される
+    setupDeck();
 }
 
 function startTurn() {
     bird.y = 240; bird.v = 0; pipes = []; frame = 0;
     activeSkills = {};
-    activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
+    activeHappenings = { lowG:0, turb:0, slow:0, speedUp:0, panic:0 };
     lastStageIndex = 0;
-
-    if(!isAttacker()) {
-        setupDeck(); // ターンが変わった時にも手札ラインナップが新しくなる
-    }
-
+    if(!isAttacker()) setupDeck();
     showStatus(isAttacker() ? "YOUR TURN" : "SABOTAGE", isAttacker() ? "#2ecc71" : "#e74c3c");
 }
 
@@ -297,7 +258,6 @@ function getStage() {
     return sessionStages[Math.min(Math.floor(s / 20), 4)] || STAGES[0];
 }
 
-// --- ハプニング・ルーレット ---
 function checkStageProgress() {
     const s = scores[currentAttacker];
     const stageIdx = Math.min(Math.floor(s / 20), 4);
@@ -315,23 +275,14 @@ function checkStageProgress() {
 function triggerRouletteVisual(finalIndex) {
     const msg = document.getElementById('roulette-msg');
     msg.style.display = 'block';
-    let count = 0;
-    const timer = setInterval(() => {
-        playSE('roulette');
-        msg.innerText = HAPPENINGS[Math.floor(Math.random() * HAPPENINGS.length)].name;
-        count++;
-        if(count > 10) {
-            clearInterval(timer);
-            msg.innerText = HAPPENINGS[finalIndex].name;
-            setTimeout(() => { msg.style.display = 'none'; }, 2500);
-        }
-    }, 80);
+    setTimeout(() => {
+        msg.innerText = HAPPENINGS[finalIndex].name;
+        setTimeout(() => { msg.style.display = 'none'; }, 2000);
+    }, 500);
 }
 
-// --- 更新ロジック ---
 function update(dt) {
     const fpsAdj = dt * 60; 
-    frame++; 
     const stage = getStage();
 
     document.getElementById('s1').innerText = scores.p1;
@@ -339,11 +290,7 @@ function update(dt) {
     document.getElementById('stage-display').innerText = stage.name;
 
     if (!isAttacker()) {
-        let baseRecovery = 4.8;
-        let deficit = isHost ? (scores.p1 - scores.p2) : (scores.p2 - scores.p1);
-        if(deficit > 0) baseRecovery *= Math.min(2.5, 1 + deficit * 0.08);
-
-        if (mp < 100) mp += baseRecovery * dt; 
+        if (mp < 100) mp += 4.8 * dt; 
         if (mp > 100) mp = 100;
         document.getElementById('mp-bar').style.width = mp + "%";
 
@@ -353,7 +300,6 @@ function update(dt) {
             btn.innerHTML = `${sk.name}<br>(${sk.cost})`;
             if (mp < sk.cost) btn.classList.add('disabled');
             else btn.classList.remove('disabled');
-
             if (activeSkills[key] > 0) btn.classList.add('active-skill');
             else btn.classList.remove('active-skill');
         });
@@ -368,68 +314,65 @@ function update(dt) {
         return;
     }
 
-    if (activeSkills.freeze > 0) {
-        activeSkills.freeze -= 60 * dt;
-        return;
-    }
-
+    frame++;
     checkStageProgress();
 
-    // --- 物理演算 ---
+    // ハプニング：パニックジャンプ
+    if (activeHappenings.panic > 0 && frame % 45 === 0) {
+        bird.v = (activeSkills.highJump > 0 ? stage.j * 1.4 : stage.j) * (activeSkills.rev > 0 ? -1 : 1);
+        playSE('flap');
+    }
+
     let g = stage.g;
     if (activeSkills.gravUp > 0) g *= 2.0;
-    if (activeSkills.heavy > 0) g *= 3.5;
-    if (activeSkills.impact > 0) g *= 3.0;
+    if (activeSkills.impact > 0) g *= 2.0;
     if (activeSkills.rev > 0) g *= -1;
-    if (activeSkills.flip > 0) g *= -1;
-    if (activeHappenings.lowG > 0) g *= 0.45;
+    if (activeHappenings.lowG > 0) g *= 0.5;
     if (activeSkills.ascend > 0) g = Math.abs(g) * -0.35;
 
     bird.v += g * fpsAdj; 
-    if (activeHappenings.turb > 0 || activeSkills.wind > 0) bird.v += (Math.random() - 0.5) * 2.0;
+    if (activeHappenings.turb > 0) bird.v += (Math.random() - 0.5) * 1.5;
+
+    // 磁石スキル
+    if (activeSkills.magnet > 0) {
+        let targetPipe = pipes.find(p => p.x + 52 > bird.x);
+        if (targetPipe) {
+            let gapCenter = targetPipe.currentGapY + (130 * stage.gap) / 2;
+            bird.v += (gapCenter - bird.y) * 0.05 * fpsAdj;
+        }
+    }
+
     bird.y += bird.v * fpsAdj;
     bird.rot = Math.max(-0.5, Math.min(0.5, bird.v * 0.1));
 
-    // --- 土管生成 ---
     if (frame % stage.interval === 0) {
-        pipes.push({ 
-            x: 330, gapY: Math.random() * 200 + 100, 
-            passed: false, off: Math.random() * 10, isFake: false 
-        });
+        pipes.push({ x: 330, gapY: Math.random() * 200 + 100, passed: false, off: Math.random() * 10, isFake: false });
     }
-    if (activeSkills.fake > 0 && (frame + Math.floor(stage.interval / 2)) % stage.interval === 0) {
-        pipes.push({ 
-            x: 330, gapY: Math.random() * 200 + 100, 
-            passed: false, off: Math.random() * 10, isFake: true 
-        });
+    if (activeSkills.fake > 0 && (frame + Math.floor(stage.interval / 5)) % stage.interval === 0) {
+        pipes.push({ x: 330, gapY: Math.random() * 200 + 100, passed: false, off: Math.random() * 10, isFake: true });
     }
 
     let baseSpd = stage.speed * (activeSkills.speed > 0 ? 2.5 : 1.5) * 2;
-    if (activeSkills.drain > 0) baseSpd *= 0.7;
     if (activeHappenings.slow > 0) baseSpd *= 0.6;
-    if (activeHappenings.fast > 0) baseSpd *= 1.4;
+    if (activeHappenings.speedUp > 0) baseSpd *= 1.4;
     let moveSpd = activeSkills.back > 0 ? -baseSpd : baseSpd; 
-
-    let gapMultiplier = stage.gap;
-    if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
-    if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
 
     pipes.forEach(p => {
         p.x -= moveSpd * fpsAdj;
         let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
-        
-        // --- 確実な当たり判定 ---
-        if (activeSkills.ghost <= 0 && !p.isFake) {
-            let hitRadius = activeSkills.giant > 0 ? 18 : 10;
-            // 鳥の矩形（または円）が土管のエリアに侵入しているかチェック
+        p.currentGapY = myGapY;
+
+        // 【透明（ゴースト）でも当たり判定は残す仕様に変更】
+        if (!p.isFake) {
+            let hitRadius = activeSkills.giant > 0 ? 20 : 11;
             if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + 52) {
-                if (bird.y - hitRadius < myGapY || bird.y + hitRadius > myGapY + 130 * gapMultiplier) {
+                if (bird.y - hitRadius < myGapY || bird.y + hitRadius > myGapY + 130 * stage.gap) {
                     die();
                 }
             }
         }
         
-        if (moveSpd > 0 && !p.isFake && !p.passed && p.x + 52 < bird.x) { 
+        if (moveSpd > 0 && !p.isFake && !p.passed && p.x < bird.x) { 
             p.passed = true; 
             scores[currentAttacker]++; 
         }
@@ -440,7 +383,7 @@ function update(dt) {
 
     Object.keys(activeSkills).forEach(k => {
         if (activeSkills[k] > 0) {
-            let decay = (k === 'impact') ? 270 : 60;
+            let decay = (k === 'impact') ? 270 : 1;
             activeSkills[k] -= decay * dt; 
             if (activeSkills[k] < 0) activeSkills[k] = 0;
         }
@@ -471,7 +414,6 @@ function checkWinner() {
     }
 }
 
-// --- 描画 ---
 function drawBird(ctx, bird) { 
     ctx.save(); ctx.translate(bird.x, bird.y); ctx.rotate(bird.rot); 
     const wPos = Math.sin(frame * 0.4) * 7; 
@@ -498,6 +440,16 @@ function drawPipe(x, y, isTop, stage, gap) {
 }
 
 function drawBackground(stage) {
+    // 地震スキル発動中の画面揺れオフセット計算
+    let quakeX = 0, quakeY = 0;
+    if (activeSkills.quake > 0) {
+        quakeX = (Math.random() - 0.5) * 8;
+        quakeY = (Math.random() - 0.5) * 8;
+    }
+
+    ctx.save();
+    ctx.translate(quakeX, quakeY);
+
     ctx.fillStyle = stage.bg; ctx.fillRect(0, 0, 320, 480);
     ctx.save();
     if(stage.name === "NORMAL") {
@@ -515,49 +467,29 @@ function drawBackground(stage) {
         for(let i=0; i<8; i++) { ctx.beginPath(); ctx.moveTo(i*40, 0); ctx.lineTo(i*40+20, 50); ctx.lineTo(i*40+40, 0); ctx.fill(); }
     }
     ctx.restore();
+    ctx.restore();
 }
 
 function draw() {
-    ctx.save();
-
-    if (activeSkills.quake > 0) {
-        let qx = (Math.random() - 0.5) * 10;
-        let qy = (Math.random() - 0.5) * 10;
-        ctx.translate(qx, qy);
-    }
-
-    if (activeSkills.flip > 0) {
-        ctx.translate(0, 480);
-        ctx.scale(1, -1);
-    }
-
     const stage = getStage();
     drawBackground(stage);
     
-    let gapMultiplier = stage.gap;
-    if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
-    if (activeSkills.narrow > 0) gapMultiplier *= 0.5;
-
     pipes.forEach(p => {
-        let myGapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0);
+        let myGapY = p.currentGapY !== undefined ? p.currentGapY : (p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.05 + p.off) * 45 : 0));
         ctx.save();
-        if (activeSkills.ghost > 0) {
-            ctx.globalAlpha = 0.02; 
-        } else if (p.isFake) {
-            ctx.globalAlpha = 0.9;
-        } else {
-            ctx.globalAlpha = 1.0;
-        }
-        drawPipe(p.x, myGapY, true, stage, 130 * gapMultiplier);
-        drawPipe(p.x, myGapY, false, stage, 130 * gapMultiplier);
+        if (p.isFake) ctx.globalAlpha = 0.9;
+        else ctx.globalAlpha = 1.0;
+        drawPipe(p.x, myGapY, true, stage, 130 * stage.gap);
+        drawPipe(p.x, myGapY, false, stage, 130 * stage.gap);
         ctx.restore();
     });
 
     ctx.save();
-    if (activeSkills.ascend > 0) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#fff";
+    // 【透明スキルの強化】今よりもっと透明に（不透明度0.05）
+    if (activeSkills.ghost > 0) {
+        ctx.globalAlpha = 0.05;
     }
+    if (activeSkills.ascend > 0) { ctx.shadowBlur = 15; ctx.shadowColor = "#fff"; }
     if (activeSkills.giant > 0) {
         ctx.translate(bird.x, bird.y);
         ctx.scale(1.75, 1.75);
@@ -573,11 +505,9 @@ function draw() {
     }
 
     if (activeSkills.flash > 0) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${activeSkills.flash / 120})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, activeSkills.flash / 50)})`;
         ctx.fillRect(0, 0, 320, 480);
     }
-
-    ctx.restore();
 }
 
 let lastTime = 0;
@@ -601,20 +531,16 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-const flap = (e) => { 
+const flap = (e) => {
     if (e && e.target && e.target.closest('#skill-panel')) return;
     if (isAttacker() && !isGameOver) { 
         const stage = getStage(); 
-        let j = activeSkills.highJump > 0 ? stage.j * 1.4 : stage.j;
-        if (activeSkills.drain > 0) j *= 0.85;
-        if (activeSkills.rev > 0) j *= -1;
-        if (activeSkills.flip > 0) j *= -1;
-        bird.v = j;
+        bird.v = (activeSkills.highJump > 0 ? stage.j * 1.4 : stage.j) * (activeSkills.rev > 0 ? -1 : 1);
         playSE('flap');
-    } 
+    }
 };
 window.addEventListener('mousedown', flap);
-window.addEventListener('touchstart', flap, { passive: true });
+window.addEventListener('touchstart', e => { flap(e); }, { passive: true });
 
 function showStatus(t, c) { 
     const m = document.getElementById('status-msg'); 
