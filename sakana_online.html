@@ -56,16 +56,16 @@
     <div class="flex items-center justify-between gap-1.5 max-w-xl mx-auto w-full px-1">
       <!-- Player 1 -->
       <div id="cardP1" class="flex-1 bg-slate-900/90 backdrop-blur-md border border-cyan-400/60 rounded-xl p-1.5 text-center shadow-lg transition-all">
-        <div class="text-[8px] font-cyber text-cyan-300 font-bold leading-tight" id="labelP1">YOU (P1)</div>
+        <div class="text-[8px] font-cyber text-cyan-300 font-bold leading-tight truncate" id="labelP1">YOU (P1)</div>
         <div id="scoreP1" class="font-num font-black text-base text-cyan-300 leading-tight">0</div>
-        <div id="hpP1" class="text-[9px] text-emerald-400 hidden">â¤ï¸â¤ï¸â¤ï¸</div>
+        <div id="hpP1" class="text-[9px] text-emerald-400 hidden">❤️❤️❤️</div>
       </div>
 
       <!-- Player 2 -->
       <div id="cardP2" class="flex-1 bg-slate-900/90 backdrop-blur-md border border-pink-500/60 rounded-xl p-1.5 text-center shadow-lg transition-all">
-        <div class="text-[8px] font-cyber text-pink-400 font-bold leading-tight" id="labelP2">P2</div>
+        <div class="text-[8px] font-cyber text-pink-400 font-bold leading-tight truncate" id="labelP2">P2</div>
         <div id="scoreP2" class="font-num font-black text-base text-pink-400 leading-tight">0</div>
-        <div id="hpP2" class="text-[9px] text-emerald-400 hidden">â¤ï¸â¤ï¸â¤ï¸</div>
+        <div id="hpP2" class="text-[9px] text-emerald-400 hidden">❤️❤️❤️</div>
       </div>
 
       <!-- Center Time & Mode -->
@@ -76,27 +76,27 @@
 
       <!-- Player 3 -->
       <div id="cardP3" class="flex-1 bg-slate-900/90 backdrop-blur-md border border-emerald-400/60 rounded-xl p-1.5 text-center shadow-lg transition-all hidden">
-        <div class="text-[8px] font-cyber text-emerald-400 font-bold leading-tight" id="labelP3">P3</div>
+        <div class="text-[8px] font-cyber text-emerald-400 font-bold leading-tight truncate" id="labelP3">P3</div>
         <div id="scoreP3" class="font-num font-black text-base text-emerald-400 leading-tight">0</div>
-        <div id="hpP3" class="text-[9px] text-emerald-400 hidden">â¤ï¸â¤ï¸â¤ï¸</div>
+        <div id="hpP3" class="text-[9px] text-emerald-400 hidden">❤️❤️❤️</div>
       </div>
 
       <!-- Player 4 -->
       <div id="cardP4" class="flex-1 bg-slate-900/90 backdrop-blur-md border border-amber-400/60 rounded-xl p-1.5 text-center shadow-lg transition-all hidden">
-        <div class="text-[8px] font-cyber text-amber-400 font-bold leading-tight" id="labelP4">P4</div>
+        <div class="text-[8px] font-cyber text-amber-400 font-bold leading-tight truncate" id="labelP4">P4</div>
         <div id="scoreP4" class="font-num font-black text-base text-amber-400 leading-tight">0</div>
-        <div id="hpP4" class="text-[9px] text-emerald-400 hidden">â¤ï¸â¤ï¸â¤ï¸</div>
+        <div id="hpP4" class="text-[9px] text-emerald-400 hidden">❤️❤️❤️</div>
       </div>
     </div>
   </div>
 
   <!-- Bottom Floating Emote Controls -->
   <div id="emoteBar" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-700 shadow-xl hidden">
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="ð£">ð£</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="ð¦">ð¦</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="ð£">ð£</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="ð±">ð±</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="ð¥">ð¥</button>
+    <button class="emote-btn text-xl active:scale-125 transition" data-emote="🎣">🎣</button>
+    <button class="emote-btn text-xl active:scale-125 transition" data-emote="🦈">🦈</button>
+    <button class="emote-btn text-xl active:scale-125 transition" data-emote="💣">💣</button>
+    <button class="emote-btn text-xl active:scale-125 transition" data-emote="😱">😱</button>
+    <button class="emote-btn text-xl active:scale-125 transition" data-emote="🔥">🔥</button>
   </div>
 
   <!-- Emote Animation Container -->
@@ -117,14 +117,28 @@
       <h1 class="text-2xl sm:text-3xl font-cyber font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-pink-500 tracking-wider">
         DEEP SEA BATTLE 4P
       </h1>
-      <p class="text-[11px] text-slate-300">æ·±æµ·ãå°æãé£ãéãä»²éã¨é­ãå¥ªãåãããããã¢ã³ã°ã©ã¼ãç®æãï¼</p>
+      <p class="text-[11px] text-slate-300">深海を射抜く釣り針。仲間と魚を奪い合い、トップアングラーを目指せ！</p>
+    </div>
+
+    <!-- Player Profile Settings -->
+    <div class="max-w-sm mx-auto w-full bg-slate-900/80 border border-cyan-500/40 rounded-2xl p-2.5 flex items-center justify-between gap-2 shadow-md">
+      <div class="flex items-center gap-2 flex-1">
+        <span class="text-sm">🪪</span>
+        <div class="flex-1">
+          <div class="text-[9px] font-cyber text-cyan-400 font-bold">PLAYER NAME</div>
+          <input id="inputPlayerName" type="text" maxlength="8" placeholder="プレイヤー名" value="ANGLER" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-cyber focus:outline-none focus:border-cyan-400">
+        </div>
+      </div>
+      <button id="btnSaveName" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-cyber font-bold text-[10px] active:scale-95 transition">
+        保存
+      </button>
     </div>
 
     <!-- Career Stats Dashboard -->
     <div class="max-w-sm mx-auto w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-lg">
       <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-2">
         <span class="text-xs font-cyber text-slate-300 font-bold"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i>CAREER STATS</span>
-        <button id="btnResetStats" class="text-[10px] text-slate-500 hover:text-rose-400 transition">ãªã»ãã</button>
+        <button id="btnResetStats" class="text-[10px] text-slate-500 hover:text-rose-400 transition">リセット</button>
       </div>
       <div class="grid grid-cols-4 gap-1.5 text-center">
         <div class="bg-slate-950/70 p-1.5 rounded-xl border border-slate-800/80">
@@ -153,19 +167,19 @@
       </div>
       <div class="grid grid-cols-3 gap-2">
         <button class="rule-btn p-2 rounded-xl border border-cyan-400/80 bg-cyan-950/40 text-center transition active:scale-95" data-rule="standard">
-          <div class="text-base">â±ï¸</div>
+          <div class="text-base">⏱️</div>
           <div class="text-[10px] font-cyber font-bold text-cyan-300">STANDARD</div>
-          <div class="text-[8px] text-slate-400">60ç§ã¹ã³ã¢ç«¶èµ°</div>
+          <div class="text-[8px] text-slate-400">60秒スコア競走</div>
         </button>
         <button class="rule-btn p-2 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition active:scale-95" data-rule="bomb">
-          <div class="text-base">ð£</div>
+          <div class="text-base">💣</div>
           <div class="text-[10px] font-cyber font-bold text-slate-300">SURVIVAL</div>
-          <div class="text-[8px] text-slate-400">æ©é·3åã§è±è½</div>
+          <div class="text-[8px] text-slate-400">機雷3回で脱落</div>
         </button>
         <button class="rule-btn p-2 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition active:scale-95" data-rule="fever">
-          <div class="text-base">â¨</div>
+          <div class="text-base">✨</div>
           <div class="text-[10px] font-cyber font-bold text-slate-300">FEVER</div>
-          <div class="text-[8px] text-slate-400">é»éé­å¤§éï¼åçUP</div>
+          <div class="text-[8px] text-slate-400">黄金魚大量＆倍率UP</div>
         </button>
       </div>
     </div>
@@ -176,11 +190,11 @@
       <button id="btnQuickMatch" class="w-full p-3 rounded-2xl bg-gradient-to-r from-cyan-600/30 to-blue-700/20 border border-cyan-400/60 shadow-lg active:scale-95 transition flex items-center justify-between text-left">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 text-xl">
-            â¡
+            ⚡
           </div>
           <div>
             <div class="font-cyber font-bold text-cyan-300 text-xs">QUICK MATCH (ONLINE)</div>
-            <div class="text-[10px] text-slate-400">ãªã³ã©ã¤ã³ã§å¾æ©ä¸­ã®ãã¬ã¤ã¤ã¼ã¨å³æå¯¾æ¦</div>
+            <div class="text-[10px] text-slate-400">オンラインで待機中のプレイヤーと即時対戦</div>
           </div>
         </div>
         <i class="fa-solid fa-chevron-right text-cyan-400 text-xs"></i>
@@ -190,11 +204,11 @@
       <button id="btnFriendMatch" class="w-full p-3 rounded-2xl bg-gradient-to-r from-pink-600/30 to-purple-700/20 border border-pink-500/60 shadow-lg active:scale-95 transition flex items-center justify-between text-left">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-400 flex items-center justify-center text-pink-300 text-xl">
-            ð
+            🔑
           </div>
           <div>
-            <div class="font-cyber font-bold text-pink-300 text-xs">CUSTOM ROOM (2ã4äºº)</div>
-            <div class="text-[10px] text-slate-400">åè¨èã¨äººæ°ãè¨­å®ãã¦åéã¨éã¾ã</div>
+            <div class="font-cyber font-bold text-pink-300 text-xs">CUSTOM ROOM (2〜4人)</div>
+            <div class="text-[10px] text-slate-400">合言葉と人数を設定して友達と集まる</div>
           </div>
         </div>
         <i class="fa-solid fa-chevron-right text-pink-400 text-xs"></i>
@@ -203,17 +217,17 @@
       <!-- Practice Solo Bot -->
       <div class="flex gap-2">
         <button id="btnPracticeSolo2P" class="flex-1 p-2.5 rounded-2xl bg-slate-900 border border-slate-700 active:scale-95 transition text-left flex items-center gap-2">
-          <span class="text-lg">ð¤</span>
+          <span class="text-lg">🤖</span>
           <div>
             <div class="font-cyber font-bold text-slate-200 text-[10px]">VS BOT (1v1)</div>
-            <div class="text-[8px] text-slate-400">CPUã¨2äººç·´ç¿</div>
+            <div class="text-[8px] text-slate-400">CPUと2人練習</div>
           </div>
         </button>
         <button id="btnPracticeSolo4P" class="flex-1 p-2.5 rounded-2xl bg-slate-900 border border-slate-700 active:scale-95 transition text-left flex items-center gap-2">
-          <span class="text-lg">ð¥</span>
+          <span class="text-lg">👥</span>
           <div>
             <div class="font-cyber font-bold text-amber-300 text-[10px]">VS BOT PARTY (4P)</div>
-            <div class="text-[8px] text-slate-400">CPU3ä½ã¨4äººä¹±æ¦</div>
+            <div class="text-[8px] text-slate-400">CPU3体と4人乱戦</div>
           </div>
         </button>
       </div>
@@ -222,7 +236,7 @@
     <!-- Status -->
     <div class="text-center py-2 text-[10px] text-slate-500 flex items-center justify-center gap-2">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span id="connStatusLabel">ãªã³ã©ã¤ã³ãµã¼ãã¼å¾æ©ä¸­...</span>
+      <span id="connStatusLabel">オンラインサーバー待機中...</span>
     </div>
   </div>
 
@@ -233,11 +247,11 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
       <h3 class="text-base font-cyber font-bold text-pink-400 mb-0.5">CUSTOM ROOM</h3>
-      <p class="text-[11px] text-slate-400 mb-3">äººæ°ã¨åè¨èãè¨­å®ãã¦ã«ã¼ã ãä½æã»åå </p>
+      <p class="text-[11px] text-slate-400 mb-3">人数と合言葉を設定してルームを作成・参加</p>
 
       <div class="space-y-3.5">
         <div>
-          <label class="text-[10px] font-cyber text-slate-400 font-bold block mb-1">MAX PLAYERS (å®å¡)</label>
+          <label class="text-[10px] font-cyber text-slate-400 font-bold block mb-1">MAX PLAYERS (定員)</label>
           <div class="grid grid-cols-3 gap-2" id="roomCapacitySelector">
             <button class="cap-btn py-1.5 rounded-xl border border-slate-700 bg-slate-950 text-xs font-cyber text-slate-300" data-cap="2">2 Players</button>
             <button class="cap-btn py-1.5 rounded-xl border border-slate-700 bg-slate-950 text-xs font-cyber text-slate-300" data-cap="3">3 Players</button>
@@ -246,7 +260,7 @@
         </div>
 
         <button id="btnCreateRoomSubmit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-cyber font-bold text-xs tracking-wider active:scale-95 transition shadow-lg">
-          æ°ããã«ã¼ã ãä½æ
+          新しいルームを作成
         </button>
 
         <div class="flex items-center my-1 text-xs text-slate-500">
@@ -256,9 +270,9 @@
         </div>
 
         <div class="flex gap-2">
-          <input id="inputRoomCode" type="text" maxlength="6" placeholder="åè¨è (ä¾: 7777)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center font-cyber tracking-widest text-sm uppercase text-white focus:outline-none focus:border-pink-500">
+          <input id="inputRoomCode" type="text" maxlength="6" placeholder="合言葉 (例: 7777)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center font-cyber tracking-widest text-sm uppercase text-white focus:outline-none focus:border-pink-500">
           <button id="btnJoinRoomSubmit" class="px-4 py-2 rounded-xl bg-pink-500 text-white font-cyber font-bold text-xs active:scale-95 transition whitespace-nowrap">
-            åå 
+            参加
           </button>
         </div>
       </div>
@@ -268,18 +282,18 @@
   <!-- MODAL: Result Screen -->
   <div id="resultModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col justify-center items-center p-4 hidden text-center">
     <div class="w-full max-w-sm bg-slate-900 border-2 border-yellow-400/80 rounded-3xl p-5 shadow-2xl relative">
-      <div id="resBadge" class="text-4xl mb-1">ð</div>
+      <div id="resBadge" class="text-4xl mb-1">🏆</div>
       <h2 id="resTitle" class="text-2xl font-cyber font-black tracking-wider text-yellow-300 mb-0.5">MATCH RESULT</h2>
-      <p id="resSubtitle" class="text-xs text-slate-400 mb-3">æçµé ä½ã¨ç²å¾ã¹ã³ã¢</p>
+      <p id="resSubtitle" class="text-xs text-slate-400 mb-3">最終順位と獲得スコア</p>
 
       <div id="resLeaderboard" class="space-y-1.5 mb-4"></div>
 
       <div class="flex gap-2">
         <button id="btnRematch" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-cyber font-bold text-xs text-white uppercase tracking-wider active:scale-95 transition shadow-lg">
-          åæ¦ãã
+          再戦する
         </button>
         <button id="btnExitLobby" class="flex-1 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-cyber font-bold text-xs uppercase tracking-wider active:scale-95 transition">
-          ã­ãã¼ã¸
+          ロビーへ
         </button>
       </div>
     </div>
@@ -430,13 +444,17 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // 4 Players Styles
+    // Player Styling
     const PLAYER_STYLES = [
-      { name: "P1 (YOU)", color: "#00f3ff", border: "border-cyan-400" },
-      { name: "P2", color: "#ff007f", border: "border-pink-500" },
-      { name: "P3", color: "#10b981", border: "border-emerald-400" },
-      { name: "P4", color: "#f59e0b", border: "border-amber-400" }
+      { defaultName: "P1", color: "#00f3ff", border: "border-cyan-400" },
+      { defaultName: "P2", color: "#ff007f", border: "border-pink-500" },
+      { defaultName: "P3", color: "#10b981", border: "border-emerald-400" },
+      { defaultName: "P4", color: "#f59e0b", border: "border-amber-400" }
     ];
+
+    // Player custom nickname
+    let myPlayerName = localStorage.getItem('deepSeaBattle_playerName') || 'ANGLER';
+    let playerNames = ["ANGLER", "P2", "P3", "P4"];
 
     // Stats Record
     let stats = {
@@ -574,10 +592,10 @@
           const cred = await signInAnonymously(auth);
           currentUser = cred.user;
         }
-        document.getElementById('connStatusLabel').innerText = 'ãªã³ã©ã¤ã³ãµã¼ãã¼æ¥ç¶å®äº (ONLINE READY)';
+        document.getElementById('connStatusLabel').innerText = 'オンラインサーバー接続完了 (ONLINE READY)';
       } catch (err) {
         console.warn('Firebase init fallback:', err.message);
-        document.getElementById('connStatusLabel').innerText = 'ã½ã­/ã­ã¼ã«ã«BOTç·´ç¿ã¢ã¼ãå©ç¨å¯è½';
+        document.getElementById('connStatusLabel').innerText = 'ソロ/ローカルBOT練習モード利用可能';
       }
     }
 
@@ -628,12 +646,21 @@
       timeLeft = 60;
       gameOver = false;
 
+      // Reset hooks & data
       for (let i = 0; i < 4; i++) {
         hooks[i].active = false;
         hooks[i].y = -50;
         playersData[i].score = 0;
         playersData[i].hp = 3;
         playersData[i].alive = true;
+      }
+
+      // Configure player names
+      playerNames[mySlot - 1] = myPlayerName;
+      for (let i = 0; i < 4; i++) {
+        if (i !== mySlot - 1) {
+          playerNames[i] = isAIMode ? `BOT ${i + 1}` : `P${i + 1}`;
+        }
       }
 
       initEntities();
@@ -699,11 +726,7 @@
 
         if (i <= totalPlayers) {
           card.classList.remove('hidden');
-          if (i === mySlot) {
-            label.innerText = `YOU (P${i})`;
-          } else {
-            label.innerText = isAIMode ? `BOT ${i}` : `P${i}`;
-          }
+          label.innerText = playerNames[i - 1];
 
           if (selectedRule === 'bomb') {
             hpElem.classList.remove('hidden');
@@ -736,8 +759,8 @@
         if (scoreElem) scoreElem.innerText = playersData[i].score;
 
         if (hpElem && selectedRule === 'bomb') {
-          const hearts = 'â¤ï¸'.repeat(Math.max(0, playersData[i].hp)) + 'ð¤'.repeat(Math.max(0, 3 - playersData[i].hp));
-          hpElem.innerText = playersData[i].alive ? hearts : 'DEAD ð';
+          const hearts = '❤️'.repeat(Math.max(0, playersData[i].hp)) + '🖤'.repeat(Math.max(0, 3 - playersData[i].hp));
+          hpElem.innerText = playersData[i].alive ? hearts : 'DEAD 💀';
         }
       }
     }
@@ -755,7 +778,7 @@
           score: playersData[i].score,
           alive: playersData[i].alive,
           hp: playersData[i].hp,
-          name: (i + 1) === mySlot ? 'YOU' : (isAIMode ? `BOT ${i + 1}` : `P${i + 1}`)
+          name: playerNames[i]
         });
       }
 
@@ -777,17 +800,17 @@
       if (myRank === 1) {
         sound.playWin();
         triggerHaptic([120, 60, 180]);
-        document.getElementById('resBadge').innerText = 'ð';
+        document.getElementById('resBadge').innerText = '👑';
         document.getElementById('resTitle').innerText = '1ST PLACE!';
         document.getElementById('resTitle').className = 'text-2xl font-cyber font-black tracking-wider text-yellow-300 mb-0.5';
-        document.getElementById('resSubtitle').innerText = 'æ·±æµ·ã¢ãªã¼ãã®è¦èã¨ãªãã¾ããï¼';
+        document.getElementById('resSubtitle').innerText = '深海アリーナの覇者となりました！';
       } else {
         sound.playLose();
         triggerHaptic(100);
-        document.getElementById('resBadge').innerText = myRank === 2 ? 'ð¥' : 'ð';
+        document.getElementById('resBadge').innerText = myRank === 2 ? '🥈' : '💀';
         document.getElementById('resTitle').innerText = `RANK #${myRank}`;
         document.getElementById('resTitle').className = 'text-2xl font-cyber font-black tracking-wider text-cyan-300 mb-0.5';
-        document.getElementById('resSubtitle').innerText = 'æ¬¡ã®ãã¤ãã§ãªãã³ã¸ãæãããï¼';
+        document.getElementById('resSubtitle').innerText = '次のダイブでリベンジを果たそう！';
       }
 
       const boardContainer = document.getElementById('resLeaderboard');
@@ -800,7 +823,7 @@
         row.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="font-cyber font-black text-xs ${idx === 0 ? 'text-yellow-400' : 'text-slate-400'}">#${idx + 1}</span>
-            <span class="text-xs font-cyber font-bold" style="color:${style.color}">${item.name}</span>
+            <span class="text-xs font-cyber font-bold truncate max-w-[120px]" style="color:${style.color}">${item.name}</span>
             ${!item.alive && selectedRule === 'bomb' ? '<span class="text-[9px] bg-rose-950 text-rose-400 px-1.5 py-0.5 rounded font-cyber">OUT</span>' : ''}
           </div>
           <div class="font-num font-black text-sm text-white">${item.score} pt</div>
@@ -861,12 +884,23 @@
 
       roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
         if (!snapshot.exists()) {
-          showToast('å¯¾æ¦ç¸æãéåºãã¾ãã');
+          showToast('部屋が存在しないか、解散されました');
           exitToLobby();
           return;
         }
         const data = snapshot.data();
 
+        // Sync player names from server
+        if (data.names) {
+          for (let i = 1; i <= totalPlayers; i++) {
+            if (i !== mySlot && data.names[`p${i}`]) {
+              playerNames[i - 1] = data.names[`p${i}`];
+            }
+          }
+          setupHUDForPlayers();
+        }
+
+        // Sync hooks of other players
         if (data.hooks) {
           for (let i = 1; i <= totalPlayers; i++) {
             if (i === mySlot) continue;
@@ -883,6 +917,7 @@
           }
         }
 
+        // Sync scores
         if (data.scores) {
           for (let i = 1; i <= totalPlayers; i++) {
             if (i === mySlot) continue;
@@ -891,6 +926,8 @@
             }
           }
         }
+
+        // Sync HP / survival
         if (data.hp) {
           for (let i = 1; i <= totalPlayers; i++) {
             if (i === mySlot) continue;
@@ -904,6 +941,7 @@
         }
         updateHUD();
 
+        // Sync emotes
         if (data.latestEmote && data.latestEmote.stamp > lastEmoteStamp) {
           lastEmoteStamp = data.latestEmote.stamp;
           renderFloatingEmote(data.latestEmote.emote, data.latestEmote.slot);
@@ -949,12 +987,12 @@
     async function startQuickMatch() {
       sound.init();
       if (!currentUser || !db) {
-        showToast('ãªãã©ã¤ã³ã®ããBOTå¯¾æ¦ãéå§ãã¾ã');
+        showToast('オフラインのためBOT対戦を開始します');
         startMatch(true, null, 2);
         return;
       }
 
-      showToast('ãªã³ã©ã¤ã³å¯¾æ¦èãæ¤ç´¢ä¸­...');
+      showToast('オンライン対戦者を検索中...');
 
       try {
         const roomsColl = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
@@ -974,6 +1012,7 @@
           const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', found.id);
           await updateDoc(roomRef, {
             player2: currentUser.uid,
+            'names.p2': myPlayerName,
             status: 'playing'
           });
           startMatch(false, found.id, 2);
@@ -989,6 +1028,7 @@
             status: 'waiting',
             player1: currentUser.uid,
             player2: null,
+            names: { p1: myPlayerName, p2: 'P2' },
             scores: { p1: 0, p2: 0 },
             hp: { p1: 3, p2: 3 },
             alive: { p1: true, p2: true },
@@ -1000,7 +1040,7 @@
         }
       } catch (err) {
         console.error(err);
-        showToast('æ¥ç¶ã«å¤±æããããBOTå¯¾æ¦ãéå§ãã¾ã');
+        showToast('接続に失敗したためBOT対戦を開始します');
         startMatch(true, null, 2);
       }
     }
@@ -1022,6 +1062,7 @@
           rule: selectedRule,
           status: 'waiting',
           players: [currentUser.uid],
+          names: { p1: myPlayerName, p2: 'P2', p3: 'P3', p4: 'P4' },
           scores: { p1: 0, p2: 0, p3: 0, p4: 0 },
           hp: { p1: 3, p2: 3, p3: 3, p4: 3 },
           alive: { p1: true, p2: true, p3: true, p4: true },
@@ -1031,7 +1072,7 @@
         document.getElementById('roomModal').classList.add('hidden');
         startMatch(false, roomId, currentCapacity);
         listenToDuelRoom(roomId);
-        showToast(`åè¨è: ${code} (å®å¡${currentCapacity}äºº) ã§å¾æ©ä¸­ï¼`);
+        showToast(`合言葉: ${code} (定員${currentCapacity}人) で待機中！`);
       } catch (e) {
         console.error(e);
       }
@@ -1042,7 +1083,7 @@
       if (!currentUser || !db) return;
       const clean = code.trim();
       if (!clean) {
-        showToast('åè¨èãå¥åãã¦ãã ãã');
+        showToast('合言葉を入力してください');
         return;
       }
 
@@ -1057,7 +1098,7 @@
         });
 
         if (!target) {
-          showToast('è©²å½ã®åè¨èã®é¨å±ãè¦ã¤ããã¾ãã');
+          showToast('該当の合言葉の部屋が見つかりません');
           return;
         }
 
@@ -1069,6 +1110,7 @@
 
         await updateDoc(roomRef, {
           players: existingPlayers,
+          [`names.p${mySlot}`]: myPlayerName,
           status: existingPlayers.length >= target.capacity ? 'playing' : 'waiting'
         });
 
@@ -1076,7 +1118,7 @@
         startMatch(false, target.id, target.capacity);
         listenToDuelRoom(target.id);
       } catch (e) {
-        showToast('å¥å®¤ã¨ã©ã¼ãçºçãã¾ãã');
+        showToast('入室エラーが発生しました');
       }
     }
 
@@ -1233,7 +1275,6 @@
 
             updateHUD();
 
-            // Corrected function call to prevent undefined error
             if (p === mySlot - 1) {
               syncMyStateOnline();
               syncMyHookOnline(h.x, false);
@@ -1288,6 +1329,19 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Load player name from storage
+      const nameInput = document.getElementById('inputPlayerName');
+      nameInput.value = myPlayerName;
+
+      document.getElementById('btnSaveName').onclick = () => {
+        const val = nameInput.value.trim();
+        if (val) {
+          myPlayerName = val;
+          localStorage.setItem('deepSeaBattle_playerName', myPlayerName);
+          showToast(`プレイヤー名を「${myPlayerName}」に設定しました`);
+        }
+      };
+
       loadStats();
       initFirebase();
       initEntities();
@@ -1317,11 +1371,11 @@
         };
       });
 
-      // Stats Reset (Replaced confirm with safe toast)
+      // Stats Reset
       document.getElementById('btnResetStats').onclick = () => {
         stats = { matches: 0, wins: 0, losses: 0, draws: 0, bestScore: 0 };
         saveStats();
-        showToast('æ¦ç¸¾ã¹ã¿ããããªã»ãããã¾ãã');
+        showToast('戦績スタッツをリセットしました');
       };
 
       // Matchmaking
