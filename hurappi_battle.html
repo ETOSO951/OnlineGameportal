@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Wizard: Ultimate Battle</title>
+    <title>Flappy Wizard: Chaos Duel</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --panel-bg: #1f2833;
-            --accent: #66fcf1;
-            --accent-hot: #ff007f;
+            --bg-color: #090a0f;
+            --panel-bg: #151922;
+            --accent: #38bdf8;
+            --accent-hot: #f43f5e;
+            --roulette-gold: #facc15;
         }
         body { 
             margin: 0; background: var(--bg-color); color: #fff; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             overflow: hidden; touch-action: none; user-select: none;
         }
-        #wrapper { position: relative; width: 340px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        canvas { display: block; width: 340px; height: 480px; background: #000; border: 2px solid #333; border-radius: 4px 4px 0 0; }
+        #wrapper { position: relative; width: 340px; margin: 0 auto; box-shadow: 0 0 25px rgba(0,0,0,0.9); }
+        canvas { display: block; width: 340px; height: 460px; background: #000; border: 2px solid #334155; border-radius: 6px 6px 0 0; }
         
         #ui { 
-            background: rgba(15, 23, 42, 0.95); padding: 8px 12px; display: flex; 
+            background: #0f172a; padding: 6px 12px; display: flex; 
             justify-content: space-between; align-items: center; font-size: 13px; 
-            border-bottom: 2px solid #334155; font-weight: bold;
+            border-bottom: 2px solid #1e293b; font-weight: bold;
         }
         .score-box { display: flex; flex-direction: column; align-items: center; }
         .score-val { font-size: 20px; font-family: monospace; }
@@ -31,30 +32,49 @@
         .p2-color { color: #f43f5e; }
         
         #mp-container { 
-            background: #1e293b; height: 10px; width: 340px; margin: 0 auto; position: relative;
+            background: #1e293b; height: 12px; width: 340px; margin: 0 auto; position: relative;
         }
         #mp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #0284c7, #38bdf8, #818cf8); transition: width 0.05s linear; }
-        #mp-text { position: absolute; right: 5px; top: -14px; font-size: 10px; font-family: monospace; color: #38bdf8; }
+        #mp-text { position: absolute; right: 6px; top: -14px; font-size: 10px; font-family: monospace; color: #38bdf8; font-weight: bold; }
 
+        /* 手札パネル（4枠＋リロールボタン） */
+        #deck-container {
+            display: flex; gap: 4px; background: var(--panel-bg); padding: 8px; width: 324px; margin: 0 auto;
+            border-radius: 0 0 8px 8px; border: 2px solid #334155; border-top: none; box-sizing: border-box;
+        }
         #skill-panel { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; 
-            background: var(--panel-bg); padding: 8px; width: 324px; margin: 0 auto; 
-            border-radius: 0 0 8px 8px; border: 2px solid #333; border-top: none;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; flex-grow: 1;
         }
         .skill-btn { 
-            position: relative; font-size: 10px; padding: 8px 2px; background: #334155; 
-            color: #f8fafc; border: 1px solid #475569; border-radius: 4px; cursor: pointer; 
-            font-weight: bold; transition: 0.1s; text-align: center;
+            position: relative; font-size: 10px; padding: 8px 1px; background: #334155; 
+            color: #f8fafc; border: 1px solid #475569; border-radius: 6px; cursor: pointer; 
+            font-weight: bold; transition: 0.1s; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .skill-btn:active { transform: scale(0.95); }
-        .skill-btn.disabled { opacity: 0.4; cursor: not-allowed; border-color: #333; }
-        .skill-btn.active-skill { border-color: var(--accent-hot); box-shadow: 0 0 8px var(--accent-hot); }
+        .skill-btn:active { transform: scale(0.93); }
+        .skill-btn.disabled { opacity: 0.35; cursor: not-allowed; border-color: #222; }
+        .skill-btn.active-skill { border-color: var(--accent-hot); box-shadow: 0 0 10px var(--accent-hot); }
+        
+        #reroll-btn {
+            width: 58px; background: #475569; border: 1px solid #64748b; color: #facc15;
+            font-size: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; padding: 2px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        #reroll-btn:active { transform: scale(0.93); }
+        #reroll-btn.disabled { opacity: 0.35; cursor: not-allowed; }
 
         #status-msg { 
-            position: absolute; top: 35%; width: 100%; text-align: center; 
-            font-size: 26px; font-weight: 900; text-shadow: 0 0 10px #000, 2px 2px 2px #000; 
-            pointer-events: none; z-index: 10; letter-spacing: 1px;
+            position: absolute; top: 30%; width: 100%; text-align: center; 
+            font-size: 24px; font-weight: 900; text-shadow: 0 0 12px #000, 2px 2px 2px #000; 
+            pointer-events: none; z-index: 10;
         }
+        #roulette-banner {
+            position: absolute; top: 15%; width: 100%; text-align: center;
+            font-size: 18px; font-weight: bold; color: var(--roulette-gold);
+            background: rgba(0,0,0,0.85); padding: 8px 0; border-top: 2px solid var(--roulette-gold);
+            border-bottom: 2px solid var(--roulette-gold); pointer-events: none; z-index: 20;
+            display: none; text-shadow: 0 0 8px #f59e0b;
+        }
+
         .setup { text-align: center; padding: 40px 15px; max-width: 320px; margin: 0 auto; }
         .setup input { 
             padding: 12px; width: 80%; border-radius: 6px; border: 1px solid #475569; 
@@ -62,7 +82,7 @@
         }
         .setup button { 
             width: 85%; padding: 12px; margin: 6px 0; border: none; font-weight: bold; 
-            border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
+            border-radius: 6px; cursor: pointer; font-size: 14px;
         }
         .btn-host { background: #0284c7; color: white; }
         .btn-guest { background: #10b981; color: white; }
@@ -73,12 +93,12 @@
 <body>
 
     <div id="setup-screen" class="setup">
-        <h1 style="color:var(--accent); margin-bottom:4px; font-size:26px;">FLAPPY WIZARD</h1>
-        <p style="font-size:12px; color:#94a3b8; margin-top:0;">DUEL SPELLCASTER EDITION</p>
-        <input type="text" id="room-id" placeholder="合言葉（Room ID）を入力"><br>
-        <button class="btn-host" onclick="initPeer(true)">⚔️ 部屋を作成 (1P/Host)</button>
-        <button class="btn-guest" onclick="initPeer(false)">🛡️ 部屋に参加 (2P/Guest)</button>
-        <div id="peer-status">オフライン: 合言葉を決めて接続してください</div>
+        <h1 style="color:var(--accent); margin-bottom:4px; font-size:24px;">FLAPPY WIZARD</h1>
+        <p style="font-size:12px; color:#94a3b8; margin-top:0;">CHAOS DUEL & ROULETTE</p>
+        <input type="text" id="room-id" placeholder="合言葉（Room ID）"><br>
+        <button class="btn-host" onclick="initPeer(true)">部屋を作る (1P / Host)</button>
+        <button class="btn-guest" onclick="initPeer(false)">部屋に入る (2P / Guest)</button>
+        <div id="peer-status">待機中</div>
     </div>
 
     <div id="game-screen" class="hidden">
@@ -92,33 +112,30 @@
                 <div class="score-box p2-color">2P: <span id="s2" class="score-val">0</span></div>
             </div>
 
-            <canvas id="gameCanvas" width="340" height="480"></canvas>
+            <canvas id="gameCanvas" width="340" height="460"></canvas>
             <div id="status-msg"></div>
+            <div id="roulette-banner">🎰 ROULETTE: <span id="roulette-text">???</span></div>
 
             <div id="mp-container">
                 <div id="mp-bar"></div>
                 <span id="mp-text">MP: 0</span>
             </div>
 
-            <div id="skill-panel">
-                <button class="skill-btn" id="sk-speed" onclick="triggerSkill('speed', 25)">加速<br>(25)</button>
-                <button class="skill-btn" id="sk-move" onclick="triggerSkill('move', 30)">波状<br>(30)</button>
-                <button class="skill-btn" id="sk-blind" onclick="triggerSkill('blind', 45)">盲目<br>(45)</button>
-                <button class="skill-btn" id="sk-rev" onclick="triggerSkill('rev', 60)">逆重力<br>(60)</button>
-                <button class="skill-btn" id="sk-ghost" onclick="triggerSkill('ghost', 30)">幻影<br>(30)</button>
-                <button class="skill-btn" id="sk-fake" onclick="triggerSkill('fake', 35)">偽壁<br>(35)</button>
-                <button class="skill-btn" id="sk-gravUp" onclick="triggerSkill('gravUp', 30)">重化<br>(30)</button>
-                <button class="skill-btn" id="sk-giant" onclick="triggerSkill('giant', 40)">巨体<br>(40)</button>
-                <button class="skill-btn" id="sk-back" onclick="triggerSkill('back', 50)">引き戻し<br>(50)</button>
-                <button class="skill-btn" id="sk-highJump" onclick="triggerSkill('highJump', 35)">暴跳<br>(35)</button>
-                <button class="skill-btn" id="sk-impact" onclick="triggerSkill('impact', 20)">メテオ<br>(20)</button>
-                <button class="skill-btn" id="sk-ascend" onclick="triggerSkill('ascend', 90)">無重力<br>(90)</button>
+            <div id="deck-container">
+                <div id="skill-panel">
+                    <!-- ランダム4枠の手札 -->
+                    <button class="skill-btn" id="slot-0" onclick="useHandCard(0)"></button>
+                    <button class="skill-btn" id="slot-1" onclick="useHandCard(1)"></button>
+                    <button class="skill-btn" id="slot-2" onclick="useHandCard(2)"></button>
+                    <button class="skill-btn" id="slot-3" onclick="useHandCard(3)"></button>
+                </div>
+                <button id="reroll-btn" onclick="rerollHand()">🔄 更新<br><span style="font-size:8px;">(MP 15)</span></button>
             </div>
         </div>
     </div>
 
 <script>
-// --- Web Audio API（効果音シンセサイザー） ---
+// --- オーディオシンセ ---
 const AudioEngine = {
     ctx: null,
     init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
@@ -126,17 +143,16 @@ const AudioEngine = {
         if (!this.ctx) return;
         let osc = this.ctx.createOscillator(), g = this.ctx.createGain();
         osc.connect(g); g.connect(this.ctx.destination);
-        osc.type = "sine"; osc.frequency.setValueAtTime(320, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(640, this.ctx.currentTime + 0.1);
+        osc.type = "sine"; osc.frequency.setValueAtTime(340, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(680, this.ctx.currentTime + 0.08);
         g.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.08);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.08);
     },
     playCrash() {
         if (!this.ctx) return;
-        let b = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.25, this.ctx.sampleRate),
-            d = b.getChannelData(0);
-        for(let i=0; i<b.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.05));
+        let b = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.25, this.ctx.sampleRate), d = b.getChannelData(0);
+        for(let i=0; i<b.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.04));
         let src = this.ctx.createBufferSource(); src.buffer = b;
         let g = this.ctx.createGain(); g.gain.value = 0.3;
         src.connect(g); g.connect(this.ctx.destination);
@@ -146,33 +162,65 @@ const AudioEngine = {
         if (!this.ctx) return;
         let osc = this.ctx.createOscillator(), g = this.ctx.createGain();
         osc.connect(g); g.connect(this.ctx.destination);
-        osc.type = "triangle"; osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.25);
-        g.gain.setValueAtTime(0.25, this.ctx.currentTime);
-        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.25);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+        osc.type = "triangle"; osc.frequency.setValueAtTime(700, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.2);
+        g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+    },
+    playRoulette() {
+        if (!this.ctx) return;
+        let osc = this.ctx.createOscillator(), g = this.ctx.createGain();
+        osc.connect(g); g.connect(this.ctx.destination);
+        osc.type = "square"; osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.05);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
     }
 };
 
-// --- ステージ拡張定義 ---
+// --- スキルマスタ（全12種） ---
+const ALL_SKILLS = {
+    shrink:   { name: "極小隙間", cost: 40, dur: 220 }, // 新技: 隙間縮小
+    flip:     { name: "上下反転", cost: 65, dur: 180 }, // 新技: 画面反転
+    freeze:   { name: "時空静止", cost: 35, dur: 40 },  // 新技: 一瞬フリーズ
+    speed:    { name: "爆速",     cost: 25, dur: 220 },
+    blind:    { name: "濃霧暗黒", cost: 40, dur: 200 },
+    move:     { name: "大波状",   cost: 30, dur: 260 },
+    fake:     { name: "幻惑土管", cost: 35, dur: 260 },
+    gravUp:   { name: "超重力",   cost: 30, dur: 180 },
+    giant:    { name: "超巨大化", cost: 45, dur: 220 },
+    back:     { name: "引き戻し", cost: 50, dur: 80 },
+    highJump: { name: "暴走跳躍", cost: 30, dur: 200 },
+    impact:   { name: "メテオ墜落", cost: 20, dur: 25 }
+};
+
+// --- ハプニング定義（ステージ変更時） ---
+const HAPPENINGS = [
+    { name: "🌕 低重力ムーン！", apply: () => { activeHappenings.lowG = 300; } },
+    { name: "🌪️ 乱気流ストーム！", apply: () => { activeHappenings.turb = 300; } },
+    { name: "💎 妨害側MP満タン！", apply: () => { mp = 100; } },
+    { name: "🐢 スローモーション！", apply: () => { activeHappenings.slow = 300; } },
+    { name: "⚡ ハイパースピード！", apply: () => { activeHappenings.fast = 300; } }
+];
+
 const STAGES = [
     { name: "ASTRAL SKY", bgTop: "#0f2027", bgBot: "#203a43", pipe: "#00adb5", interval: 100, speed: 1.1, gap: 1.1, g:0.27, j:-5.2 },
-    { name: "NEON CITY", bgTop: "#2b1055", bgBot: "#7597de", pipe: "#ff007f", interval: 95, speed: 1.25, gap: 1.0, g:0.28, j:-5.3, move:true },
-    { name: "VERDANT RUIN", bgTop: "#134e5e", bgBot: "#71b280", pipe: "#55efc4", interval: 90, speed: 1.2, gap: 0.95, g:0.29, j:-5.2 },
-    { name: "MAGMA CORE", bgTop: "#4a00e0", bgBot: "#8e2de2", pipe: "#ff7675", interval: 85, speed: 1.35, gap: 0.9, g:0.30, j:-5.4 },
-    { name: "COSMIC VOID", bgTop: "#000000", bgBot: "#1a1a2e", pipe: "#f39c12", interval: 80, speed: 1.45, gap: 0.88, g:0.31, j:-5.5, move:true }
+    { name: "NEON CITY", bgTop: "#2b1055", bgBot: "#7597de", pipe: "#ff007f", interval: 95, speed: 1.25, gap: 1.05, g:0.28, j:-5.3, move:true },
+    { name: "CYBER CORE", bgTop: "#111827", bgBot: "#312e81", pipe: "#a855f7", interval: 90, speed: 1.35, gap: 0.95, g:0.29, j:-5.4 },
+    { name: "COSMIC VOID", bgTop: "#000000", bgBot: "#1e1b4b", pipe: "#f59e0b", interval: 80, speed: 1.45, gap: 0.9, g:0.30, j:-5.5, move:true }
 ];
 
 let peer, conn, isHost = false;
-let sessionStages = [];
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let scores = { p1: 0, p2: 0 }, currentAttacker = "p1", mp = 0, frame = 0;
-let bird = { x: 70, y: 240, v: 0, rot: 0 };
+let bird = { x: 70, y: 230, v: 0, rot: 0 };
 let pipes = [], particles = [], stars = [];
-let activeSkills = {};
-let isGameOver = false;
-let shakeTime = 0;
+let activeSkills = {}, activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
+let currentHand = []; // 手札（4つのキー）
+let lastStageIndex = 0;
+let isGameOver = false, shakeTime = 0;
 
 function initPeer(host) {
     AudioEngine.init();
@@ -180,37 +228,37 @@ function initPeer(host) {
     if(!rid) return alert("合言葉を入力してください");
     isHost = host;
     const status = document.getElementById('peer-status');
-    status.innerText = isHost ? "ルーム作成完了。対戦相手を待機中..." : "ルームに接続中...";
+    status.innerText = isHost ? "ルーム作成完了。2Pの接続待機中..." : "接続中...";
 
     peer = new Peer(isHost ? rid : rid + "_gst" + Math.floor(Math.random()*9999));
     peer.on('open', () => { if(!isHost) { conn = peer.connect(rid); setupConn(); } });
     peer.on('connection', c => { conn = c; setupConn(); });
-    peer.on('error', (err) => { status.innerText = "通信エラー: ID重複または回線切断"; });
+    peer.on('error', () => { status.innerText = "通信エラー: 合言葉を確認してください"; });
 }
 
 function setupConn() {
     conn.on('open', () => {
-        if(isHost) {
-            sessionStages = [...STAGES];
-            conn.send({ type: "init", stages: sessionStages });
-        }
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
-        for(let i=0; i<45; i++) stars.push({x:Math.random()*340, y:Math.random()*480, s:Math.random()*2 + 0.5, a:Math.random()});
+        for(let i=0; i<40; i++) stars.push({x:Math.random()*340, y:Math.random()*460, s:Math.random()*2 + 0.5, a:Math.random()});
+        setupDeck();
         startRound();
         requestAnimationFrame(gameLoop);
     });
     conn.on('data', data => {
-        if(data.type === "init") sessionStages = data.stages;
         if(data.type === "sync" && !isHost) {
             bird = data.bird; pipes = data.pipes; scores = data.scores;
             frame = data.frame; activeSkills = data.skills;
             currentAttacker = data.currentAttacker;
+            activeHappenings = data.happenings;
         }
         if(data.type === "skill") {
             activeSkills[data.skill] = data.duration;
             AudioEngine.playCast();
             createSparks(bird.x, bird.y, '#e879f9');
+        }
+        if(data.type === "roulette") {
+            triggerRouletteVisual(data.index);
         }
         if(data.type === "flap" && isHost) doFlap();
         if(data.type === "die" && isHost) handleDeath();
@@ -219,10 +267,78 @@ function setupConn() {
 
 function isAttacker() { return (isHost && currentAttacker === "p1") || (!isHost && currentAttacker === "p2"); }
 
+// --- 手札（4枠）＆ リロールシステム ---
+function setupDeck() {
+    const keys = Object.keys(ALL_SKILLS);
+    currentHand = [];
+    while(currentHand.length < 4) {
+        const rand = keys[Math.floor(Math.random() * keys.length)];
+        if(!currentHand.includes(rand)) currentHand.push(rand);
+    }
+}
+
+function useHandCard(slotIdx) {
+    if(isAttacker()) return;
+    const skillKey = currentHand[slotIdx];
+    const skill = ALL_SKILLS[skillKey];
+    if(mp < skill.cost || (activeSkills[skillKey] && activeSkills[skillKey] > 0)) return;
+
+    mp -= skill.cost;
+    activeSkills[skillKey] = skill.dur;
+    AudioEngine.playCast();
+    conn.send({ type: "skill", skill: skillKey, duration: skill.dur });
+
+    // 山札からランダムに1枚補充（今持っていないものから）
+    const available = Object.keys(ALL_SKILLS).filter(k => !currentHand.includes(k));
+    currentHand[slotIdx] = available[Math.floor(Math.random() * available.length)];
+}
+
+function rerollHand() {
+    if(isAttacker() || mp < 15) return;
+    mp -= 15;
+    AudioEngine.playCast();
+    setupDeck();
+}
+
+// --- ハプニング・ルーレット演出 ---
+function checkStageProgress() {
+    const s = scores[currentAttacker];
+    const stageIdx = Math.min(Math.floor(s / 15), STAGES.length - 1);
+    if(stageIdx > lastStageIndex) {
+        lastStageIndex = stageIdx;
+        const rIndex = Math.floor(Math.random() * HAPPENINGS.length);
+        triggerRouletteVisual(rIndex);
+        if(isHost) {
+            conn.send({ type: "roulette", index: rIndex });
+            HAPPENINGS[rIndex].apply();
+        }
+    }
+}
+
+function triggerRouletteVisual(finalIndex) {
+    const banner = document.getElementById('roulette-banner');
+    const text = document.getElementById('roulette-text');
+    banner.style.display = 'block';
+    
+    let rollCount = 0;
+    const interval = setInterval(() => {
+        text.innerText = HAPPENINGS[Math.floor(Math.random() * HAPPENINGS.length)].name;
+        AudioEngine.playRoulette();
+        rollCount++;
+        if(rollCount > 10) {
+            clearInterval(interval);
+            text.innerText = HAPPENINGS[finalIndex].name;
+            setTimeout(() => { banner.style.display = 'none'; }, 2500);
+        }
+    }, 90);
+}
+
 function startRound() {
-    bird.y = 240; bird.v = 0; pipes = []; frame = 0;
+    bird.y = 230; bird.v = 0; pipes = []; frame = 0;
     activeSkills = {};
-    const attackerText = isAttacker() ? "あなたの飛行ターン！逃げ切れ！" : "妨害ターン！呪文で撃墜せよ！";
+    activeHappenings = { lowG:0, turb:0, slow:0, fast:0 };
+    lastStageIndex = 0;
+    const attackerText = isAttacker() ? "あなたの飛行ターン！逃げ切れ！" : "妨害ターン！呪文で撃破せよ！";
     showStatus(attackerText, isAttacker() ? "#38bdf8" : "#f43f5e");
     document.getElementById('role-indicator').innerText = isAttacker() ? "▶ RUNNER" : "⚡ SABOTEUR";
     document.getElementById('role-indicator').style.color = isAttacker() ? "#38bdf8" : "#f43f5e";
@@ -230,13 +346,45 @@ function startRound() {
 
 function getStage() {
     const s = scores[currentAttacker];
-    const idx = Math.min(Math.floor(s / 15), sessionStages.length - 1);
-    return sessionStages[idx] || STAGES[0];
+    return STAGES[Math.min(Math.floor(s / 15), STAGES.length - 1)];
 }
 
-// --- パーティクル・演出システム ---
+function getMpRecoveryRate() {
+    let base = 0.14;
+    // 劣勢逆転ブースト（点差が開くほどサボタージュ側のMP加速）
+    let deficit = isHost ? (scores.p1 - scores.p2) : (scores.p2 - scores.p1);
+    if(deficit > 0) base *= Math.min(2.5, 1 + deficit * 0.08);
+    return base;
+}
+
+function updateUI() {
+    document.getElementById('s1').innerText = scores.p1;
+    document.getElementById('s2').innerText = scores.p2;
+    document.getElementById('stage-display').innerText = getStage().name;
+
+    if (!isAttacker() && mp < 100) mp = Math.min(100, mp + getMpRecoveryRate());
+    document.getElementById('mp-bar').style.width = mp + "%";
+    document.getElementById('mp-text').innerText = `MP: ${Math.floor(mp)}/100`;
+
+    // 4枠の手札描画
+    currentHand.forEach((key, idx) => {
+        const btn = document.getElementById(`slot-${idx}`);
+        const skill = ALL_SKILLS[key];
+        btn.innerHTML = `${skill.name}<br><span style="font-size:9px;">(${skill.cost})</span>`;
+        if (isAttacker() || mp < skill.cost) btn.classList.add('disabled');
+        else btn.classList.remove('disabled');
+
+        if (activeSkills[key] > 0) btn.classList.add('active-skill');
+        else btn.classList.remove('active-skill');
+    });
+
+    const rerollBtn = document.getElementById('reroll-btn');
+    if (isAttacker() || mp < 15) rerollBtn.classList.add('disabled');
+    else rerollBtn.classList.remove('disabled');
+}
+
 function createSparks(x, y, color) {
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
         particles.push({
             x, y,
             vx: (Math.random() - 0.5) * 6,
@@ -246,63 +394,7 @@ function createSparks(x, y, color) {
     }
 }
 
-function triggerShake(intensity) { shakeTime = intensity; }
-
-// --- スキル管理 ---
-const SKILLS_CONFIG = {
-    speed: { cost: 25, dur: 240 },
-    move: { cost: 30, dur: 320 },
-    blind: { cost: 45, dur: 220 },
-    rev: { cost: 60, dur: 180 },
-    ghost: { cost: 30, dur: 200 },
-    fake: { cost: 35, dur: 260 },
-    gravUp: { cost: 30, dur: 200 },
-    giant: { cost: 40, dur: 260 },
-    back: { cost: 50, dur: 90 },
-    highJump: { cost: 35, dur: 220 },
-    impact: { cost: 20, dur: 25 },
-    ascend: { cost: 90, dur: 180 }
-};
-
-function triggerSkill(s, cost) {
-    if (isAttacker() || mp < cost || (activeSkills[s] && activeSkills[s] > 0)) return;
-    mp -= cost;
-    AudioEngine.playCast();
-    const dur = SKILLS_CONFIG[s].dur;
-    activeSkills[s] = dur;
-    conn.send({ type: "skill", skill: s, duration: dur });
-}
-
-function updateUI() {
-    document.getElementById('s1').innerText = scores.p1;
-    document.getElementById('s2').innerText = scores.p2;
-    document.getElementById('stage-display').innerText = getStage().name;
-
-    if (!isAttacker()) {
-        if (mp < 100) mp = Math.min(100, mp + 0.12);
-    }
-    document.getElementById('mp-bar').style.width = mp + "%";
-    document.getElementById('mp-text').innerText = `MP: ${Math.floor(mp)}/100`;
-
-    // ボタンの活性・発動中表示
-    Object.keys(SKILLS_CONFIG).forEach(k => {
-        const btn = document.getElementById(`sk-${k}`);
-        if (!btn) return;
-        const conf = SKILLS_CONFIG[k];
-        if (isAttacker() || mp < conf.cost) {
-            btn.classList.add('disabled');
-        } else {
-            btn.classList.remove('disabled');
-        }
-        if (activeSkills[k] > 0) {
-            btn.classList.add('active-skill');
-        } else {
-            btn.classList.remove('active-skill');
-        }
-    });
-}
-
-// --- 物理演算と判定 ---
+// --- 物理・衝突判定 ---
 function update(dt) {
     const fpsAdj = dt * 60;
     frame++;
@@ -310,29 +402,29 @@ function update(dt) {
 
     updateUI();
 
-    // スキル減衰
-    Object.keys(activeSkills).forEach(k => {
-        if (activeSkills[k] > 0) activeSkills[k] -= fpsAdj;
-    });
+    // スキル＆ハプニング減衰
+    Object.keys(activeSkills).forEach(k => { if(activeSkills[k] > 0) activeSkills[k] -= fpsAdj; });
+    Object.keys(activeHappenings).forEach(k => { if(activeHappenings[k] > 0) activeHappenings[k] -= fpsAdj; });
+    if(shakeTime > 0) shakeTime -= fpsAdj;
 
-    if (shakeTime > 0) shakeTime -= fpsAdj;
-
-    // パーティクル更新
-    particles.forEach(p => {
-        p.x += p.vx * fpsAdj; p.y += p.vy * fpsAdj;
-        p.life -= 0.03 * fpsAdj;
-    });
+    particles.forEach(p => { p.x += p.vx * fpsAdj; p.y += p.vy * fpsAdj; p.life -= 0.04 * fpsAdj; });
     particles = particles.filter(p => p.life > 0);
 
-    // アタッカー側（飛行担当）のみ衝突・物理を判定
     if (isHost) {
+        checkStageProgress();
+
+        // 停止（Freeze）中は物理演算をスキップ
+        if (activeSkills.freeze > 0) return;
+
         let g = stage.g;
         if (activeSkills.gravUp > 0) g *= 1.8;
         if (activeSkills.impact > 0) g *= 3.5;
-        if (activeSkills.rev > 0) g *= -1;
-        if (activeSkills.ascend > 0) g = -0.15;
+        if (activeHappenings.lowG > 0) g *= 0.45;
+        if (activeSkills.flip > 0) g *= -1; // 上下反転時は重力も逆
 
         bird.v += g * fpsAdj;
+        if (activeHappenings.turb > 0) bird.v += (Math.random() - 0.5) * 0.8; // 乱気流
+
         bird.y += bird.v * fpsAdj;
         bird.rot = Math.max(-0.6, Math.min(0.7, bird.v * 0.08));
 
@@ -344,18 +436,24 @@ function update(dt) {
             pipes.push({ x: 360, gapY: Math.random() * 190 + 90, passed: false, off: Math.random()*10, isFake: true });
         }
 
-        // 土管移動と当たり判定
-        let spd = stage.speed * (activeSkills.speed > 0 ? 2.3 : 1.6) * 1.8;
+        // 速度計算
+        let spd = stage.speed * (activeSkills.speed > 0 ? 2.2 : 1.5) * 1.8;
+        if (activeHappenings.slow > 0) spd *= 0.6;
+        if (activeHappenings.fast > 0) spd *= 1.4;
         if (activeSkills.back > 0) spd = -spd * 0.8;
+
+        // 隙間（Gap）計算：極小化（Shrink）で40%縮小
+        let gapMultiplier = stage.gap;
+        if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
 
         pipes.forEach(p => {
             p.x -= spd * fpsAdj;
             let gapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.06 + p.off) * 35 : 0);
 
-            if (activeSkills.ghost <= 0 && !p.isFake) {
+            if (!p.isFake) {
                 let hitRadius = activeSkills.giant > 0 ? 22 : 12;
                 if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + 48) {
-                    if (bird.y - hitRadius < gapY || bird.y + hitRadius > gapY + 120 * stage.gap) {
+                    if (bird.y - hitRadius < gapY || bird.y + hitRadius > gapY + 120 * gapMultiplier) {
                         handleDeath();
                     }
                 }
@@ -368,7 +466,7 @@ function update(dt) {
         });
 
         pipes = pipes.filter(p => p.x > -80);
-        if (bird.y < 0 || bird.y > 480) handleDeath();
+        if (bird.y < 0 || bird.y > 460) handleDeath();
     }
 }
 
@@ -376,22 +474,21 @@ function doFlap() {
     const stage = getStage();
     let jump = stage.j;
     if (activeSkills.highJump > 0) jump *= 1.45;
-    if (activeSkills.rev > 0) jump *= -1;
+    if (activeSkills.flip > 0) jump *= -1; // 上下反転時はジャンプも逆向き
     bird.v = jump;
     AudioEngine.playJump();
-    createSparks(bird.x - 8, bird.y + 4, '#ffffff');
+    createSparks(bird.x - 6, bird.y + 4, '#ffffff');
 }
 
 function handleDeath() {
     AudioEngine.playCrash();
-    triggerShake(14);
+    shakeTime = 12;
     createSparks(bird.x, bird.y, '#f43f5e');
     if (isHost) {
         if (currentAttacker === "p1") {
             currentAttacker = "p2";
             startRound();
         } else {
-            // ラウンド決着判定
             if (scores.p1 !== scores.p2) {
                 isGameOver = true;
                 const winText = scores.p1 > scores.p2 ? "🏆 1Pの完全勝利！" : "🏆 2Pの完全勝利！";
@@ -406,21 +503,29 @@ function handleDeath() {
     }
 }
 
-// --- 描画レンダラー ---
+// --- 描画 ---
 function draw() {
     ctx.save();
+
+    // 画面揺れ
     if (shakeTime > 0) {
         ctx.translate((Math.random() - 0.5) * shakeTime, (Math.random() - 0.5) * shakeTime);
     }
 
+    // 上下反転スキル（Flip）
+    if (activeSkills.flip > 0) {
+        ctx.translate(0, 460);
+        ctx.scale(1, -1);
+    }
+
     const stage = getStage();
 
-    // 背景グラデーション
-    let grad = ctx.createLinearGradient(0, 0, 0, 480);
+    // 背景
+    let grad = ctx.createLinearGradient(0, 0, 0, 460);
     grad.addColorStop(0, stage.bgTop); grad.addColorStop(1, stage.bgBot);
-    ctx.fillStyle = grad; ctx.fillRect(0, 0, 340, 480);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, 340, 460);
 
-    // 星屑アニメーション
+    // 星
     ctx.fillStyle = "#fff";
     stars.forEach(s => {
         ctx.globalAlpha = 0.3 + 0.7 * Math.sin(frame * 0.05 + s.a * 10);
@@ -428,51 +533,49 @@ function draw() {
     });
     ctx.globalAlpha = 1.0;
 
-    // 土管描画
+    // 土管
+    let gapMultiplier = stage.gap;
+    if (activeSkills.shrink > 0) gapMultiplier *= 0.6;
+
     pipes.forEach(p => {
         let gapY = p.gapY + (stage.move || activeSkills.move > 0 ? Math.sin(frame * 0.06 + p.off) * 35 : 0);
         ctx.save();
-        if (activeSkills.ghost > 0) ctx.globalAlpha = 0.15;
-        if (p.isFake) ctx.globalAlpha = 0.5;
+        if (p.isFake) ctx.globalAlpha = 0.45;
 
-        // パイプ上部
         ctx.fillStyle = stage.pipe;
-        ctx.strokeStyle = "#0f172a";
+        ctx.strokeStyle = "#090d16";
         ctx.lineWidth = 2.5;
-        
+
+        // 上側パイプ
         ctx.fillRect(p.x, 0, 48, gapY);
         ctx.strokeRect(p.x, 0, 48, gapY);
-        // キャップ
         ctx.fillRect(p.x - 3, gapY - 20, 54, 20);
         ctx.strokeRect(p.x - 3, gapY - 20, 54, 20);
 
-        // パイプ下部
-        let botY = gapY + 120 * stage.gap;
-        ctx.fillRect(p.x, botY, 48, 480 - botY);
-        ctx.strokeRect(p.x, botY, 48, 480 - botY);
-        // キャップ
+        // 下側パイプ
+        let botY = gapY + 120 * gapMultiplier;
+        ctx.fillRect(p.x, botY, 48, 460 - botY);
+        ctx.strokeRect(p.x, botY, 48, 460 - botY);
         ctx.fillRect(p.x - 3, botY, 54, 20);
         ctx.strokeRect(p.x - 3, botY, 54, 20);
 
         ctx.restore();
     });
 
-    // パーティクル描画
+    // パーティクル
     particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = Math.max(0, p.life);
-        ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); ctx.fill();
     });
     ctx.globalAlpha = 1.0;
 
-    // プレイヤー描画
+    // プレイヤー鳥
     ctx.save();
     ctx.translate(bird.x, bird.y);
     ctx.rotate(bird.rot);
     if (activeSkills.giant > 0) ctx.scale(1.7, 1.7);
-    if (activeSkills.ascend > 0) { ctx.shadowBlur = 15; ctx.shadowColor = "#38bdf8"; }
 
-    // 本体
     ctx.fillStyle = currentAttacker === "p1" ? "#38bdf8" : "#f43f5e";
     ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -480,21 +583,17 @@ function draw() {
     ctx.fillStyle = "#ffffff";
     const flapOffset = Math.sin(frame * 0.4) * 6;
     ctx.beginPath(); ctx.ellipse(-6, flapOffset, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
-    // 目
+    // 目とくちばし
     ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(8, -4, 4, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = "#000000"; ctx.beginPath(); ctx.arc(9, -4, 1.8, 0, Math.PI*2); ctx.fill();
-    // くちばし
-    ctx.fillStyle = "#f59e0b"; ctx.beginPath();
-    ctx.moveTo(13, -1); ctx.lineTo(21, 3); ctx.lineTo(13, 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#f59e0b"; ctx.beginPath(); ctx.moveTo(13, -1); ctx.lineTo(21, 3); ctx.lineTo(13, 6); ctx.closePath(); ctx.fill();
     ctx.restore();
 
-    // 暗闇（Blind）マスク演出
+    // 濃霧暗黒（Blind）
     if (activeSkills.blind > 0) {
-        let grad = ctx.createRadialGradient(bird.x, bird.y, 25, bird.x, bird.y, 110);
-        grad.addColorStop(0, "rgba(0,0,0,0)");
-        grad.addColorStop(1, "rgba(5,5,10,0.98)");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 340, 480);
+        let gradBlind = ctx.createRadialGradient(bird.x, bird.y, 20, bird.x, bird.y, 100);
+        gradBlind.addColorStop(0, "rgba(0,0,0,0)"); gradBlind.addColorStop(1, "rgba(5,5,10,0.98)");
+        ctx.fillStyle = gradBlind; ctx.fillRect(0, 0, 340, 460);
     }
 
     ctx.restore();
@@ -513,15 +612,15 @@ function gameLoop(timestamp) {
     if (isHost && conn) {
         conn.send({
             type: "sync", bird, pipes, scores, frame,
-            skills: activeSkills, currentAttacker
+            skills: activeSkills, currentAttacker,
+            happenings: activeHappenings
         });
     }
     requestAnimationFrame(gameLoop);
 }
 
-// --- 入力ハンドラー ---
 function handleInput(e) {
-    if (e && e.target && e.target.closest('#skill-panel')) return; // スキル押し時はジャンプ抑止
+    if (e && e.target && e.target.closest('#deck-container')) return;
     AudioEngine.init();
     if (isAttacker()) {
         if (isHost) doFlap();
