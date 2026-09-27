@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUORIDOR BATTLE: ULTIMATE CUSTOM</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root { --bg: #020617; --cell: #1e293b; --p1: #06b6d4; --p2: #ec4899; --wall: #eab308; --fire: #ef4444; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
+        body { margin: 0; background: var(--bg); color: #fff; overflow: hidden; touch-action: none; }
+        
+        /* レイアウト */
+        .screen { position: absolute; width: 100%; height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        #status-bar { width: 100%; display: flex; justify-content: space-around; padding: 10px; background: #0f172a; border-bottom: 2px solid #334155; font-weight: bold; }
+        #turn-msg { width: 100%; text-align: center; padding: 5px; font-size: 0.9rem; }
+        
+        /* 盤面 */
+        #board { display: grid; grid-template-columns: repeat(8, 32px 10px) 32px; grid-template-rows: repeat(8, 32px 10px) 32px; background: #000; padding: 10px; border: 4px solid #475569; border-radius: 8px; margin: auto; }
+        .cell { background: var(--cell); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .wall-v { width: 10px; height: 32px; }
+        .wall-h { width: 32px; height: 10px; }
+        .wall-placed { background: var(--wall) !important; box-shadow: 0 0 10px var(--wall); }
+        .wall-preview { background: rgba(234, 179, 8, 0.5) !important; }
+        .block-placed { background: #94a3b8 !important; border: 1px solid #fff; } /* カードボード用 */
+        
+        /* エフェクト */
+        .fire-cell { background: rgba(239, 68, 68, 0.4) !important; box-shadow: inset 0 0 10px var(--fire); }
+        .light-up { background: #fff !important; transition: background 0.1s; }
+        .target-mark { outline: 2px dashed #fff; outline-offset: -4px; }
+        @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+        /* 駒 */
+        .p-me, .p-opp { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; z-index: 10; transition: all 0.3s; }
+        .p-me { background: var(--p1); box-shadow: 0 0 15px var(--p1); }
+        .p-opp { background: var(--p2); box-shadow: 0 0 15px var(--p2); }
+        .floating { transform: scale(1.4) translateY(-8px); border-color: gold; }
+
+        /* UI */
+        #ui { width: 100%; max-width: 400px; padding: 10px; }
+        .btn-row { display: flex; gap: 4px; margin-top: 5px; }
+        button { flex: 1; padding: 12px 2px; border-radius: 6px; border: none; background: #334155; color: #fff; font-weight: bold; font-size: 0.8rem; }
+        button.active { background: var(--p1); color: #000; }
+        #confirm-wall { background: #22c55e; width: 100%; display: none; margin-bottom: 5px; padding: 15px; }
+        #log { height: 45px; font-size: 0.7rem; color: #ccc; overflow-y: auto; background: rgba(0,0,0,0.4); padding: 5px; margin-top: 5px; }
+    </style>
+</head>
+
+<body>
+
+<div id="setup-screen" class="screen">
+    <div style="background:#1e293b; padding:25px; border-radius:15px; width:90%; max-width:320px; text-align:center;">
+        <h2 style="color:var(--p1)">QUORIDOR ULTIMATE</h2>
+        <input type="text" id="room-id" placeholder="合言葉" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:none;">
+        <select id="type-select" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px;">
+            <option value="laser">レーザー (反射/3+反射ダメ)</option>
+            <option value="missile">ミサイル (2T後/炎上/10ダメ)</option>
+            <option value="hadoken">波動拳 (射程4/壁破壊/4ダメ)</option>
+            <option value="bazooka">バズーカ (毎T2進む/10ダメ)</option>
+            <option value="maneuver">マニューバー (MP制/スライド射撃)</option>
+            <option value="jetpack">ジェットパック (3T無敵飛行/射撃)</option>
+            <option value="cardboard">カードボード (完全封鎖/耐久10)</option><option value="bold">ボールド</option>
+        </select>
+        <button onclick="connect(true)" style="width:100%; background:var(--p1); color:#000; margin-bottom:8px;">部屋を作る</button>
+        <button onclick="connect(false)" style="width:100%;">参加する</button>
+    </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+    <div id="result-screen" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.9); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:1000;">
+    <h1 id="result-title" style="font-size: 3rem; margin-bottom: 10px; text-shadow: 0 0 20px var(--p1);">WIN</h1>
+    <p id="result-detail" style="color: #94a3b8; margin-bottom: 30px;">相手のHPを削りきりました！</p>
+</div>
+    <div id="status-bar">
+    <div style="color:var(--p1); font-size:0.8rem;">
+        HP: <span id="hp-me">10</span>
+        <span id="mp-disp" style="font-weight:bold; margin-left:5px;"></span>
+        
+        <div id="b-cnt-display" style="color:#94a3b8; font-size:0.7rem;">CB: <span id="b-cnt">10</span></div>
+    </div>
+    <div id="timer" style="font-family:monospace; font-size:1.2rem; color:#f87171;">30</div>
+    <div style="color:var(--p2); font-size:0.8rem;">HP: <span id="hp-opp">10</span></div>
+</div>
+
+    <div id="turn-msg">待機中...</div>
+    
+    <div id="board-container" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div id="board"></div>
+    </div>
+
+    <div id="ui">
+        <button id="confirm-wall" onclick="finalizeAction()">アクションを確定</button>
+        
+        <div class="btn-row" id="main-btns">
+            <button id="btn-move" class="active" onclick="setMode('move')">移動</button>
+            <button id="btn-wall" onclick="setMode('wall')">壁(<span id="w-cnt">10</span>)</button>
+            <button id="btn-skill" onclick="setMode('skill')">技</button>
+        </div>
+        
+        <div class="btn-row hidden" id="maneuver-btns">
+            <button onclick="prepSkill('shoot')">射撃(MP1)</button>
+            <button onclick="prepSkill('slide')">スライド(MP1)</button>
+            <button onclick="execRecover()">回復(+3MP)</button>
+            <button onclick="setMode('move')">戻る</button>
+        </div>
+
+        <div class="btn-row hidden" id="bold-btns">
+            <button onclick="prepSkill('shoot')">雷撃(MP1)</button>
+            <button onclick="prepSkill('step')">ステップ(MP1)</button>
+            <button onclick="execRecoverBold()">急速充電(+4MP)</button>
+            <button onclick="setMode('move')">戻る</button>
+        </div>
+
+        <div id="log"></div>
+
+        <div id="chat-box" style="display: flex; gap: 5px; margin-top: 5px; padding-bottom: 5px;">
+            <input type="text" id="chat-input" placeholder="チャット..." style="flex: 1; background: #1e293b; border: 1px solid #475569; color: white; padding: 8px; border-radius: 4px; font-size: 0.8rem;" onkeydown="if(event.key==='Enter') sendChat()">
+            <button onclick="sendChat()" style="flex: 0 0 60px; padding: 8px; background: #475569;">送信</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let peer, conn, isHost, myTurn=false, mode='move', subSkill='';
+let myPos={r:8,c:4}, oppPos={r:0,c:4}, myHP=10, oppHP=10, myWalls=10, myMP=5;
+let myType, walls=new Set(), blocks=[], fires=[], missiles=[], bazookas=[], myCharge=0, flyTurn=0;
+let tempAction=null, timerId=null, timeLeft=30, slideUsedThisTurn=false;
+
+let oppIsFlying = false; // ★追加
+
+let myBlocksLeft = 10; // カードボードの残り設置回数
+
+let shootUsedCurrentTurn = false; // 今のターンで射撃したか
+let shootUsedLastTurn = false;    // 前のターンで射撃したか
+
+// 変数定義の場所に追加
+let boldActionCount = 0; // ターン内の行動回数
+let boldShotCount = 0;
+const MAX_MP_BOLD = 7;
+// 既存の myMP 初期値は機体選択時に 7 になるよう調整
+
+let isRespawning = false; // リスポーン選択中か
+function addLog(m) { const l=document.getElementById('log'); l.innerHTML+=`<div>${m}</div>`; l.scrollTop=999; }
+
+// --- 通信系 ---
+
+// --- 通信系 ---
+function connect(host) {
+    isHost = host;
+    
+    // 選択された機体タイプを取得
+    const typeSelect = document.getElementById('type-select');
+    myType = typeSelect ? typeSelect.value : 'laser';
+
+    // ボールド(bold)の場合、初期MPを7に設定。それ以外は5。
+    if (myType === 'bold') {
+        myMP = 7;
+        addLog("⚡️ BOLDシステム起動：初期MP 7");
+    } else {
+        myMP = 5;
+    }
+
+    const rid = document.getElementById('room-id').value || "room123";
+    
+    // Peerオブジェクトの作成
+    peer = new Peer(isHost ? rid : undefined);
+
+    peer.on('open', () => {
+        // セットアップ画面を隠し、ゲーム画面を表示
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        
+        if (!isHost) {
+            // 参加者の場合、ホストに接続
+            conn = peer.connect(rid);
+            setupConn();
+        }
+        
+        // UIを即座に更新してMP表示を反映
+        updateUI();
+    });
+
+    peer.on('connection', c => {
+        // ホスト側：接続を受け取った時の処理
+        conn = c;
+        myTurn = true; 
+        setupConn();
+        startTurn();
+    });
+
+    // エラーハンドリング（部屋が見つからない等）
+    peer.on('error', err => {
+        console.error(err);
+        alert("通信エラーが発生しました: " + err.type);
+    });
+}
+
+function setupConn() {
+    conn.on('data', d => {
+        // 1. 盤面状態の同期 (駒、壁、オブジェクト、HP)
+        if(d.type === 'game_over') {
+    // 相手が「自分が負けた(winner:opp)」と言ってきたら、自分は「勝ち」
+    const amIWinner = (d.winner === 'opp'); 
+    showResult(amIWinner, amIWinner ? "相手が力尽きました！" : "相手がゴールに到達しました。");
+}
+        if (d.type === 'chat') {
+    addLog(`【相手】: ${d.msg}`);
+}
+        if (d.type === 'sync') {
+            // 駒の反転同期 (9マス 8-n)
+            oppPos = { r: 8 - d.pos.r, c: 8 - d.pos.c };
+            
+            // 重要：相手から見た「自分のHP」と「相手のHP」を同期
+            oppHP = d.hp;
+            myHP = d.oppHpSync;
+
+            // 壁の同期 (180度反転して全パーツをセットし直す)
+            walls = new Set();
+            d.walls.forEach(w => {
+                let [m, r, c] = w.split('-');
+                r = parseInt(r);
+                c = parseInt(c);
+                if (m === 'v') {
+                    // 縦壁パーツの反転 (rは0~8, cは0~7)
+                    walls.add(`v-${8 - r}-${7 - c}`);
+                } else {
+                    // 横壁パーツの反転 (rは0~7, cは0~8)
+                    walls.add(`h-${7 - r}-${8 - c}`);
+                }
+            });
+
+            // その他オブジェクトの反転同期
+            blocks = d.blocks.map(b => ({ 
+                r: 8 - b.r, c: 8 - b.c, hp: b.hp, 
+                owner: b.owner === 'me' ? 'opp' : 'me' 
+            }));
+            missiles = d.missiles.map(m => ({ 
+                r: 8 - m.r, c: 8 - m.c, t: m.t, 
+                owner: m.owner === 'me' ? 'opp' : 'me' 
+            }));
+            bazookas = d.bazookas.map(b => ({ 
+                r: 8 - b.r, c: 8 - b.c, dr: -b.dr, dc: -b.dc, 
+                owner: b.owner === 'me' ? 'opp' : 'me' 
+            }));
+            fires = d.fires.map(f => ({ 
+                r: 8 - f.r, c: 8 - f.c, t: f.t 
+            }));
+            oppIsFlying = d.isFlying;
+
+            updateUI();
+        }
+
+        // 2. ダメージ実行命令 (レーザー等が当たった時に届く)
+        if (d.type === 'damage') {
+            console.log("ダメージ通知を受信:", d.val);
+            takeDamage(d.val, d.ignoreFly);
+            // 自分のHPが減ったことを確定させ、相手の画面にも反映させるため即座に同期を送る
+            sendSync();
+        }
+
+        // 3. エフェクト表示 (レーザーの軌跡など)
+        if (d.type === 'effect') {
+            animatePath(d.path);
+        }
+
+        // 4. ターン交代
+        if (d.type === 'turn') { 
+            myTurn = true; 
+            startTurn(); 
+        }
+
+        // 5. 勝利/敗北判定
+        if (d.type === 'win') { 
+            alert("勝利！"); 
+            location.reload(); 
+        }
+    });
+
+    // 切断時の処理
+    conn.on('close', () => {
+        addLog("対戦相手との接続が切れました。");
+    });
+}
+// --- ターン処理 ---
+function startTurn() {
+    boldActionCount = 0;
+    timeLeft=30; slideUsedThisTurn=false;
+    if(timerId) clearInterval(timerId);
+    timerId=setInterval(()=>{
+        timeLeft--; document.getElementById('timer').innerText=timeLeft;
+        if(timeLeft<=0) endTurn();
+    }, 1000);
+
+    // ミサイル・バズーカ・炎の更新
+    if(flyTurn>0) flyTurn--;
+    fires.forEach(f=>f.t--); fires=fires.filter(f=>f.t>0);
+    if(fires.some(f=>f.r===myPos.r && f.c===myPos.c)) takeDamage(2, true);
+
+    missiles.forEach(m=>{
+        if(m.owner==='me'){
+            m.t--;
+            if(m.t===0){
+                let dmgArea = getArea(m.r, m.c, 1);
+                dmgArea.forEach(p=>{
+                    if(p.r===oppPos.r && p.c===oppPos.c) conn.send({type:'damage', val: (p.r===m.r&&p.c===m.c)?10:5, ignoreFly:true});
+                    fires.push({r:p.r, c:p.c, t:3});
+                });
+                m.dead=true;
+            }
+        }
+    });
+    missiles=missiles.filter(m=>!m.dead);
+
+    // startTurn 関数内のバズーカ処理を差し替え
+
+// startTurn 関数内のバズーカ処理
+bazookas.forEach(b => {
+    if (b.owner === 'me') {
+        let hit = false;
+
+        // 2マス進む（1マスずつ判定を繰り返す）
+        for (let step = 0; step < 2; step++) {
+            if (hit) break;
+
+            let prevR = b.r, prevC = b.c;
+            let nextR = b.r + b.dr;
+            let nextC = b.c + b.dc;
+
+            // 1. 壁・障害物判定 (移動しようとする方向に壁があるか)
+            if (isBlocked(prevR, prevC, b.dr, b.dc)) {
+                hit = true;
+            } else {
+                // 座標更新
+                b.r = nextR;
+                b.c = nextC;
+
+                // 2. 画面外判定
+                if (b.r < 0 || b.r > 8 || b.c < 0 || b.c > 8) {
+                    hit = true;
+                }
+                // 3. 敵直撃判定
+                else if (b.r === oppPos.r && b.c === oppPos.c) {
+                    conn.send({ type: 'damage', val: 10, ignoreFly: false });
+                    addLog("バズーカ直撃！10ダメージ！");
+                    hit = true;
+                } else if (damageBlock(b.r, b.c, 10)) { 
+                    // damageBlock内でHPを減らし、当たったので爆発フラグを立てる
+                    addLog("バズーカがボードに命中！");
+                    hit = true; 
+                }
+            }
+        }
+
+        if (hit) {
+            // 爆発処理: 弾の現在地(b.r, b.c)を中心に半径2マスに5ダメージ + 炎上
+            addLog("バズーカが爆発！");
+            let expArea = getArea(b.r, b.c, 2);
+            expArea.forEach(p => {
+                if (p.r === oppPos.r && p.c === oppPos.c) {
+                    conn.send({ type: 'damage', val: 5, ignoreFly: false });
+                }
+                damageBlock(p.r, p.c, 5);
+                fires.push({ r: p.r, c: p.c, t: 3 });
+            });
+            b.dead = true;
+        }
+    }
+});
+bazookas = bazookas.filter(b => !b.dead);
+
+    updateUI();
+}
+
+function takeDamage(val, ignoreFly = false) {
+    if (flyTurn > 0 && !ignoreFly) return;
+    myHP = Math.max(0, myHP - val); // 0未満にならないように
+    
+    if (myHP <= 0) {
+        myHP = 0;
+        isRespawning = true;
+        addLog("大破！リスポーン待機に入ります。");
+    } else {
+        addLog(`${val} のダメージを受けた！`);
+    }
+    updateUI(); // ここで画面のHP数字を書き換える
+}
+
+// 現在の全状態を相手に送りつける関数（これを各所で使い回す）
+
+function sendSync() {
+    if (!conn || !conn.open) return;
+    conn.send({
+        type: 'sync',
+        pos: myPos,
+        hp: myHP,
+        oppHpSync: oppHP,
+        walls: Array.from(walls),
+        blocks, missiles, bazookas, fires,
+        isFlying: (flyTurn > 0) // ★飛行フラグを追加
+    });
+}
+
+async function animatePath(path, color) {
+    for (const p of path) {
+        const cell = document.querySelector(`.cell[data-r="${p.r}"][data-c="${p.c}"]`);
+        if (cell) {
+            cell.style.backgroundColor = color;
+            cell.style.boxShadow = `0 0 20px ${color}, inset 0 0 10px ${color}`;
+            // 0.2秒後に消去
+            setTimeout(() => {
+                cell.style.backgroundColor = "";
+                cell.style.boxShadow = "";
+            }, 200);
+        }
+        await new Promise(r => setTimeout(r, 40)); // 弾速
+    }
+}
+
+function execSkill(r, c) {
+    let path = [];
+    let effectColor = '#fff';
+    const dr = Math.sign(r - myPos.r);
+    const dc = Math.sign(c - myPos.c);
+
+    // --- A. レーザー (laser) ---
+    if (myType === 'laser') {
+        let curR = myPos.r, curC = myPos.c;
+        let curDr = dr, curDc = dc;
+        let ref = 0;
+        for (let i = 0; i < 25; i++) {
+            let hit = false;
+            let nr = curR + curDr, nc = curC + curDc;
+            if (nr < 0 || nr > 8) { curDr *= -1; hit = true; }
+            if (nc < 0 || nc > 8) { curDc *= -1; hit = true; }
+            let wall = checkWall(curR, curC, curDr, curDc);
+            if (wall.hasH) { curDr *= -1; hit = true; }
+            if (wall.hasV) { curDc *= -1; hit = true; }
+            if (hit) { ref++; continue; }
+            curR += curDr; curC += curDc;
+            path.push({ r: curR, c: curC });
+            if (curR === oppPos.r && curC === oppPos.c) {
+                const d = 3 + ref;
+                conn.send({ type: 'damage', val: d });
+                oppHP -= d;
+                addLog(`レーザー直撃！ ${d}ダメージ`);
+                break;
+            }
+            if (damageBlock(curR, curC, 3+ref)) break;
+        }
+
+    // --- B. 波動拳 (hadoken) ---
+    } else if (myType === 'hadoken') {
+        effectColor = '#06b6d4';
+        let fDr = 0, fDc = 0;
+        if (Math.abs(dr) >= Math.abs(dc)) fDr = dr; else fDc = dc;
+        for (let i = 1; i <= 4; i++) {
+            let nr = myPos.r + fDr * i, nc = myPos.c + fDc * i;
+            if (nr < 0 || nr > 8 || nc < 0 || nc > 8) break;
+            let wall = checkWall(nr - fDr, nc - fDc, fDr, fDc);
+            if (wall.hasH || wall.hasV) {
+                breakWall(nr - fDr, nc - fDc, fDr, fDc);
+                addLog("壁を破壊！");
+                break; 
+            }
+            path.push({ r: nr, c: nc });
+            if (nr === oppPos.r && nc === oppPos.c) {
+                conn.send({ type: 'damage', val: 4 });
+                oppHP -= 4; break;
+            } if (damageBlock(nr, nc, 4)) { 
+    break; // ブロックに当たったら弾が止まる
+}
+        }
+
+    // --- C. マニューバー (maneuver) ---
+    } else if (myType === 'maneuver') {
+    if (myMP <= 0) {
+        addLog("⚠️ MPが足りません！回復してください。");
+        return;
+    }
+    const dr = Math.sign(r - myPos.r);
+    const dc = Math.sign(c - myPos.c);
+    effectColor = '#eab308'; // マニューバー専用の黄色
+
+    // 【スライド】1マスの斜め移動
+    if (subSkill === 'slide') {
+        // 斜め判定（L字または2マス直線壁のチェック）
+        if (dr !== 0 && dc !== 0) {
+            if (isDiagonalBlocked(myPos.r, myPos.c, dr, dc)) {
+                addLog("壁に阻まれてスライドできない！");
+                return;
+            }
+        } else {
+            // 直線移動の場合の壁チェック
+            if (isBlocked(myPos.r, myPos.c, dr, dc)) {
+                addLog("壁が邪魔で移動できない！");
+                return;
+            }
+        }
+
+        // 移動実行
+        myPos = { r, c };
+        myMP--;
+        conn.send({ type: 'move', r: 8 - r, c: 8 - c });
+        
+        // ★重要：次のターンのためのフラグを立てて、ターンを終了する
+        slideUsedLastTurn = true; 
+        addLog("スライド完了。次のターンの射撃で追加行動が可能！");
+        
+        updateUI();
+        setTimeout(endTurn, 300);
+        return;
+    }
+
+    // 【射撃】8方向・射程3
+    if (subSkill === 'shoot') {
+        let hitSomething = false;
+
+        for (let i = 1; i <= 3; i++) {
+            let prevR = myPos.r + dr * (i - 1);
+            let prevC = myPos.c + dc * (i - 1);
+            let nr = myPos.r + dr * i;
+            let nc = myPos.c + dc * i;
+
+            if (nr < 0 || nr > 8 || nc < 0 || nc > 8) break;
+
+            // 壁チェック（斜め判定を含む）
+            let hitWall = false;
+            if (dr !== 0 && dc !== 0) {
+                if (isDiagonalBlocked(prevR, prevC, dr, dc)) hitWall = true;
+            } else {
+                if (isBlocked(prevR, prevC, dr, dc)) hitWall = true;
+            }
+
+            if (hitWall) {
+                addLog("壁に遮られた！");
+                break;
+            }
+
+            // 軌跡の追加
+            path.push({ r: nr, c: nc });
+
+            // 敵への当たり判定
+            if (nr === oppPos.r && nc === oppPos.c) {
+                conn.send({ type: 'damage', val: 4 });
+                oppHP -= 4;
+                hitSomething = true;
+                break;
+            }
+            if (damageBlock(nr, nc, 4)) { 
+    break; // ブロックに当たったら弾が止まる
+}
+            
+            // 障害物(Cardboard)への当たり判定（もし実装済みなら）
+            if (blocks.some(bl => bl.r === nr && bl.c === nc)) {
+                // ここにブロックへのダメージ処理を追加可能
+                hitSomething = true;
+                break;
+            }
+        }
+
+        myMP--;
+
+        // エフェクト表示
+        if (path.length > 0) {
+            animatePath(path, effectColor);
+            conn.send({ type: 'effect', path: path.map(p => ({ r: 8 - p.r, c: 8 - p.c })), color: effectColor });
+        }
+
+        // ★追加ターンの判定
+        if (slideUsedLastTurn) {
+            slideUsedLastTurn = false; // ボーナスを消費
+            addLog("コンボ発動！もう一度行動できます。");
+            
+            // モードを移動に戻して、自分のターンを継続（returnする）
+            setMode('move');
+            updateUI();
+            return; 
+        } else {
+            // 通常の射撃なら、演出の後にターン終了
+            setTimeout(endTurn, 600);
+        }
+    }
+
+    // --- D. ミサイル (missile) ---
+    } else if (myType === 'missile') {
+        missiles.push({ r, c, t: 2, owner: 'me' });
+        addLog("ミサイル投下！");
+
+    // --- E. バズーカ (bazooka) ---
+    } else if (myType === 'bazooka') {
+        bazookas.push({ r: myPos.r, c: myPos.c, dr: dr, dc: dc, owner: 'me' });
+        addLog("バズーカ発射！");
+
+    // --- F. ジェットパック (jetpack) ---
+    } else if (myType === 'jetpack' && flyTurn > 0) {
+    effectColor = '#3b82f6'; // 鮮やかな青
+    for (let i = 1; i <= 3; i++) {
+        let nr = myPos.r + dr * i, nc = myPos.c + dc * i;
+        if (nr < 0 || nr > 8 || nc < 0 || nc > 8) break;
+        
+        // ジェットパックの弾は壁を無視する設定
+        path.push({ r: nr, c: nc });
+
+        if (nr === oppPos.r && nc === oppPos.c) {
+            conn.send({ type: 'damage', val: 10 });
+            oppHP -= 10;
+            break; 
+        }
+        if (damageBlock(nr, nc, 10)) { 
+    break; // ブロックに当たったら弾が止まる
+}
+        // 弾道終着点での爆風
+        if (i === 3) {
+            getArea(nr, nc, 1).forEach(p => {
+                if (p.r === oppPos.r && p.c === oppPos.c) {
+                    conn.send({ type: 'damage', val: 5 });
+                    oppHP -= 5;
+                }
+            });
+        }
+    }
+
+    // --- G. カードボード (cardboard) ---
+    } // execSkill 内の cardboard 処理
+else if (myType === 'cardboard') {
+    // すでにボードがあるかチェック
+    const isOccupied = blocks.some(b => b.r === r && b.c === c);
+    if (isOccupied) {
+        addLog("⚠️ すでにボードがあります！");
+        return;
+    }
+    // 相手や自分がいるマスも置けないようにする場合
+    if ((r === myPos.r && c === myPos.c) || (r === oppPos.r && c === oppPos.c)) {
+        addLog("⚠️ ユニットがいるマスには置けません！");
+        return;
+    }
+
+    tempAction = { r, c };
+    render();
+} // --- H. ボールド (BOLD) ---
+
+else if (myType === 'bold') {
+    if (myMP <= 0) { addLog("⚠️ MP不足！"); return; }
+
+    const dr = Math.sign(r - myPos.r);
+    const dc = Math.sign(c - myPos.c);
+    
+    if (subSkill === 'shoot') {
+        let path = [];
+        // 1マス目から判定してpathに入れる
+        for (let i = 1; i <= 2; i++) {
+            let nr = myPos.r + dr * i;
+            let nc = myPos.c + dc * i;
+            
+            // 壁・画面外チェック
+            if (nr < 0 || nr > 8 || nc < 0 || nc > 8) break;
+            if (isBlocked(myPos.r + dr*(i-1), myPos.c + dc*(i-1), dr, dc)) break;
+            
+            path.push({ r: nr, c: nc }); // 1マス目、2マス目と順に入れる
+            
+            if (nr === oppPos.r && nc === oppPos.c) {
+                conn.send({ type: 'damage', val: 2 });
+                oppHP -= 2;
+                break;
+            }
+            if (damageBlock(nr, nc, 2)) break;
+        }
+        boldShotCount += 1;
+
+        myMP -= 1;
+        shootUsedCurrentTurn = true;
+        shootUsedLastTurn = true; // 射撃フラグを立てる
+        animatePath(path, "#fde047");
+        conn.send({ type: 'effect', path: path.map(p => ({ r: 8 - p.r, c: 8 - p.c })), color: "#fde047" });
+        
+        if(boldShotCount===1)return;
+        setTimeout(endTurn, 400);
+    } 
+    else if (subSkill === 'step') {
+        if (isDiagonalBlocked(myPos.r, myPos.c, dr, dc) || isBlocked(myPos.r, myPos.c, dr, dc)) {
+            addLog("壁が邪魔だ！"); return;
+        }
+
+        myPos = { r, c };
+        myMP -= 1;
+        conn.send({ type: 'move', r: 8 - r, c: 8 - c });
+
+        // ★コンボ判定：前ターンに射撃していた場合のみ、もう1回行動
+        if (shootUsedLastTurn) {
+            shootUsedLastTurn = false; // フラグ消費
+            addLog("⚡️ 雷神コンボ！継続行動可能");
+            setMode('move');
+            updateUI();
+            return; // endTurnさせない
+        }
+        
+        setTimeout(endTurn, 400);
+        return;
+    }
+}
+
+    // 共通エフェクト処理
+    if (path.length > 0) {
+        animatePath(path, effectColor);
+        conn.send({ type: 'effect', path: path.map(p => ({ r: 8 - p.r, c: 8 - p.c })), color: effectColor });
+    }
+    setTimeout(endTurn, 600);
+}
+
+function execRecover() {
+    if (!myTurn) return;
+    if (myMP >= 5) {
+        addLog("MPは満タンです！");
+        return;
+    }
+
+    myMP = Math.min(5, myMP + 3);
+    addLog(`MPを回復しました（現在: ${myMP}）`);
+    
+    slideUsedThisTurn = false; // 回復したらコンボは終了
+    updateUI();
+    endTurn(); // 自分のターンを終了して相手に回す
+}
+
+function isBlocked(r, c, dr, dc, checkOwner = true) {
+    let m, wr, wc;
+    if (dr === 1) { m = 'h'; wr = r; wc = c; }
+    else if (dr === -1) { m = 'h'; wr = r - 1; wc = c; }
+    else if (dc === 1) { m = 'v'; wr = r; wc = c; }
+    else if (dc === -1) { m = 'v'; wr = r; wc = c - 1; }
+
+    // 1. 通常の壁判定
+    if (walls.has(`${m}-${wr}-${wc}`)) return true;
+
+    // 2. カードボード(障害物)判定
+    const targetR = r + dr;
+    const targetC = c + dc;
+    const block = blocks.find(b => b.r === targetR && b.c === targetC);
+    
+    if (block) {
+        // 自分がオーナーなら通れる、相手のなら通れない
+        if (checkOwner && block.owner === 'opp') return true;
+        // 経路探索(canReachGoal)などの時は、どちらのブロックも「壁」として扱う
+        if (!checkOwner) return true;
+    }
+
+    return false;
+}
+
+function breakWall(r,c,dr,dc){
+    let m=dr!==0?'h':'v', wr=dr===1?r:(dr===-1?r-1:r), wc=dc===1?c:(dc===-1?c-1:c);
+    walls.delete(`${m}-${wr}-${wc}`);
+    walls.delete(m==='v'?`v-${wr+1}-${wc}`:`h-${wr}-${wc+1}`);
+}
+function getArea(r,c,range){
+    let a=[]; for(let i=-range;i<=range;i++)for(let j=-range;j<=range;j++){
+        let nr=r+i, nc=c+j; if(nr>=0&&nr<9&&nc>=0&&nc<9) a.push({r:nr,c:nc});
+    } return a;
+}
+function isBazookaHitWall(b){ return isBlocked(b.r-b.dr, b.c-b.dc, b.dr, b.dc); }
+
+// --- UI操作 ---
+function setMode(m){ 
+    mode=m; subSkill=''; tempAction=null; 
+    if(m==='skill' && myType==='jetpack' && myCharge>=3){ flyTurn=3; myCharge=0; addLog("ジェットパック発動！"); }
+    updateUI(); 
+}
+function prepSkill(s){ subSkill=s; render(); }
+function execRecover(){ myMP=Math.min(5, myMP+3); endTurn(); }
+
+function handleBoardTouch(e) {
+    if (!myTurn || mode !== 'wall' || myWalls <= 0) return;
+    
+    // タッチ位置の要素を取得
+    const t = e.touches ? e.touches[0] : e;
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    
+    if (el && el.id && (el.id.startsWith('v-') || el.id.startsWith('h-'))) {
+        const [m, r, c] = el.id.split('-');
+        tempAction = { m, r: parseInt(r), c: parseInt(c) };
+        render(); // プレビューを反映
+    }
+}
+
+// mousemovePCを使う予定はないが念のため
+document.getElementById('board').addEventListener('touchmove', handleBoardTouch);
+document.getElementById('board').addEventListener('mousedown', handleBoardTouch);
+
+function finalizeAction() {
+    if (mode === 'skill' && myType === 'cardboard' && tempAction) {
+        if (myBlocksLeft <= 0) {
+            alert("カードボードの在庫がありません！");
+            return;
+        }
+        
+        blocks.push({ r: tempAction.r, c: tempAction.c, hp: 10, owner: 'me' });
+        myBlocksLeft--; // 回数を減らす
+        addLog(`ボード設置（残り: ${myBlocksLeft}）`);
+        endTurn();
+        return;
+    }
+    if (mode === 'wall' && tempAction) {
+        const { m, r, c } = tempAction;
+        const p1 = `${m}-${r}-${c}`;
+        const p2 = (m === 'v') ? `v-${r + 1}-${c}` : `h-${r}-${c + 1}`;
+
+        if (walls.has(p1) || walls.has(p2)) return;
+
+        // 仮設置
+        walls.add(p1);
+        walls.add(p2);
+
+        // チェック項目：
+        // 1. 自分の現在地からゴールに行けるか
+        // 2. 相手の現在地からゴールに行けるか
+        // 3. 自分のリスポーン列(r=8)のどこかからゴールに行けるか
+        // 4. 相手のリスポーン列(r=0)のどこかからゴールに行けるか
+        const ok = canReachGoal(myPos, true) && 
+                   canReachGoal(oppPos, false) && 
+                   isSpawnAreaSafe(true) && 
+                   isSpawnAreaSafe(false);
+
+        if (!ok) {
+            walls.delete(p1);
+            walls.delete(p2);
+            alert("リスポーン地点やゴールへの道を完全に封鎖することはできません！");
+            return;
+        }
+
+        myWalls--;
+        myCharge = Math.min(3, myCharge + 1);
+        endTurn();
+    }
+}
+
+// endTurnの中で送る walls を「基準点」だけに絞るために、
+// conn.send の部分を少し加工します (endTurn関数内)
+
+function endTurn() {
+    shootUsedLastTurn = shootUsedCurrentTurn; // 今回の射撃履歴を「前回分」として保存
+    shootUsedCurrentTurn = false;             // 今回分はリセット
+    boldActionCount = 0;
+    boldShotCount = 0;
+    myTurn = false;
+    tempAction = null;
+    clearInterval(timerId);
+    
+    if (myPos.r === 0) { 
+        conn.send({ type: 'game_over', winner: 'me', reason: 'goal' }); 
+        showResult(true, "ゴールに到達しました！");
+        return;
+    }
+
+    // 同期データを送信（isFlyingを追加）
+    conn.send({
+        type: 'sync',
+        pos: myPos,
+        hp: myHP,
+        oppHpSync: oppHP,
+        walls: Array.from(walls), 
+        blocks, missiles, bazookas, fires,
+        isFlying: (flyTurn > 0) // ★追加
+    });
+    
+    conn.send({ type: 'turn' });
+    updateUI();
+}
+
+function render() {
+    const b = document.getElementById('board');
+    b.innerHTML = '';
+    
+    const canMove = (myTurn && mode === 'move' && !isRespawning) ? getPossibleMoves() : [];
+    const canSkill = (myTurn && mode === 'skill' && !isRespawning) ? getSkillTargets() : [];
+
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            const cl = document.createElement('div');
+            cl.className = 'cell';
+            cl.dataset.r = r;
+            cl.dataset.c = c;
+            
+            // 1. 駒の表示
+            if (myHP > 0 && r === myPos.r && c === myPos.c) {
+                const flyingClass = (flyTurn > 0) ? 'floating' : '';
+                cl.innerHTML = `<div class="p-me ${flyingClass}"></div>`;
+            }
+            if (r === oppPos.r && c === oppPos.c) {
+                const oppFlyingClass = (typeof oppIsFlying !== 'undefined' && oppIsFlying) ? 'floating' : '';
+                cl.innerHTML = `<div class="p-opp ${oppFlyingClass}"></div>`;
+            }
+
+            // 2. 特殊オブジェクト
+            if (fires.some(f => f.r === r && f.c === c)) cl.classList.add('fire-cell');
+            if (missiles.some(m => m.r === r && m.c === c)) cl.classList.add('target-mark');
+            if (bazookas.some(bz => bz.r === r && bz.c === c)) cl.innerHTML = '🚀';
+
+            // 3. カードボードの描画（HP表示と透過設定）
+            const block = blocks.find(bl => bl.r === r && bl.c === c);
+            if (block) {
+                cl.classList.add('block-placed');
+                // HPを表示。敵のブロックは赤文字にする
+                cl.innerHTML = `<small style="font-size:10px; font-weight:bold; color:${block.owner==='me'?'#fff':'#f87171'}">${block.hp}</small>`;
+                // 自分が通れるブロックは少し薄くして区別する
+                if (block.owner === 'me') cl.style.opacity = "0.6";
+            }
+
+            // 4. マスの強調表示
+            const isRespawnCell = (isRespawning && myTurn && r === 8 && canReachGoal({r, c}, true));
+            
+            if (isRespawning && isRespawnCell) {
+                cl.style.background = 'rgba(34, 197, 94, 0.5)';
+            } else if (canMove.some(m => m.r === r && m.c === c)) {
+                cl.style.boxShadow = 'inset 0 0 8px var(--p1)';
+            } else if (canSkill.some(s => s.r === r && s.c === c)) {
+                cl.style.background = 'rgba(255, 255, 255, 0.15)';
+                // カードボード設置のプレビュー（半透明の青）
+                if (myType === 'cardboard' && tempAction && tempAction.r === r && tempAction.c === c) {
+                    cl.style.background = 'rgba(148, 163, 184, 0.8)';
+                    cl.style.outline = '2px dashed white';
+                }
+            }
+
+            // 5. クリックイベント
+            cl.onclick = () => {
+                if (!myTurn) return;
+                if (isRespawning && isRespawnCell) {
+                    myPos = { r, c }; myHP = 10; isRespawning = false;
+                    addLog("再出撃！"); endTurn(); return;
+                }
+                if (isRespawning) return;
+
+                if (mode === 'move' && canMove.some(m => m.r === r && m.c === c)) {
+                    myPos = { r, c };
+                    if (typeof slideUsedLastTurn !== 'undefined') slideUsedLastTurn = false;
+                    endTurn(); return;
+                }
+                if (mode === 'skill' && canSkill.some(s => s.r === r && s.c === c)) {
+                    // カードボードならプレビューを出すだけ
+                    if (myType === 'cardboard') {
+                        tempAction = { r, c }; render();
+                    } else {
+                        execSkill(r, c);
+                    }
+                    return;
+                }
+            };
+            b.appendChild(cl);
+
+            // 縦壁
+            if (c < 8) {
+                const v = document.createElement('div');
+                v.id = `v-${r}-${c}`;
+                v.className = 'wall-v' + (walls.has(`v-${r}-${c}`) ? ' wall-placed' : '');
+                if (tempAction && tempAction.m === 'v' && tempAction.c === c && (r === tempAction.r || r === tempAction.r + 1)) {
+                    v.classList.add('wall-preview');
+                }
+                v.onclick = () => { if (myTurn && mode === 'wall' && r < 8) { tempAction = { m: 'v', r, c }; render(); } };
+                b.appendChild(v);
+            }
+        }
+
+        // 横壁
+        if (r < 8) {
+            for (let i = 0; i < 17; i++) {
+                if (i % 2 === 0) {
+                    const h_col = i / 2;
+                    const h = document.createElement('div');
+                    h.id = `h-${r}-${h_col}`;
+                    h.className = 'wall-h' + (walls.has(`h-${r}-${h_col}`) ? ' wall-placed' : '');
+                    if (tempAction && tempAction.m === 'h' && tempAction.r === r && (h_col === tempAction.c || h_col === tempAction.c + 1)) {
+                        h.classList.add('wall-preview');
+                    }
+                    h.onclick = () => { if (myTurn && mode === 'wall' && h_col < 8) { tempAction = { m: 'h', r, c: h_col }; render(); } };
+                    b.appendChild(h);
+                } else {
+                    b.appendChild(document.createElement('div'));
+                }
+            }
+        }
+    }
+    // 確定ボタンの表示（壁 or カードボード）
+    document.getElementById('confirm-wall').style.display = ((mode === 'wall' || (mode==='skill' && myType==='cardboard')) && tempAction) ? 'block' : 'none';
+}
+
+function getPossibleMoves(){
+    let a=[]; 
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+        // ジェットパック飛行中なら isBlocked を無視
+        if(flyTurn > 0 || !isBlocked(myPos.r, myPos.c, dr, dc)){ 
+            let nr=myPos.r+dr, nc=myPos.c+dc; 
+            if(nr>=0 && nr<9 && nc>=0 && nc<9) a.push({r:nr, c:nc}); 
+        }
+    }); 
+    return a;
+}
+
+function getSkillTargets(){
+    if (myType === 'maneuver') {
+        let t = [];
+        // 8方向の走査
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                
+                let nr = myPos.r + dr, nc = myPos.c + dc;
+                if (nr < 0 || nr > 8 || nc < 0 || nc > 8) continue;
+
+                // 斜め判定が必要な場合 (dr, dc ともに 0 でない)
+                if (dr !== 0 && dc !== 0) {
+                    if (isDiagonalBlocked(myPos.r, myPos.c, dr, dc)) continue;
+                } else {
+                    // 直線方向の壁チェック
+                    if (isBlocked(myPos.r, myPos.c, dr, dc)) continue;
+                }
+                
+                // スライドの場合は1マス限定
+                if (subSkill === 'slide') {
+                    t.push({ r: nr, c: nc });
+                } else {
+                    // 射撃（shoot）の場合は射程3まで伸ばすロジックが必要（後述）
+                    t.push({ r: nr, c: nc });
+                }
+            }
+        }
+        return t;
+    }
+    let t=[]; for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+        if(dr===0&&dc===0)continue; let nr=myPos.r+dr,nc=myPos.c+dc; if(nr>=0&&nr<9&&nc>=0&&nc<9) t.push({r:nr,c:nc});
+    }
+    if(myType==='missile' || myType==='cardboard'){ t=[]; for(let r=0;r<9;r++)for(let c=0;c<9;c++) t.push({r,c}); }
+    return t;
+}
+
+/**
+ * @param {Object} startPos - 探索開始位置 {r, c}
+ * @param {boolean} isMe - 判定対象（自分なら敵陣r=0を目指し、相手なら自陣r=8を目指す）
+ */
+function canReachGoal(startPos, isMe) {
+    const queue = [{ r: startPos.r, c: startPos.c }];
+    const visited = new Set();
+    visited.add(`${startPos.r}-${startPos.c}`);
+
+    const goalRow = isMe ? 0 : 8; // 自分は上(0)へ、相手は下(8)へ
+
+    let head = 0;
+    while (head < queue.length) {
+        const { r, c } = queue[head++];
+
+        if (r === goalRow) return true;
+
+        const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (const [dr, dc] of directions) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
+                if (!visited.has(`${nr}-${nc}`) && !isBlocked(r, c, dr, dc)) {
+                    visited.add(`${nr}-${nc}`);
+                    queue.push({ r: nr, c: nc });
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// 追加：リスポーン地点（最奥1列）のどこからも詰んでいないかチェックする
+function isSpawnAreaSafe(isMe) {
+    const spawnRow = isMe ? 8 : 0; // 自分のリスポーンは一番下(8)、相手は一番上(0)
+    
+    // 最奥1列のどこか1マスからでもゴールに行ければ「詰み」ではない
+    for (let c = 0; c < 9; c++) {
+        if (canReachGoal({ r: spawnRow, c: c }, isMe)) return true;
+    }
+    return false;
+}
+
+function checkWall(r, c, dr, dc) {
+    let hasH = false; // 横壁（上下移動を遮る）
+    let hasV = false; // 縦壁（左右移動を遮る）
+
+    // 横方向の壁チェック
+    if (dr === 1) { if (walls.has(`h-${r}-${c}`)) hasH = true; }
+    else if (dr === -1) { if (walls.has(`h-${r-1}-${c}`)) hasH = true; }
+
+    // 縦方向の壁チェック
+    if (dc === 1) { if (walls.has(`v-${r}-${c}`)) hasV = true; }
+    else if (dc === -1) { if (walls.has(`v-${r}-${c-1}`)) hasV = true; }
+
+    return { hasH, hasV };
+}
+
+/**
+ * 斜め移動/射撃が壁で遮られているか判定
+ * @param {number} r - 現在の行
+ * @param {number} c - 現在の列
+ * @param {number} dr - 行の移動方向 (1 or -1)
+ * @param {number} dc - 列の移動方向 (1 or -1)
+ */
+function isDiagonalBlocked(r, c, dr, dc) {
+    // 1. L字判定 (進行方向の縦と横、両方に壁がある)
+    const wallH = checkWall(r, c, dr, 0); // 縦方向の壁
+    const wallV = checkWall(r, c, 0, dc); // 横方向の壁
+    if (wallH.hasH && wallV.hasV) return true;
+
+    // 2. 直線2マス判定 (斜め移動の「境界線」をまたぐ2枚の壁)
+    // 例：右下(1,1)へ行く際、(r,c)の右にある縦壁と、(r+1,c)の右にある縦壁が繋がっているか
+    if (dc === 1) { // 右方向への斜め
+        if (walls.has(`v-${r}-${c}`) && walls.has(`v-${r + dr}-${c}`)) return true;
+    } else { // 左方向への斜め
+        if (walls.has(`v-${r}-${c - 1}`) && walls.has(`v-${r + dr}-${c - 1}`)) return true;
+    }
+
+    if (dr === 1) { // 下方向への斜め
+        if (walls.has(`h-${r}-${c}`) && walls.has(`h-${r}-${c + dc}`)) return true;
+    } else { // 上方向への斜め
+        if (walls.has(`h-${r - 1}-${c}`) && walls.has(`h-${r - 1}-${c + dc}`)) return true;
+    }
+
+    return false;
+}
+
+function damageBlock(r, c, dmg) {
+    const bIdx = blocks.findIndex(b => b.r === r && b.c === c);
+    if (bIdx !== -1) {
+        blocks[bIdx].hp -= dmg;
+        if (blocks[bIdx].hp <= 0) {
+            addLog("障害物を破壊！");
+            blocks.splice(bIdx, 1);
+        }
+        return true; // 当たった
+    }
+    return false;
+}
+
+function sendChat() {
+    const ipt = document.getElementById('chat-input');
+    const msg = ipt.value.trim();
+    if (msg && conn && conn.open) {
+        conn.send({ type: 'chat', msg: msg });
+        addLog(`【自分】: ${msg}`); // 自分のログに表示
+        ipt.value = '';
+    }
+}
+
+function showResult(isWin, message) {
+    const screen = document.getElementById('result-screen');
+    const title = document.getElementById('result-title');
+    const detail = document.getElementById('result-detail');
+
+    title.innerText = isWin ? "VICTORY" : "LOSE";
+    title.style.color = isWin ? "var(--p1)" : "var(--p2)";
+    title.style.textShadow = isWin ? "0 0 20px var(--p1)" : "0 0 20px var(--p2)";
+    detail.innerText = message;
+
+    screen.classList.remove('hidden');
+}
+
+function execRecoverBold() {
+    if (!myTurn) return;
+    myMP = Math.min(7, myMP + 4);
+    addLog("⚡️ バッテリーチャージ！MP+4");
+    endTurn();
+}
+
+function updateUI() {
+    // 1. 基本ステータス（HP・壁・カードボード残数）の更新
+    const hpMeDisp = document.getElementById('hp-me');
+    const hpOppDisp = document.getElementById('hp-opp');
+    const wCntDisp = document.getElementById('w-cnt');
+    const bCntDisp = document.getElementById('b-cnt');
+
+    if (hpMeDisp) hpMeDisp.innerText = myHP;
+    if (hpOppDisp) hpOppDisp.innerText = oppHP;
+    if (wCntDisp) wCntDisp.innerText = myWalls;
+    if (bCntDisp) bCntDisp.innerText = myBlocksLeft;
+
+    // 2. 特殊リソース（MP / 飛行チャージ / カードボード個数）の表示
+    const mpDisp = document.getElementById('mp-disp');
+    if (mpDisp) {
+        if (myType === 'maneuver') {
+            mpDisp.innerText = `[MP: ${myMP}/5]`;
+            mpDisp.style.color = "#fbbf24"; 
+        } else if (myType === 'bold') {
+            // BOLD専用のMP表示 (最大7)
+            mpDisp.innerText = `[MP: ${myMP}/7]`;
+            mpDisp.style.color = "#fde047"; // 雷のような明るい黄色
+        } else if (myType === 'jetpack') {
+            if (flyTurn > 0) {
+                mpDisp.innerText = `[AIR: ${flyTurn}T]`;
+                mpDisp.style.color = "#06b6d4";
+            } else {
+                mpDisp.innerText = `[CHG: ${myCharge}/3]`;
+                mpDisp.style.color = (myCharge >= 3) ? "#22c55e" : "#64748b";
+            }
+        } else if (myType === 'cardboard') {
+            mpDisp.innerText = `[CB: ${myBlocksLeft}]`;
+            mpDisp.style.color = "#a8a29e";
+        } else {
+            mpDisp.innerText = ""; 
+        }
+    }
+
+    // 3. ターンメッセージと状態表示
+    const msg = document.getElementById('turn-msg');
+    if (msg) {
+        if (isRespawning) {
+            msg.innerText = "🚨 大破！リスポーン地点を選択してください";
+            msg.style.color = "#22c55e";
+            msg.style.fontWeight = "bold";
+        } else if (myTurn) {
+            msg.innerText = "YOUR TURN";
+            msg.style.color = "var(--p1)";
+            msg.style.textShadow = "0 0 10px rgba(6, 182, 212, 0.5)";
+        } else {
+            msg.innerText = "ENEMY TURN";
+            msg.style.color = "#64748b";
+            msg.style.textShadow = "none";
+        }
+    }
+
+    // 4. ボタンの表示制御 (ここが最重要修正ポイント)
+    const mainBtns = document.getElementById('main-btns');
+    const maneuverBtns = document.getElementById('maneuver-btns');
+    const boldBtns = document.getElementById('bold-btns');
+    const confirmBtn = document.getElementById('confirm-wall');
+
+    // 一旦すべてのボタンエリアを隠す
+    if (mainBtns) mainBtns.classList.add('hidden');
+    if (maneuverBtns) maneuverBtns.classList.add('hidden');
+    if (boldBtns) boldBtns.classList.add('hidden');
+
+    // 「技(skill)」モードかつ「自分のターン」の時だけ、専用ボタンを出す
+    if (myTurn && mode === 'skill') {
+        if (myType === 'maneuver') {
+            if (maneuverBtns) maneuverBtns.classList.remove('hidden');
+        } else if (myType === 'bold') {
+            if (boldBtns) boldBtns.classList.remove('hidden');
+        } else {
+            // その他のタイプ（レーザー等）はメインボタンを表示
+            if (mainBtns) mainBtns.classList.remove('hidden');
+        }
+    } else {
+        // 通常時（移動・壁モード）または相手のターンはメインボタンを表示
+        if (mainBtns) mainBtns.classList.remove('hidden');
+    }
+
+    // 確定ボタンの表示（壁設置中 or ボード設置中）
+    if (confirmBtn) {
+        const isWallPending = (mode === 'wall' && tempAction);
+        const isBoardPending = (mode === 'skill' && myType === 'cardboard' && tempAction);
+        confirmBtn.style.display = (isWallPending || isBoardPending) ? 'block' : 'none';
+    }
+
+    // 5. ボタンのアクティブ状態（見た目）の更新
+    const btnMove = document.getElementById('btn-move');
+    const btnWall = document.getElementById('btn-wall');
+    const btnSkill = document.getElementById('btn-skill');
+    if (btnMove) btnMove.className = (mode === 'move') ? 'active' : '';
+    if (btnWall) btnWall.className = (mode === 'wall') ? 'active' : '';
+    if (btnSkill) btnSkill.className = (mode === 'skill') ? 'active' : '';
+
+    // 6. ログのスクロールと再描画
+    const logBox = document.getElementById('log');
+    if (logBox) logBox.scrollTop = logBox.scrollHeight;
+
+    render();
+}
+
+</script>
+</body>
+</html>
