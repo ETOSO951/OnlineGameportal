@@ -2,1073 +2,2550 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PROJECT: PARADOX - 潜入者疑惑の宇宙船</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CYBER-SABOTAGE | オンライン防衛人狼アクション</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            space: {
-              900: '#070b19',
-              800: '#0f172a',
-              700: '#1e293b',
-              600: '#334155'
-            },
-            neonCyan: '#06b6d4',
-            neonRed: '#ef4444',
-            neonGreen: '#10b981',
-            neonAmber: '#f59e0b'
-          },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+  
   <style>
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    .tap-target { -webkit-tap-highlight-color: transparent; user-select: none; }
+    * {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #020617;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #f1f5f9;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+    .neon-cyan {
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.4);
+      border: 1px solid rgba(6, 182, 212, 0.6);
+    }
+    .neon-rose {
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.4);
+      border: 1px solid rgba(244, 63, 94, 0.6);
+    }
+    .neon-amber {
+      box-shadow: 0 0 18px rgba(245, 158, 11, 0.4);
+      border: 1px solid rgba(245, 158, 11, 0.6);
+    }
+    .neon-text {
+      text-shadow: 0 0 8px currentColor;
+    }
+    .touch-btn {
+      transition: transform 0.07s ease, filter 0.07s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.91);
+      filter: brightness(1.25);
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.5);
+      border-radius: 2px;
+    }
   </style>
 </head>
-<body class="bg-space-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+<body class="relative bg-slate-950 select-none overflow-hidden">
 
-  <!-- Top Bar -->
-  <header class="w-full bg-space-800/90 backdrop-blur border-b border-slate-700/60 p-3 sticky top-0 z-30 flex items-center justify-between">
-    <div class="flex items-center space-x-2">
-      <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-bold text-xs shadow-md">
-        <i class="fa-solid fa-satellite-dish text-white"></i>
+  <div id="game-container" class="relative w-full h-full">
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" class="w-full h-full absolute inset-0 z-0"></canvas>
+
+    <!-- Top HUD Banner -->
+    <div id="hud-top" class="hidden absolute top-0 left-0 right-0 p-2 sm:p-3 pointer-events-none z-20 flex justify-between items-start">
+      <!-- Core Status & Match Timer -->
+      <div class="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-slate-700/70 shadow-xl pointer-events-auto">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cube text-cyan-400 animate-pulse text-base sm:text-lg"></i>
+          <div>
+            <div class="text-[9px] tracking-wider text-slate-400 font-bold uppercase">防衛コア HP</div>
+            <div class="flex items-center gap-2">
+              <div class="w-20 sm:w-28 h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                <div id="core-hp-bar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 w-full transition-all duration-200"></div>
+              </div>
+              <span id="core-hp-text" class="text-xs font-mono font-bold text-cyan-300">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-6 w-px bg-slate-800"></div>
+
+        <div>
+          <div class="text-[9px] tracking-wider text-slate-400 font-bold uppercase">残り時間</div>
+          <div id="hud-timer" class="text-xs sm:text-sm font-mono font-extrabold text-amber-400">05:00</div>
+        </div>
       </div>
-      <div>
-        <h1 class="text-sm font-black tracking-wider text-cyan-400">PROJECT: PARADOX</h1>
-        <p class="text-[10px] text-slate-400" id="headerRoomStatus">オフライン</p>
+
+      <!-- Money, Player HP & Role / Class Badge -->
+      <div class="flex items-center gap-2 pointer-events-auto">
+        <!-- Crypto Money Display -->
+        <div class="flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-amber-500/40 shadow-xl">
+          <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+          <span id="hud-money" class="text-xs font-mono font-black text-amber-300">0</span>
+        </div>
+
+        <!-- Role & Class Badge -->
+        <div class="flex flex-col items-end gap-0.5">
+          <div id="hud-role-badge" class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider text-cyan-300 bg-cyan-950/80 border border-cyan-500/40">
+            市民
+          </div>
+          <div id="hud-class-badge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold text-indigo-300 bg-indigo-950/80 border border-indigo-500/40">
+            斬撃近接
+          </div>
+        </div>
       </div>
     </div>
-    <div class="flex items-center space-x-2">
-      <button id="soundToggleBtn" class="tap-target px-2.5 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 border border-slate-600 flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-volume-high text-cyan-400" id="soundIcon"></i>
-        <span class="text-[10px]">効果音</span>
-      </button>
-      <div id="connectionPill" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400">
-        未接続
+
+    <!-- On-Screen Touch Controls (Left: Joystick, Right: Actions & Convenient Shop Button) -->
+    <div id="touch-controls" class="hidden absolute inset-0 pointer-events-none z-10 flex justify-between items-end p-4 pb-8 sm:p-8">
+      <!-- Virtual Joystick Zone -->
+      <div id="joystick-zone" class="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-slate-900/50 border border-slate-700/60 pointer-events-auto backdrop-blur-sm flex items-center justify-center">
+        <div id="joystick-knob" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-cyan-500/40 flex items-center justify-center transform transition-transform duration-75">
+          <i class="fa-solid fa-arrows-up-down-left-right text-white/80 text-xs"></i>
+        </div>
+      </div>
+
+      <!-- Action Buttons Container with Thumb-accessible Shop Button -->
+      <div class="flex flex-col gap-2.5 items-end pointer-events-auto">
+        <!-- Ergonomic Upgrade Shop Button (Thumb Accessible directly above attacks) -->
+        <button id="open-shop-btn" class="touch-btn relative px-3 py-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-lg shadow-amber-500/30 flex items-center gap-2 border border-amber-300">
+          <i class="fa-solid fa-cart-shopping text-sm text-slate-950"></i>
+          <span class="text-xs tracking-wider uppercase font-black">強化ストア</span>
+          <span class="w-2 h-2 bg-rose-600 rounded-full animate-ping"></span>
+        </button>
+
+        <div class="flex items-center gap-3">
+          <!-- Sabotage / Repair Skill Button -->
+          <button id="skill-btn" class="touch-btn relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white shadow-xl border border-purple-400/40 flex flex-col items-center justify-center">
+            <i id="skill-icon" class="fa-solid fa-wrench text-lg text-purple-200"></i>
+            <span id="skill-label" class="text-[10px] font-bold mt-0.5">修復/加速</span>
+            <div id="skill-cooldown-overlay" class="absolute inset-0 bg-slate-950/85 rounded-2xl flex items-center justify-center hidden">
+              <span id="skill-cooldown-timer" class="text-xs font-mono font-bold text-amber-300">5</span>
+            </div>
+          </button>
+
+          <!-- Main Attack Button -->
+          <button id="attack-btn" class="touch-btn w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-2xl shadow-cyan-500/40 border-2 border-cyan-300 flex flex-col items-center justify-center">
+            <i id="attack-icon" class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
+            <span id="attack-label" class="text-[11px] font-black tracking-wider mt-0.5">攻撃</span>
+          </button>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- Notification Toast Container -->
-  <div id="toastContainer" class="fixed top-14 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-sm pointer-events-none flex flex-col gap-2"></div>
-
-  <!-- Custom Alert Modal -->
-  <div id="customModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-space-800 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl relative">
-      <div id="modalIcon" class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center bg-cyan-950 text-cyan-400 border border-cyan-700 text-xl">
-        <i class="fa-solid fa-bell"></i>
+  <!-- Expanded Upgrade Store Modal -->
+  <div id="shop-modal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-lg bg-slate-900 border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white">サイバー強化アーモリー</h3>
+            <p class="text-[10px] text-slate-400">クリプト資金でエージェントと防衛戦力を強化</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-amber-500/40">
+            <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+            <span id="shop-money-val" class="text-xs font-mono font-bold text-amber-300">0</span>
+          </div>
+          <button id="close-shop-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
-      <h3 id="modalTitle" class="text-center font-bold text-base text-slate-100 mb-2">確認</h3>
-      <p id="modalBody" class="text-center text-xs text-slate-300 leading-relaxed mb-5"></p>
-      <div class="flex gap-2">
-        <button id="modalCloseBtn" class="tap-target flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 font-bold text-sm text-white transition active:scale-95 shadow-md">
-          了解
+
+      <!-- Extended Upgrades Scrollable Grid -->
+      <div class="overflow-y-auto py-3 space-y-2 pr-1">
+        <!-- 1. Attack DMG -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-fire-flame-curved"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">攻撃力強化 (Atk DMG)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-dmg-lvl">1</span> (+20% 与ダメージ)</div>
+            </div>
+          </div>
+          <button id="buy-dmg-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-dmg-cost">15</span>
+          </button>
+        </div>
+
+        <!-- 2. Attack Speed -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">連射・攻撃速度 (Atk Speed)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-spd-lvl">1</span> (リロード・回転率UP)</div>
+            </div>
+          </div>
+          <button id="buy-spd-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-spd-cost">15</span>
+          </button>
+        </div>
+
+        <!-- 3. Move Speed -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-person-running"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">移動速度UP (Move Speed)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-mov-lvl">1</span> (+12% 機動力)</div>
+            </div>
+          </div>
+          <button id="buy-mov-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-mov-cost">12</span>
+          </button>
+        </div>
+
+        <!-- 4. Magnet Radius -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-magnet"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">コイン自動吸引 (Magnet)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-mag-lvl">1</span> (回収マグネット拡大)</div>
+            </div>
+          </div>
+          <button id="buy-mag-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-mag-cost">10</span>
+          </button>
+        </div>
+
+        <!-- 5. Attack Range / AOE Size (NEW) -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-expand"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">攻撃範囲・効果半径 (Area Size)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-area-lvl">1</span> (斬撃・爆発・毒煙の範囲+20%)</div>
+            </div>
+          </div>
+          <button id="buy-area-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-area-cost">18</span>
+          </button>
+        </div>
+
+        <!-- 6. Critical Strike Protocol (NEW) -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-crosshairs"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">クリティカル率 (Critical Chance)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-crit-lvl">1</span> (確率で2.2倍特大ダメージ)</div>
+            </div>
+          </div>
+          <button id="buy-crit-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 font-black text-xs flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-slate-950 text-[10px]"></i>
+            <span id="up-crit-cost">20</span>
+          </button>
+        </div>
+
+        <!-- 7. Max HP Augment & Full Heal (NEW) -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-heart"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">生命ナノマシン (Max HP + Heal)</div>
+              <div class="text-[10px] text-slate-400">最大HP +30 & 全回復 (自機HP: <span id="player-hp-display">100</span>)</div>
+            </div>
+          </div>
+          <button id="buy-hp-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-hp-cost">22</span>
+          </button>
+        </div>
+
+        <!-- 8. Temporary Energy Shield (NEW) -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-shield-virus"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">エナジーバリア (Energy Shield)</div>
+              <div class="text-[10px] text-slate-400">12秒間敵の接触ダメージとコア衝撃を防御</div>
+            </div>
+          </div>
+          <button id="buy-shield-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-amber-300 text-[10px]"></i>
+            <span id="up-shield-cost">25</span>
+          </button>
+        </div>
+
+        <!-- 9. Core Emergency First-Aid (REDUCED HEAL AMOUNT) -->
+        <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-amber-950/40 border border-amber-500/40">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base">
+              <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-amber-300">コア応急処置 (Core First-Aid)</div>
+              <div class="text-[10px] text-slate-400">コアHPを <span class="text-amber-400 font-bold">+8</span> 少量修復 (修復量低減中)</div>
+            </div>
+          </div>
+          <button id="buy-core-repair-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 text-xs font-black flex items-center gap-1 shadow">
+            <i class="fa-solid fa-coins text-slate-950 text-[10px]"></i>
+            <span>30</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lobby / Room Connection Screen -->
+  <div id="lobby-screen" class="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 text-xs font-semibold mb-3">
+        <i class="fa-solid fa-shield-halved"></i> 2〜8人 協力防衛＆潜入人狼
+      </div>
+      
+      <h1 class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 tracking-wider">
+        CYBER-SABOTAGE
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-400 mt-2 mb-6">
+        独立確率35%の人狼が潜入。8種類の戦闘タイプからランダム適性を受け、強化しながら死守せよ！
+      </p>
+
+      <!-- Player Name Input -->
+      <div class="mb-4 text-left">
+        <label class="block text-xs font-semibold text-slate-300 mb-1 ml-1">エージェント名</label>
+        <div class="relative">
+          <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
+          <input id="player-name-input" type="text" maxlength="10" placeholder="Agent_01" value="エージェント" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+        </div>
+      </div>
+
+      <!-- Action Tabs: Host or Join -->
+      <div class="flex gap-2 mb-4 bg-slate-800/60 p-1 rounded-xl">
+        <button id="tab-host" class="flex-1 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-white shadow">部屋を作る (HOST)</button>
+        <button id="tab-join" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white">部屋に入る (JOIN)</button>
+      </div>
+
+      <!-- Room Form -->
+      <div id="room-controls" class="space-y-3">
+        <div id="join-code-container" class="hidden text-left">
+          <label class="block text-xs font-semibold text-slate-300 mb-1 ml-1">ルームコード (4桁)</label>
+          <input id="room-code-input" type="text" maxlength="4" placeholder="例: 7721" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl py-2.5 px-3 text-center text-lg font-mono font-bold tracking-widest text-cyan-300 focus:outline-none focus:border-cyan-400">
+        </div>
+
+        <button id="start-connect-btn" class="touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-wifi"></i> 部屋を作成して待機所へ
+        </button>
+
+        <button id="solo-test-btn" class="touch-btn w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-2">
+          <i class="fa-solid fa-robot"></i> 1人テストプレイ (ボット3名参加)
+        </button>
+      </div>
+
+      <!-- Room Waiting List (Inside Lobby Modal) -->
+      <div id="waiting-room" class="hidden mt-6 pt-5 border-t border-slate-800 text-left">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider">ROOM CODE</span>
+            <span id="display-room-code" class="ml-2 font-mono font-bold text-cyan-400 text-base">----</span>
+          </div>
+          <span id="player-count-badge" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300">1 / 8 人</span>
+        </div>
+
+        <div id="lobby-player-list" class="space-y-1.5 max-h-36 overflow-y-auto mb-4 p-1"></div>
+
+        <button id="launch-game-btn" class="touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-play"></i> ゲーム開始 (全員で出撃)
         </button>
       </div>
     </div>
   </div>
 
-  <main class="flex-1 w-full max-w-md mx-auto p-3 sm:p-4 flex flex-col justify-start overflow-y-auto">
+  <!-- Secret Role & Battle Type Reveal Pop-up -->
+  <div id="role-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
+    <div class="w-full max-w-sm bg-slate-900 border-2 rounded-3xl p-6 text-center transform scale-95 transition-transform" id="role-card">
+      <div id="role-icon-box" class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-3">
+        <i id="role-icon" class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">あなたの役職 (確率35%)</div>
+      <h2 id="role-title" class="text-2xl font-black my-1">市民 (DEFENDER)</h2>
+      <p id="role-desc" class="text-xs text-slate-300 mb-4 leading-relaxed">
+        迫り来る敵性ドローンから中央コアを防衛してください。
+      </p>
 
-    <!-- VIEW 1: Lobby & Setup -->
-    <section id="viewLobby" class="flex flex-col gap-4">
-      <div class="p-4 rounded-2xl bg-gradient-to-br from-space-800 to-space-700 border border-slate-700/80 shadow-lg">
-        <div class="flex items-center gap-2 mb-2 text-cyan-400 font-bold text-xs uppercase tracking-widest">
-          <i class="fa-solid fa-triangle-exclamation"></i> 超深宇宙船 危機事象
+      <!-- Assigned Battle Class Box -->
+      <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 mb-5 text-left flex items-center gap-3">
+        <div id="class-avatar" class="w-11 h-11 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-khanda"></i>
         </div>
-        <p class="text-xs text-slate-300 leading-relaxed">
-          原子炉の崩壊を防ぐため、全クルーで目標出力を稼げ。<br>
-          各プレイヤーには<span class="text-amber-400 font-bold">【独立した約35%の確率】</span>で潜入工作員（人狼）コードが付与される。
-        </p>
+        <div>
+          <div class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">割り当てられた戦闘適性 (全8種)</div>
+          <div id="class-title" class="text-sm font-black text-indigo-300">斬撃近接型 (Slasher)</div>
+          <div id="class-desc" class="text-[10px] text-slate-400">広範囲ブレードで周囲の敵を薙ぎ払う！</div>
+        </div>
       </div>
 
-      <!-- Player Profile Card -->
-      <div class="p-4 rounded-2xl bg-space-800 border border-slate-700">
-        <label class="block text-xs font-semibold text-slate-400 mb-1.5">クルー登録名（ニックネーム）</label>
-        <div class="flex gap-2">
-          <input type="text" id="inputNickname" maxlength="10" placeholder="例: アストロ7号" class="flex-1 px-3 py-2 rounded-xl bg-space-900 border border-slate-600 focus:border-cyan-400 outline-none text-sm text-white placeholder-slate-500 font-medium">
-          <button id="btnSaveNickname" class="tap-target px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold text-xs text-cyan-300 border border-slate-600 active:scale-95 transition">
-            保存
-          </button>
-        </div>
-      </div>
+      <button id="role-confirm-btn" class="touch-btn w-full py-3 rounded-xl bg-cyan-500 text-white font-bold text-sm shadow-lg">
+        任務を開始する
+      </button>
+    </div>
+  </div>
 
-      <!-- Matching Methods -->
-      <div class="grid grid-cols-1 gap-3">
-        <!-- 1. Random Matching -->
-        <div class="p-4 rounded-2xl bg-space-800 border border-slate-700">
-          <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-dice text-cyan-400"></i> ランダムマッチング
-          </h2>
-          <p class="text-[11px] text-slate-400 mb-3">空いている部屋へ自動参加するか、待機部屋を作成します。</p>
-          <button id="btnRandomMatch" class="tap-target w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 font-bold text-sm text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-shuffle"></i> 今すぐランダムマッチ開始
-          </button>
-        </div>
-
-        <!-- 2. Keyword Matching -->
-        <div class="p-4 rounded-2xl bg-space-800 border border-slate-700">
-          <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-key text-amber-400"></i> 合言葉でマッチング
-          </h2>
-          <p class="text-[11px] text-slate-400 mb-2">同じ合言葉を入力した仲間と合流します。</p>
-          <div class="flex gap-2">
-            <input type="text" id="inputKeyword" maxlength="12" placeholder="合言葉 (例: うちゅう)" class="flex-1 px-3 py-2 rounded-xl bg-space-900 border border-slate-600 focus:border-amber-400 outline-none text-sm text-white placeholder-slate-500 font-bold">
-            <button id="btnKeywordMatch" class="tap-target px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 font-bold text-xs text-white border border-amber-500 active:scale-95 transition flex items-center gap-1.5">
-              <i class="fa-solid fa-link"></i> 合言葉で合流
-            </button>
-          </div>
-        </div>
-
-        <!-- 3. Direct Room Code -->
-        <div class="p-4 rounded-2xl bg-space-800 border border-slate-700">
-          <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-door-open text-emerald-400"></i> ルームコード直接指定
-          </h2>
-          <div class="flex gap-2">
-            <input type="text" id="inputRoomCode" maxlength="4" placeholder="4桁コード (例: X4K9)" class="flex-1 uppercase font-mono tracking-widest px-3 py-2 rounded-xl bg-space-900 border border-slate-600 focus:border-emerald-400 outline-none text-sm text-white placeholder-slate-500 text-center font-bold">
-            <button id="btnJoinRoom" class="tap-target px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white border border-emerald-500 active:scale-95 transition flex items-center gap-1.5">
-              <i class="fa-solid fa-arrow-right-to-bracket"></i> 参加
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 2: Waiting Room Screen -->
-    <section id="viewRoomLobby" class="hidden flex-col gap-4">
-      <div class="p-4 rounded-2xl bg-space-800 border border-cyan-800/80 shadow-lg text-center relative overflow-hidden">
-        <div class="text-[11px] font-semibold text-cyan-400 tracking-wider">ROOM ACCESS CODE</div>
-        <div class="text-3xl font-black font-mono tracking-widest text-white my-1" id="displayRoomCode">----</div>
-        <div id="displayKeywordBadge" class="hidden text-xs text-amber-300 font-bold mb-1">合言葉: <span id="displayKeywordText"></span></div>
-        <p class="text-[11px] text-slate-400">友達にコードや合言葉を共有して集まりましょう (2〜8人)</p>
-        <button id="btnCopyCode" class="mt-2 text-xs py-1 px-3 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-cyan-300 inline-flex items-center gap-1 border border-slate-600">
-          <i class="fa-solid fa-copy"></i> コードをコピー
-        </button>
-      </div>
-
-      <div class="bg-space-800 border border-slate-700 rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
-          <span class="text-xs font-bold text-slate-300">搭乗クルー (<span id="playerCount">0</span>/8)</span>
-          <span class="text-[10px] text-slate-400">最低2人で開始可能</span>
-        </div>
-        <div id="roomPlayerList" class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1"></div>
-      </div>
-
-      <div class="p-4 rounded-2xl bg-space-800 border border-slate-700 flex flex-col gap-2">
-        <div id="hostNotice" class="text-center text-xs text-amber-400 font-medium">
-          ホストがゲームを開始するのを待っています...
-        </div>
-        <button id="btnStartGame" class="tap-target hidden w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-play"></i> ミッション開始（役職独立付与）
-        </button>
-        <button id="btnLeaveRoom" class="tap-target w-full py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-medium text-slate-300 transition">
-          退出する
-        </button>
-      </div>
-    </section>
-
-    <!-- VIEW 3: Active Game Screen -->
-    <section id="viewGame" class="hidden flex-col gap-3">
-      <div class="bg-space-800 border border-slate-700 p-3.5 rounded-2xl shadow-lg">
-        <div class="flex justify-between items-center text-xs font-bold mb-1">
-          <span class="text-cyan-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-gauge-high"></i>
-            <span id="gameRoundLabel">第 1 / 4 フェーズ</span>
+  <!-- Voting & Deduction Phase Screen (投票フェーズ) -->
+  <div id="voting-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 overflow-y-auto">
+    <div class="max-w-xl w-full mx-auto my-auto bg-slate-900/90 border border-slate-700/80 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <div>
+          <span class="text-rose-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-skull-crossbones"></i> 最終審問 / 投票会議
           </span>
-          <span class="text-xs font-mono" id="coreEnergyValue">目標: 70% 達成</span>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-0.5">誰が人狼か？</h2>
         </div>
-        <div class="w-full bg-slate-900 rounded-full h-3.5 border border-slate-700 overflow-hidden relative">
-          <div id="energyProgressFill" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-700 w-0"></div>
-          <div class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-200" id="energyBarText">0% / 100%</div>
-        </div>
-      </div>
-
-      <!-- Secret Role Peek -->
-      <div class="p-3.5 bg-space-800 border border-slate-700 rounded-2xl select-none">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs font-bold text-slate-300">極秘IDプロファイル</span>
-          <span class="text-[10px] text-slate-400">長押しで確認</span>
-        </div>
-        <div id="rolePeekCard" class="tap-target relative bg-space-900 border-2 border-dashed border-slate-600 hover:border-slate-500 rounded-xl p-3 text-center cursor-pointer transition">
-          <div id="roleHiddenMsg" class="flex flex-col items-center py-2">
-            <i class="fa-solid fa-fingerprint text-2xl text-cyan-400 mb-1"></i>
-            <span class="text-xs font-bold text-slate-300">ここを長押しして役職を確認</span>
-          </div>
-          <div id="roleRevealedMsg" class="hidden flex-col items-center py-2">
-            <div id="roleBadge" class="text-base font-black px-3 py-1 rounded-full mb-1">役職</div>
-            <p id="roleDescription" class="text-xs text-slate-300 max-w-xs leading-tight"></p>
-          </div>
+        <div class="text-right">
+          <div class="text-[10px] text-slate-400 font-semibold">投票終了まで</div>
+          <div id="voting-timer" class="text-lg font-mono font-bold text-amber-400">35s</div>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div id="missionActionCard" class="bg-space-800 border border-slate-700 p-4 rounded-2xl shadow-lg">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-gears"></i>
-            <span id="missionEventTitle">原子炉コアの安定化</span>
-          </span>
-          <span id="submissionStatusBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-mono">未選択</span>
+      <div class="text-xs text-slate-300 bg-slate-800/60 p-3 rounded-xl mb-4 border border-slate-700/50 leading-relaxed">
+        💡 <strong>勝利条件ルール：</strong><br>
+        ・防衛成功 ＋ 人狼を追放 (または0人で平和村指名) ➜ <span class="text-emerald-400 font-bold">市民の勝利</span><br>
+        ・人狼追放かつ防衛失敗、または無実を追放したが防衛成功 ➜ <span class="text-amber-400 font-bold">引き分け</span><br>
+        ・人狼を追放できず防衛失敗 ➜ <span class="text-rose-400 font-bold">人狼の勝利</span><br>
+        ⚠️ <strong>市民が吊られた場合、全体の勝敗にかかわらずその市民は「個人敗北」となります！</strong>
+      </div>
+
+      <!-- Candidate Selection List -->
+      <div id="vote-candidate-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5 max-h-56 overflow-y-auto pr-1"></div>
+
+      <!-- Quick Chat & Log -->
+      <div class="mb-4">
+        <div class="text-[11px] font-semibold text-slate-400 mb-1.5">簡易チャット / アクション履歴</div>
+        <div id="vote-chat-box" class="h-20 bg-slate-950/80 rounded-xl p-2.5 overflow-y-auto text-xs space-y-1 font-mono text-slate-300 border border-slate-800">
+          <div><span class="text-slate-500">[システム]</span> 投票が開始されました。</div>
         </div>
-        <p id="missionEventDesc" class="text-xs text-slate-300 leading-relaxed mb-3">
-          全員がアクションを秘密裏に提出してください。
-        </p>
-        <div id="actionButtonGroup" class="grid grid-cols-2 gap-2">
-          <button data-action="support" class="tap-target action-choice-btn py-3 px-2 rounded-xl bg-cyan-900/40 hover:bg-cyan-900/60 border border-cyan-600/70 text-cyan-200 flex flex-col items-center gap-1 transition active:scale-95">
-            <i class="fa-solid fa-wrench text-lg text-cyan-400"></i>
-            <span class="font-bold text-xs">全力支援 (+15%)</span>
-          </button>
-          <button data-action="boost" class="tap-target action-choice-btn py-3 px-2 rounded-xl bg-emerald-900/40 hover:bg-emerald-900/60 border border-emerald-600/70 text-emerald-200 flex flex-col items-center gap-1 transition active:scale-95">
-            <i class="fa-solid fa-bolt text-lg text-emerald-400"></i>
-            <span class="font-bold text-xs">過剰駆動 (+25%)</span>
-          </button>
-          <button id="btnSabotageAction" data-action="sabotage" class="tap-target action-choice-btn col-span-2 py-3 px-2 rounded-xl bg-red-950/60 hover:bg-red-900/60 border border-red-600/80 text-red-200 flex flex-col items-center gap-1 transition active:scale-95">
-            <i class="fa-solid fa-biohazard text-xl text-red-400"></i>
-            <span class="font-bold text-xs">秘密裏に妨害工作 (-30%)</span>
-          </button>
-        </div>
-        <div id="alreadySubmittedNotice" class="hidden text-center py-3 bg-slate-900/70 rounded-xl border border-slate-700 text-xs text-slate-300">
-          <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> アクション送信済み。他のクルーを待機中...
+        <div class="flex gap-1.5 mt-2 overflow-x-auto pb-1">
+          <button class="quick-chat-btn whitespace-nowrap px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">「私は市民です！」</button>
+          <button class="quick-chat-btn whitespace-nowrap px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">「平和村（人狼0人）だと思う」</button>
+          <button class="quick-chat-btn whitespace-nowrap px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">「攻撃をサボっていた人がいる」</button>
+          <button class="quick-chat-btn whitespace-nowrap px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">「怪しい動きを見ていた！」</button>
         </div>
       </div>
 
-      <!-- Live Mission Log -->
-      <div class="bg-space-800 border border-slate-700 rounded-2xl p-3.5">
-        <h3 class="text-xs font-bold text-slate-300 mb-2 flex items-center justify-between">
-          <span><i class="fa-solid fa-list-check text-cyan-400 mr-1"></i> 直近のミッション報告</span>
-          <span class="text-[10px] text-slate-400 font-mono" id="submittedCountLabel">0 / 0 完了</span>
-        </h3>
-        <div id="missionResultLog" class="text-xs text-slate-300 bg-space-900 p-2.5 rounded-xl border border-slate-700/60 min-h-[50px] flex items-center justify-center text-center">
-          ミッション進行中...
+      <button id="submit-vote-btn" disabled class="touch-btn w-full py-3 rounded-xl bg-cyan-600 disabled:opacity-50 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+        <i class="fa-solid fa-check"></i> 投票を確定する
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Over & Result Screen -->
+  <div id="result-modal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 text-center shadow-2xl">
+      <div id="result-badge-container" class="inline-block p-4 rounded-full bg-slate-800/80 mb-3">
+        <i id="result-icon" class="fa-solid fa-trophy text-4xl text-amber-400"></i>
+      </div>
+      <h2 id="result-title" class="text-2xl sm:text-3xl font-black mb-1">市民チームの勝利！</h2>
+      <p id="result-subtitle" class="text-xs sm:text-sm text-slate-300 mb-4">ミッション成功 ＆ 人狼の追放に成功しました</p>
+
+      <!-- Personal Outcome Box -->
+      <div id="personal-result-box" class="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs sm:text-sm font-bold mb-4">
+        あなた個人の結果: 勝利 (VICTORY)
+      </div>
+
+      <!-- Execution & Roles Summary -->
+      <div class="bg-slate-950/80 rounded-2xl p-4 text-left text-xs space-y-2 mb-5 border border-slate-800">
+        <div class="flex justify-between border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">防衛ミッション:</span>
+          <span id="summary-mission-status" class="font-bold text-cyan-400">成功 (コア生存)</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">追放された対象:</span>
+          <span id="summary-voted-target" class="font-bold text-rose-400">エージェントB (人狼)</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block mb-1">全員の実際の役職とタイプ:</span>
+          <div id="summary-roles-list" class="space-y-1 font-mono text-[11px]"></div>
         </div>
       </div>
 
-      <!-- Chat -->
-      <div class="bg-space-800 border border-slate-700 rounded-2xl p-3.5 flex flex-col gap-2">
-        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-comments text-cyan-400"></i> 船内通信
-        </span>
-        <div id="chatMessages" class="bg-space-900 border border-slate-700/80 rounded-xl p-2.5 h-32 overflow-y-auto flex flex-col gap-1.5 text-xs"></div>
-        <div class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="メッセージを入力..." class="flex-1 px-3 py-1.5 rounded-xl bg-space-900 border border-slate-700 focus:border-cyan-400 outline-none text-xs text-white">
-          <button id="btnSendChat" class="tap-target px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white transition active:scale-95">送信</button>
-        </div>
-      </div>
-
-      <!-- Final Trial Section -->
-      <div id="finalTrialSection" class="hidden bg-gradient-to-b from-space-800 to-red-950/40 border-2 border-amber-500 p-4 rounded-2xl shadow-xl">
-        <div class="text-center mb-3">
-          <h2 class="text-base font-black text-white">最終糾問会議：人狼告発投票</h2>
-          <p class="text-xs text-slate-300 mt-1">工作員は誰か？または「人狼は0人だった」と主張するか？</p>
-        </div>
-        <div id="voteOptionsList" class="flex flex-col gap-2 my-3"></div>
-        <button id="btnConfirmVote" disabled class="tap-target w-full py-3 rounded-xl bg-amber-600 disabled:opacity-40 font-bold text-xs text-white shadow-lg active:scale-95 transition">
-          投票を決定する
-        </button>
-      </div>
-    </section>
-
-    <!-- VIEW 4: Game Over -->
-    <section id="viewGameOver" class="hidden flex-col gap-4">
-      <div id="resultBanner" class="p-5 rounded-2xl border text-center shadow-2xl relative overflow-hidden">
-        <div id="resultBadge" class="text-xs font-black tracking-widest uppercase mb-1">勝敗判定</div>
-        <h2 id="resultTitle" class="text-2xl font-black text-white mb-2"></h2>
-        <p id="resultExplanation" class="text-xs text-slate-300 leading-relaxed"></p>
-      </div>
-
-      <div class="bg-space-800 border border-slate-700 rounded-2xl p-4">
-        <h3 class="text-xs font-bold text-slate-300 mb-3 flex items-center justify-between">
-          <span><i class="fa-solid fa-users-viewfinder text-cyan-400 mr-1"></i> 全員の正体開示</span>
-          <span class="text-[10px] text-amber-400 font-semibold" id="werewolfRatioSummary"></span>
-        </h3>
-        <div id="truthRoster" class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1"></div>
-      </div>
-
-      <button id="btnReturnToLobby" class="tap-target w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 font-bold text-sm text-white shadow-lg active:scale-95 transition">
+      <button id="return-lobby-btn" class="touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg">
         ロビーへ戻る
       </button>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    class AudioFx {
-      constructor() { this.ctx = null; this.enabled = true; }
+  <script>
+    const SoundFX = {
+      ctx: null,
       init() {
         if (!this.ctx) {
           const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) this.ctx = new AudioContext();
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
         }
-        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-      }
-      beep(freq = 440, type = 'sine', duration = 0.15, vol = 0.15) {
-        if (!this.enabled) return;
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      laser() {
+        if (!this.ctx) return;
         try {
-          this.init();
-          if (!this.ctx) return;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(750, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start();
-          osc.stop(this.ctx.currentTime + duration);
+          osc.stop(this.ctx.currentTime + 0.1);
+        } catch (e) {}
+      },
+      slash() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        } catch (e) {}
+      },
+      frost() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(950, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(380, this.ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.2);
+        } catch (e) {}
+      },
+      explosion() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(25, this.ctx.currentTime + 0.24);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.24);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.24);
+        } catch (e) {}
+      },
+      coin() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(987, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(1318, this.ctx.currentTime + 0.06);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        } catch (e) {}
+      },
+      upgrade() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(554, this.ctx.currentTime + 0.08);
+          osc.frequency.setValueAtTime(659, this.ctx.currentTime + 0.16);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.28);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.28);
+        } catch (e) {}
+      },
+      sabotage() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(120, this.ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) {}
+      },
+      alarm() {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(659, this.ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.22);
         } catch (e) {}
       }
-      playSuccess() { this.beep(587.33, 'sine', 0.12, 0.15); setTimeout(() => this.beep(880, 'sine', 0.2, 0.15), 100); }
-      playFail() { this.beep(240, 'sawtooth', 0.25, 0.2); setTimeout(() => this.beep(160, 'sawtooth', 0.35, 0.25), 120); }
-      playClick() { this.beep(800, 'sine', 0.04, 0.08); }
-      playRoleCard() { this.beep(520, 'triangle', 0.2, 0.15); setTimeout(() => this.beep(780, 'triangle', 0.25, 0.15), 100); }
-      playAlarm() { this.beep(280, 'sawtooth', 0.3, 0.25); setTimeout(() => this.beep(220, 'sawtooth', 0.3, 0.25), 150); }
+    };
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      updateDoc, 
+      onSnapshot, 
+      arrayUnion 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-sabotage-v3';
+    let firebaseConfig = null;
+    if (typeof __firebase_config !== 'undefined') {
+      try {
+        firebaseConfig = JSON.parse(__firebase_config);
+      } catch (e) {
+        console.warn("Firebase config error:", e);
+      }
     }
-    const sfx = new AudioFx();
-
-    const firebaseConfig = {
-  apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
-  authDomain: "sakana-online.firebaseapp.com",
-  databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
-  projectId: "sakana-online",
-  storageBucket: "sakana-online.firebasestorage.app",
-  messagingSenderId: "389239928158",
-  appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
-  measurementId: "G-V166BQY0Q1"
+    
+    if (!firebaseConfig) {
+      firebaseConfig = {
+  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+  authDomain: "onlinegame-341cf.firebaseapp.com",
+  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
+  projectId: "onlinegame-341cf",
+  storageBucket: "onlinegame-341cf.firebasestorage.app",
+  messagingSenderId: "995082102439",
+  appId: "1:995082102439:web:49e57d48312e25f7879d82",
+  measurementId: "G-LBFXFHP9MF"
 };
+    }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+    let auth = null;
+    let db = null;
     let currentUser = null;
-    let myNickname = localStorage.getItem('paradox_nickname') || 'クルー' + Math.floor(100 + Math.random() * 900);
-    let currentRoomCode = null;
-    let roomUnsubscribe = null;
-    let currentRoomData = null;
-    let selectedVoteTarget = null;
+    let isFirebaseReady = false;
 
-    const views = {
-      lobby: document.getElementById('viewLobby'),
-      roomLobby: document.getElementById('viewRoomLobby'),
-      game: document.getElementById('viewGame'),
-      gameOver: document.getElementById('viewGameOver')
+    try {
+      const fbApp = initializeApp(firebaseConfig);
+      auth = getAuth(fbApp);
+      db = getFirestore(fbApp);
+      
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        signInWithCustomToken(auth, __initial_auth_token)
+          .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
+          .catch(() => signInAnonymously(auth).then(c => { currentUser = c.user; isFirebaseReady = true; }));
+      } else {
+        signInAnonymously(auth)
+          .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
+          .catch(err => console.log("Standalone mode enabled:", err));
+      }
+    } catch (e) {
+      console.warn("Running in local single-session mode:", e);
+    }
+
+    const ARENA_WIDTH = 2600;
+    const ARENA_HEIGHT = 2600;
+    const GAME_DURATION = 300; // 5 Minutes (300 seconds)
+    const WEREWOLF_PROBABILITY = 0.35; // 35% independent probability per player
+
+    // 8 Expanded Battle Classes Configuration
+    const BATTLE_CLASSES = {
+      slasher: {
+        id: 'slasher',
+        name: '斬撃近接型 (Slasher)',
+        icon: 'fa-khanda',
+        color: '#f43f5e',
+        desc: '扇状近接ブレードで周囲を一掃！スマホでも当てやすい',
+        attackType: 'melee',
+        atkRate: 0.44,
+        baseDmg: 3.6,
+        speedBonus: 1.05,
+        maxHpBonus: 20
+      },
+      rapid: {
+        id: 'rapid',
+        name: '連射マシンガン型 (Rapid-Fire)',
+        icon: 'fa-angles-right',
+        color: '#06b6d4',
+        desc: '超高速連射で敵を圧倒ノックバック！',
+        attackType: 'rapid_bullet',
+        atkRate: 0.12,
+        baseDmg: 1.1,
+        speedBonus: 1.0,
+        maxHpBonus: 0
+      },
+      guardian: {
+        id: 'guardian',
+        name: 'HP・タンク特化型 (Guardian)',
+        icon: 'fa-shield',
+        color: '#10b981',
+        desc: '高耐久＆全方位衝撃波。コア防衛の絶対的守護神！',
+        attackType: 'pulse',
+        atkRate: 0.65,
+        baseDmg: 3.0,
+        speedBonus: 0.95,
+        maxHpBonus: 70
+      },
+      seeker: {
+        id: 'seeker',
+        name: 'ホーミング誘導型 (Seeker)',
+        icon: 'fa-crosshairs',
+        color: '#a855f7',
+        desc: '自動追尾誘導弾を発射！エイム不要で確実に当たる',
+        attackType: 'homing',
+        atkRate: 0.38,
+        baseDmg: 2.3,
+        speedBonus: 1.0,
+        maxHpBonus: 10
+      },
+      frost: {
+        id: 'frost',
+        name: 'フロスト氷結型 (Frost Mage)',
+        icon: 'fa-snowflake',
+        color: '#38bdf8',
+        desc: '冷気フィールドを展開し敵を著しく減速・凍結させる！',
+        attackType: 'frost_nova',
+        atkRate: 0.52,
+        baseDmg: 2.2,
+        speedBonus: 1.0,
+        maxHpBonus: 15
+      },
+      demolition: {
+        id: 'demolition',
+        name: '爆撃ランチャー型 (Demolitionist)',
+        icon: 'fa-bomb',
+        color: '#f97316',
+        desc: '榴弾を発射し着弾地点で広域大爆発を起こす！',
+        attackType: 'grenade',
+        atkRate: 0.72,
+        baseDmg: 5.5,
+        speedBonus: 0.96,
+        maxHpBonus: 25
+      },
+      railgun: {
+        id: 'railgun',
+        name: '貫通レールガン型 (Railgun Sniper)',
+        icon: 'fa-bolt-lightning',
+        color: '#eab308',
+        desc: '超高速貫通ビームで一直線上の敵全員を貫く！',
+        attackType: 'railgun',
+        atkRate: 0.85,
+        baseDmg: 6.8,
+        speedBonus: 1.0,
+        maxHpBonus: 10
+      },
+      toxic: {
+        id: 'toxic',
+        name: '毒霧アシッド型 (Toxic Chemist)',
+        icon: 'fa-flask-vial',
+        color: '#84cc16',
+        desc: '滞留する有毒ガスを噴射し継続DoTダメージを与える！',
+        attackType: 'toxic_cloud',
+        atkRate: 0.42,
+        baseDmg: 1.6,
+        speedBonus: 1.04,
+        maxHpBonus: 15
+      }
     };
 
-    function showView(name) {
-      Object.keys(views).forEach(k => {
-        if (k === name) {
-          views[k].classList.remove('hidden');
-          views[k].classList.add('flex');
-        } else {
-          views[k].classList.add('hidden');
-          views[k].classList.remove('flex');
-        }
-      });
-      window.scrollTo(0, 0);
-    }
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      const bgColors = {
-        info: 'bg-space-800 border-cyan-500 text-cyan-200',
-        danger: 'bg-red-950 border-red-500 text-red-200',
-        success: 'bg-emerald-950 border-emerald-500 text-emerald-200'
+    function resizeCanvas() {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+      canvas.width = screenWidth;
+      canvas.height = screenHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Match & Player State
+    let myId = 'p_' + Math.random().toString(36).substring(2, 9);
+    let myName = 'エージェント';
+    let currentRoomId = null;
+    let isHost = false;
+    let isSoloBotMode = false;
+    let gameState = 'lobby'; // lobby, playing, voting, result
+    let matchTimeRemaining = GAME_DURATION;
+    let votingTimeRemaining = 35;
+    let selectedVoteCandidate = null;
+
+    let myRole = 'citizen'; // 'citizen' or 'werewolf'
+    let myBattleType = 'slasher';
+    let myMoney = 0;
+    let skillCooldown = 0;
+    let attackCooldown = 0;
+    let shieldTimer = 0;
+
+    // Upgrades Levels
+    const upgrades = {
+      dmgLvl: 1,
+      spdLvl: 1,
+      movLvl: 1,
+      magLvl: 1,
+      areaLvl: 1,
+      critLvl: 1,
+      hpLvl: 1
+    };
+
+    // Defense Core
+    const core = {
+      x: ARENA_WIDTH / 2,
+      y: ARENA_HEIGHT / 2,
+      radius: 60,
+      hp: 100,
+      maxHp: 100
+    };
+
+    // Local Player Entity
+    let localPlayer = {
+      id: myId,
+      name: myName,
+      x: core.x + (Math.random() * 200 - 100),
+      y: core.y + 130,
+      radius: 20,
+      baseSpeed: 4.8,
+      speed: 4.8,
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      color: '#38bdf8',
+      role: 'citizen',
+      battleType: 'slasher',
+      hp: 100,
+      maxHp: 100,
+      magnetRadius: 80,
+      isAlive: true
+    };
+
+    let players = {};
+    let bullets = [];
+    let slashes = [];
+    let toxicClouds = [];
+    let droppedCoins = [];
+    let enemies = [];
+    let particles = [];
+    let roomUnsubscribe = null;
+
+    const joystickZone = document.getElementById('joystick-zone');
+    const joystickKnob = document.getElementById('joystick-knob');
+    let joystickActive = false;
+    let joystickOrigin = { x: 0, y: 0 };
+    let joystickDelta = { x: 0, y: 0 };
+
+    function handleJoystickStart(e) {
+      SoundFX.init();
+      const touch = e.touches ? e.touches[0] : e;
+      const rect = joystickZone.getBoundingClientRect();
+      joystickOrigin = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
       };
-      toast.className = `px-4 py-2.5 rounded-xl border text-xs font-semibold shadow-lg backdrop-blur transform transition-all duration-300 opacity-0 translate-y-2 flex items-center justify-between ${bgColors[type] || bgColors.info}`;
-      toast.innerHTML = `<span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 20);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', '-translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      joystickActive = true;
+      handleJoystickMove(e);
     }
 
-    const soundBtn = document.getElementById('soundToggleBtn');
-    const soundIcon = document.getElementById('soundIcon');
-    soundBtn.addEventListener('click', () => {
-      sfx.enabled = !sfx.enabled;
-      soundIcon.className = sfx.enabled ? "fa-solid fa-volume-high text-cyan-400" : "fa-solid fa-volume-xmark text-slate-500";
-      if (sfx.enabled) sfx.playClick();
-    });
+    function handleJoystickMove(e) {
+      if (!joystickActive) return;
+      const touch = e.touches ? e.touches[0] : e;
+      const dx = touch.clientX - joystickOrigin.x;
+      const dy = touch.clientY - joystickOrigin.y;
+      const dist = Math.hypot(dx, dy);
+      const maxDist = 45;
 
-    const inputNickname = document.getElementById('inputNickname');
-    inputNickname.value = myNickname;
-    document.getElementById('btnSaveNickname').addEventListener('click', () => {
-      const val = inputNickname.value.trim();
-      if (!val) return showToast('名前を入力してください', 'danger');
-      myNickname = val;
-      localStorage.setItem('paradox_nickname', myNickname);
-      showToast('名前を保存しました: ' + myNickname, 'success');
-      sfx.playClick();
-    });
+      const angle = Math.atan2(dy, dx);
+      const intensity = Math.min(dist, maxDist);
 
-    async function initAuth() {
-      try {
-        await signInAnonymously(auth);
-      } catch (err) {
-        console.error("Auth error", err);
+      joystickDelta = {
+        x: (Math.cos(angle) * intensity) / maxDist,
+        y: (Math.sin(angle) * intensity) / maxDist
+      };
+
+      joystickKnob.style.transform = `translate(${joystickDelta.x * 35}px, ${joystickDelta.y * 35}px)`;
+      
+      if (dist > 5) {
+        localPlayer.angle = angle;
       }
     }
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      const pill = document.getElementById('connectionPill');
-      if (user) {
-        pill.textContent = "同期済";
-        pill.classList.replace('text-slate-400', 'text-cyan-400');
-        pill.classList.replace('border-slate-700', 'border-cyan-500/50');
+    function handleJoystickEnd() {
+      joystickActive = false;
+      joystickDelta = { x: 0, y: 0 };
+      joystickKnob.style.transform = 'translate(0px, 0px)';
+    }
+
+    joystickZone.addEventListener('touchstart', handleJoystickStart, { passive: false });
+    window.addEventListener('touchmove', handleJoystickMove, { passive: false });
+    window.addEventListener('touchend', handleJoystickEnd);
+    joystickZone.addEventListener('mousedown', handleJoystickStart);
+    window.addEventListener('mousemove', handleJoystickMove);
+    window.addEventListener('mouseup', handleJoystickEnd);
+
+    // Keyboard support for desktop testing
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      SoundFX.init();
+      keys[e.key.toLowerCase()] = true;
+      if (e.key === ' ' && gameState === 'playing') {
+        executeAttack();
+      }
+      if (e.key.toLowerCase() === 'e' && gameState === 'playing') {
+        useSkill();
+      }
+      if (e.key.toLowerCase() === 'b' && gameState === 'playing') {
+        toggleShop(true);
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    const attackBtn = document.getElementById('attack-btn');
+    const attackIcon = document.getElementById('attack-icon');
+    const attackLabel = document.getElementById('attack-label');
+    const skillBtn = document.getElementById('skill-btn');
+    const skillIcon = document.getElementById('skill-icon');
+    const skillLabel = document.getElementById('skill-label');
+    const skillCooldownOverlay = document.getElementById('skill-cooldown-overlay');
+    const skillCooldownTimer = document.getElementById('skill-cooldown-timer');
+
+    let attackPressInterval = null;
+    function startAutoAttack() {
+      executeAttack();
+      if (!attackPressInterval) {
+        attackPressInterval = setInterval(executeAttack, 100);
+      }
+    }
+    function stopAutoAttack() {
+      if (attackPressInterval) {
+        clearInterval(attackPressInterval);
+        attackPressInterval = null;
+      }
+    }
+
+    attackBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startAutoAttack(); });
+    attackBtn.addEventListener('touchend', stopAutoAttack);
+    attackBtn.addEventListener('mousedown', startAutoAttack);
+    attackBtn.addEventListener('mouseup', stopAutoAttack);
+    attackBtn.addEventListener('mouseleave', stopAutoAttack);
+
+    skillBtn.addEventListener('touchstart', (e) => { e.preventDefault(); useSkill(); });
+    skillBtn.addEventListener('click', useSkill);
+
+    function executeAttack() {
+      if (gameState !== 'playing' || !localPlayer.isAlive || attackCooldown > 0) return;
+
+      const cConfig = BATTLE_CLASSES[myBattleType] || BATTLE_CLASSES.slasher;
+      const dmgMultiplier = 1 + (upgrades.dmgLvl - 1) * 0.2;
+      const spdFactor = Math.max(0.28, 1 - (upgrades.spdLvl - 1) * 0.08);
+      const areaMultiplier = 1 + (upgrades.areaLvl - 1) * 0.2;
+      const isCritical = Math.random() < ((upgrades.critLvl - 1) * 0.12);
+      
+      attackCooldown = cConfig.atkRate * spdFactor;
+      let totalDmg = cConfig.baseDmg * dmgMultiplier;
+      if (isCritical) {
+        totalDmg *= 2.2;
+        createSparks(localPlayer.x, localPlayer.y, '#eab308', 10);
+      }
+
+      switch (cConfig.attackType) {
+        case 'melee':
+          SoundFX.slash();
+          slashes.push({
+            playerId: myId,
+            x: localPlayer.x,
+            y: localPlayer.y,
+            angle: localPlayer.angle,
+            arc: Math.PI * 0.85,
+            radius: 95 * areaMultiplier,
+            life: 0.16,
+            maxLife: 0.16,
+            damage: totalDmg,
+            color: cConfig.color
+          });
+          break;
+
+        case 'rapid_bullet':
+          SoundFX.laser();
+          const spread = (Math.random() - 0.5) * 0.2;
+          bullets.push({
+            id: Math.random().toString(),
+            playerId: myId,
+            type: 'bullet',
+            x: localPlayer.x + Math.cos(localPlayer.angle) * 22,
+            y: localPlayer.y + Math.sin(localPlayer.angle) * 22,
+            vx: Math.cos(localPlayer.angle + spread) * 14.5,
+            vy: Math.sin(localPlayer.angle + spread) * 14.5,
+            damage: totalDmg,
+            color: '#06b6d4',
+            radius: 4 * areaMultiplier,
+            life: 65
+          });
+          break;
+
+        case 'pulse':
+          SoundFX.slash();
+          slashes.push({
+            playerId: myId,
+            x: localPlayer.x,
+            y: localPlayer.y,
+            angle: 0,
+            arc: Math.PI * 2,
+            radius: 80 * areaMultiplier,
+            life: 0.22,
+            maxLife: 0.22,
+            damage: totalDmg * 1.25,
+            color: '#10b981'
+          });
+          break;
+
+        case 'homing':
+          SoundFX.laser();
+          bullets.push({
+            id: Math.random().toString(),
+            playerId: myId,
+            type: 'homing',
+            x: localPlayer.x + Math.cos(localPlayer.angle) * 20,
+            y: localPlayer.y + Math.sin(localPlayer.angle) * 20,
+            vx: Math.cos(localPlayer.angle) * 8.5,
+            vy: Math.sin(localPlayer.angle) * 8.5,
+            speed: 8.8,
+            turnSpeed: 0.15,
+            damage: totalDmg,
+            color: '#c084fc',
+            radius: 6 * areaMultiplier,
+            life: 140
+          });
+          break;
+
+        case 'frost_nova':
+          SoundFX.frost();
+          slashes.push({
+            playerId: myId,
+            x: localPlayer.x,
+            y: localPlayer.y,
+            angle: localPlayer.angle,
+            arc: Math.PI * 0.75,
+            radius: 110 * areaMultiplier,
+            life: 0.24,
+            maxLife: 0.24,
+            damage: totalDmg,
+            color: '#38bdf8',
+            slowEffect: 0.45 // 55% slow
+          });
+          break;
+
+        case 'grenade':
+          SoundFX.laser();
+          bullets.push({
+            id: Math.random().toString(),
+            playerId: myId,
+            type: 'grenade',
+            x: localPlayer.x + Math.cos(localPlayer.angle) * 22,
+            y: localPlayer.y + Math.sin(localPlayer.angle) * 22,
+            vx: Math.cos(localPlayer.angle) * 9,
+            vy: Math.sin(localPlayer.angle) * 9,
+            damage: totalDmg,
+            blastRadius: 85 * areaMultiplier,
+            color: '#f97316',
+            radius: 7,
+            life: 38
+          });
+          break;
+
+        case 'railgun':
+          SoundFX.laser();
+          const beamLen = 380 * areaMultiplier;
+          bullets.push({
+            id: Math.random().toString(),
+            playerId: myId,
+            type: 'railgun_beam',
+            startX: localPlayer.x,
+            startY: localPlayer.y,
+            angle: localPlayer.angle,
+            length: beamLen,
+            damage: totalDmg,
+            color: '#eab308',
+            life: 0.15,
+            maxLife: 0.15
+          });
+          break;
+
+        case 'toxic_cloud':
+          SoundFX.frost();
+          toxicClouds.push({
+            x: localPlayer.x + Math.cos(localPlayer.angle) * 45,
+            y: localPlayer.y + Math.sin(localPlayer.angle) * 45,
+            radius: 55 * areaMultiplier,
+            life: 3.5,
+            maxLife: 3.5,
+            damagePerSec: totalDmg * 2.2,
+            color: '#84cc16'
+          });
+          break;
+      }
+    }
+
+    function useSkill() {
+      if (gameState !== 'playing' || skillCooldown > 0) return;
+
+      if (myRole === 'werewolf') {
+        // WEREWOLF SABOTAGE: Overload Generator & Spawn Ambush
+        skillCooldown = 18;
+        SoundFX.sabotage();
+        
+        for (let i = 0; i < 4; i++) {
+          const spawnAngle = Math.random() * Math.PI * 2;
+          enemies.push({
+            id: 'ambush_' + Math.random(),
+            x: core.x + Math.cos(spawnAngle) * 380,
+            y: core.y + Math.sin(spawnAngle) * 380,
+            hp: 3.5,
+            maxHp: 3.5,
+            speed: 3.0,
+            type: 'swarm',
+            radius: 13,
+            color: '#f43f5e',
+            dropValue: 2
+          });
+        }
+        createSparks(localPlayer.x, localPlayer.y, '#f43f5e', 22);
+        appendChatMessage("🚨 警告: コア近傍のエネルギー導管で過負荷サボタージュが発生！");
       } else {
-        pill.textContent = "未接続";
-        pill.classList.replace('text-cyan-400', 'text-slate-400');
-        pill.classList.replace('border-cyan-500/50', 'border-slate-700');
+        // CITIZEN SKILL: Modest Core Repair (+6 HP, reduced to maintain suspense)
+        skillCooldown = 15;
+        const distToCore = Math.hypot(localPlayer.x - core.x, localPlayer.y - core.y);
+        if (distToCore < 220) {
+          const healAmt = 6; // Reduced from 15 to 6
+          core.hp = Math.min(core.maxHp, core.hp + healAmt);
+          updateCoreHUD();
+          createSparks(core.x, core.y, '#10b981', 25);
+          SoundFX.alarm();
+          appendChatMessage(`🛠️ ${localPlayer.name}が防衛コアを微量修復しました (+${healAmt}HP)`);
+        } else {
+          localPlayer.speed = localPlayer.baseSpeed * 1.5;
+          setTimeout(() => { 
+            localPlayer.speed = localPlayer.baseSpeed * (1 + (upgrades.movLvl - 1) * 0.12); 
+          }, 4000);
+          createSparks(localPlayer.x, localPlayer.y, '#38bdf8', 15);
+        }
+      }
+    }
+
+    const shopModal = document.getElementById('shop-modal');
+    const openShopBtn = document.getElementById('open-shop-btn');
+    const closeShopBtn = document.getElementById('close-shop-btn');
+    const hudMoney = document.getElementById('hud-money');
+    const shopMoneyVal = document.getElementById('shop-money-val');
+
+    openShopBtn.addEventListener('click', () => toggleShop(true));
+    closeShopBtn.addEventListener('click', () => toggleShop(false));
+
+    function toggleShop(open) {
+      if (open) {
+        SoundFX.init();
+        updateShopUI();
+        shopModal.classList.remove('hidden');
+      } else {
+        shopModal.classList.add('hidden');
+      }
+    }
+
+    function addMoney(amount) {
+      myMoney += amount;
+      hudMoney.textContent = myMoney;
+      shopMoneyVal.textContent = myMoney;
+    }
+
+    function updateShopUI() {
+      shopMoneyVal.textContent = myMoney;
+      hudMoney.textContent = myMoney;
+      document.getElementById('player-hp-display').textContent = `${Math.round(localPlayer.hp)} / ${localPlayer.maxHp}`;
+
+      // Levels & Costs
+      document.getElementById('up-dmg-lvl').textContent = upgrades.dmgLvl;
+      document.getElementById('up-dmg-cost').textContent = upgrades.dmgLvl * 15;
+
+      document.getElementById('up-spd-lvl').textContent = upgrades.spdLvl;
+      document.getElementById('up-spd-cost').textContent = upgrades.spdLvl * 15;
+
+      document.getElementById('up-mov-lvl').textContent = upgrades.movLvl;
+      document.getElementById('up-mov-cost').textContent = upgrades.movLvl * 12;
+
+      document.getElementById('up-mag-lvl').textContent = upgrades.magLvl;
+      document.getElementById('up-mag-cost').textContent = upgrades.magLvl * 10;
+
+      document.getElementById('up-area-lvl').textContent = upgrades.areaLvl;
+      document.getElementById('up-area-cost').textContent = upgrades.areaLvl * 18;
+
+      document.getElementById('up-crit-lvl').textContent = upgrades.critLvl;
+      document.getElementById('up-crit-cost').textContent = upgrades.critLvl * 20;
+
+      document.getElementById('up-hp-cost').textContent = 22 + (upgrades.hpLvl - 1) * 10;
+    }
+
+    // Purchase handlers
+    document.getElementById('buy-dmg-btn').addEventListener('click', () => {
+      const cost = upgrades.dmgLvl * 15;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.dmgLvl++;
+        SoundFX.upgrade();
+        updateShopUI();
       }
     });
 
-    const MISSION_DATA = [
-      { title: "第1フェーズ: 原子炉冷却システムの修復", desc: "冷却管バルブを開放し炉心を冷却せよ。" },
-      { title: "第2フェーズ: 生命維持バイオフィルターの再起動", desc: "酸素濃度を正常値に維持するための電力を分配せよ。" },
-      { title: "第3フェーズ: 星間航法ビーコンの軌道修正", desc: "通信アンテナを地球方面へ同期せよ。" },
-      { title: "第4フェーズ: コアシールドの最終結合", desc: "臨界突破を防ぐ最終防壁を固定せよ。" }
-    ];
-
-    function generateRoomCode() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let code = "";
-      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-      return code;
-    }
-
-    function getRoomsCollectionRef() {
-      return collection(db, 'paradox_rooms');
-    }
-
-    function getRoomDocRef(code) {
-      return doc(db, 'paradox_rooms', code);
-    }
-
-    // --- ルーム作成処理 ---
-    async function createRoom(keyword = "") {
-      if (!currentUser) return showToast('認証待機中です', 'danger');
-      const val = inputNickname.value.trim();
-      if (val) myNickname = val;
-
-      const roomCode = generateRoomCode();
-      const initialRoom = {
-        code: roomCode,
-        keyword: keyword ? keyword.toLowerCase() : "",
-        hostId: currentUser.uid,
-        status: 'waiting',
-        createdAt: serverTimestamp(),
-        round: 1,
-        totalRounds: 4,
-        coreEnergy: 40,
-        targetEnergy: 70,
-        players: {
-          [currentUser.uid]: {
-            uid: currentUser.uid,
-            nickname: myNickname,
-            role: null,
-            action: null,
-            vote: null,
-            joinedAt: Date.now()
-          }
-        },
-        chatLogs: [{
-          sender: "SYSTEM",
-          text: "通信確立。クルーの集合を待機中。",
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }],
-        missionHistory: []
-      };
-
-      try {
-        await setDoc(getRoomDocRef(roomCode), initialRoom);
-        currentRoomCode = roomCode;
-        listenToRoom(roomCode);
-        sfx.playSuccess();
-        showToast(keyword ? `合言葉「${keyword}」で待機部屋を作成しました` : `部屋を作成しました: ${roomCode}`, 'success');
-      } catch (err) {
-        console.error(err);
-        showToast("部屋作成に失敗しました", 'danger');
+    document.getElementById('buy-spd-btn').addEventListener('click', () => {
+      const cost = upgrades.spdLvl * 15;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.spdLvl++;
+        SoundFX.upgrade();
+        updateShopUI();
       }
-    }
+    });
 
-    // --- 指定コードで参加 ---
-    async function joinRoom(code) {
-      if (!currentUser) return showToast('認証待機中です', 'danger');
-      const val = inputNickname.value.trim();
-      if (val) myNickname = val;
-
-      const roomRef = getRoomDocRef(code);
-      try {
-        const snap = await getDoc(roomRef);
-        if (!snap.exists()) return showToast('指定の部屋が見つかりません', 'danger');
-        
-        const data = snap.data();
-        if (data.status !== 'waiting') return showToast('すでにゲーム中または終了しています', 'danger');
-
-        const pList = Object.keys(data.players || {});
-        if (pList.length >= 8 && !pList.includes(currentUser.uid)) {
-          return showToast('満員です (最大8人)', 'danger');
-        }
-
-        const updateObj = {};
-        updateObj[`players.${currentUser.uid}`] = {
-          uid: currentUser.uid,
-          nickname: myNickname,
-          role: null,
-          action: null,
-          vote: null,
-          joinedAt: Date.now()
-        };
-
-        await updateDoc(roomRef, updateObj);
-        currentRoomCode = code;
-        listenToRoom(code);
-        sfx.playSuccess();
-        showToast(`ルーム ${code} に参加しました`, 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('参加に失敗しました', 'danger');
+    document.getElementById('buy-mov-btn').addEventListener('click', () => {
+      const cost = upgrades.movLvl * 12;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.movLvl++;
+        localPlayer.speed = localPlayer.baseSpeed * (1 + (upgrades.movLvl - 1) * 0.12);
+        SoundFX.upgrade();
+        updateShopUI();
       }
-    }
+    });
 
-    // --- ランダムマッチング ---
-    async function startRandomMatch() {
-      if (!currentUser) return showToast('認証待機中です', 'danger');
-      showToast('参加可能な部屋を検索中...', 'info');
-
-      try {
-        // 合言葉なし、かつ待機中の部屋を検索
-        const q = query(
-          getRoomsCollectionRef(),
-          where('status', '==', 'waiting'),
-          where('keyword', '==', '')
-        );
-        const querySnapshot = await getDocs(q);
-        
-        let targetRoomCode = null;
-        for (const docSnap of querySnapshot.docs) {
-          const data = docSnap.data();
-          const playerCount = Object.keys(data.players || {}).length;
-          if (playerCount < 8) {
-            targetRoomCode = data.code;
-            break;
-          }
-        }
-
-        if (targetRoomCode) {
-          await joinRoom(targetRoomCode);
-        } else {
-          // 空き部屋がなければ自動作成
-          await createRoom("");
-        }
-      } catch (err) {
-        console.error("Random match error:", err);
-        showToast('マッチング中にエラーが発生しました', 'danger');
+    document.getElementById('buy-mag-btn').addEventListener('click', () => {
+      const cost = upgrades.magLvl * 10;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.magLvl++;
+        localPlayer.magnetRadius = 80 + upgrades.magLvl * 45;
+        SoundFX.upgrade();
+        updateShopUI();
       }
-    }
+    });
 
-    // --- 合言葉マッチング ---
-    async function startKeywordMatch(keyword) {
-      if (!currentUser) return showToast('認証待機中です', 'danger');
-      const cleanKeyword = keyword.trim().toLowerCase();
-      if (!cleanKeyword) return showToast('合言葉を入力してください', 'danger');
-
-      showToast(`合言葉「${cleanKeyword}」を検索中...`, 'info');
-
-      try {
-        const q = query(
-          getRoomsCollectionRef(),
-          where('status', '==', 'waiting'),
-          where('keyword', '==', cleanKeyword)
-        );
-        const querySnapshot = await getDocs(q);
-
-        let targetRoomCode = null;
-        for (const docSnap of querySnapshot.docs) {
-          const data = docSnap.data();
-          const playerCount = Object.keys(data.players || {}).length;
-          if (playerCount < 8) {
-            targetRoomCode = data.code;
-            break;
-          }
-        }
-
-        if (targetRoomCode) {
-          await joinRoom(targetRoomCode);
-        } else {
-          // なければその合言葉で部屋を作成して待機
-          await createRoom(cleanKeyword);
-        }
-      } catch (err) {
-        console.error("Keyword match error:", err);
-        showToast('合言葉マッチングに失敗しました', 'danger');
+    document.getElementById('buy-area-btn').addEventListener('click', () => {
+      const cost = upgrades.areaLvl * 18;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.areaLvl++;
+        SoundFX.upgrade();
+        updateShopUI();
       }
+    });
+
+    document.getElementById('buy-crit-btn').addEventListener('click', () => {
+      const cost = upgrades.critLvl * 20;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.critLvl++;
+        SoundFX.upgrade();
+        updateShopUI();
+      }
+    });
+
+    document.getElementById('buy-hp-btn').addEventListener('click', () => {
+      const cost = 22 + (upgrades.hpLvl - 1) * 10;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        upgrades.hpLvl++;
+        localPlayer.maxHp += 30;
+        localPlayer.hp = localPlayer.maxHp;
+        SoundFX.upgrade();
+        updateShopUI();
+        createSparks(localPlayer.x, localPlayer.y, '#38bdf8', 18);
+      }
+    });
+
+    document.getElementById('buy-shield-btn').addEventListener('click', () => {
+      const cost = 25;
+      if (myMoney >= cost) {
+        myMoney -= cost;
+        shieldTimer = 12.0; // 12 seconds
+        SoundFX.upgrade();
+        updateShopUI();
+        createSparks(localPlayer.x, localPlayer.y, '#3b82f6', 22);
+      }
+    });
+
+    // Reduced emergency heal from 25 to 8
+    document.getElementById('buy-core-repair-btn').addEventListener('click', () => {
+      const cost = 30;
+      if (myMoney >= cost && core.hp < core.maxHp) {
+        myMoney -= cost;
+        const healAmt = 8;
+        core.hp = Math.min(core.maxHp, core.hp + healAmt);
+        updateCoreHUD();
+        SoundFX.upgrade();
+        createSparks(core.x, core.y, '#10b981', 25);
+        updateShopUI();
+        appendChatMessage(`🛠️ 応急処置により防衛コアが修復されました (+${healAmt}HP)`);
+      }
+    });
+
+    const tabHost = document.getElementById('tab-host');
+    const tabJoin = document.getElementById('tab-join');
+    const joinCodeContainer = document.getElementById('join-code-container');
+    const startConnectBtn = document.getElementById('start-connect-btn');
+    const soloTestBtn = document.getElementById('solo-test-btn');
+    const waitingRoom = document.getElementById('waiting-room');
+    const displayRoomCode = document.getElementById('display-room-code');
+    const playerCountBadge = document.getElementById('player-count-badge');
+    const lobbyPlayerList = document.getElementById('lobby-player-list');
+    const launchGameBtn = document.getElementById('launch-game-btn');
+    const playerNameInput = document.getElementById('player-name-input');
+    const roomCodeInput = document.getElementById('room-code-input');
+
+    let isHostModeSelected = true;
+
+    tabHost.addEventListener('click', () => {
+      isHostModeSelected = true;
+      tabHost.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-white shadow";
+      tabJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white";
+      joinCodeContainer.classList.add('hidden');
+      startConnectBtn.innerHTML = '<i class="fa-solid fa-wifi"></i> 部屋を作成して待機所へ';
+    });
+
+    tabJoin.addEventListener('click', () => {
+      isHostModeSelected = false;
+      tabJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-white shadow";
+      tabHost.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white";
+      joinCodeContainer.classList.remove('hidden');
+      startConnectBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> ルームに参加する';
+    });
+
+    function getRoomDocRef(roomId) {
+      if (!db) return null;
+      return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
     }
 
-    function listenToRoom(code) {
-      if (roomUnsubscribe) roomUnsubscribe();
+    startConnectBtn.addEventListener('click', async () => {
+      SoundFX.init();
+      myName = playerNameInput.value.trim() || 'エージェント';
+      localPlayer.name = myName;
 
-      const roomRef = getRoomDocRef(code);
-      roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
-        if (!snapshot.exists()) {
-          showToast('ルームが解散されました', 'danger');
-          leaveRoomLocal();
+      if (isHostModeSelected) {
+        currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+        isHost = true;
+        await enterWaitingRoom(currentRoomId, true);
+      } else {
+        const inputCode = roomCodeInput.value.trim();
+        if (inputCode.length !== 4) {
+          alertCustom("4桁のルームコードを入力してください");
           return;
         }
-        currentRoomData = snapshot.data();
-        renderRoomState(currentRoomData);
-      });
-    }
-
-    function leaveRoomLocal() {
-      if (roomUnsubscribe) {
-        roomUnsubscribe();
-        roomUnsubscribe = null;
+        currentRoomId = inputCode;
+        isHost = false;
+        await enterWaitingRoom(currentRoomId, false);
       }
-      currentRoomCode = null;
-      currentRoomData = null;
-      document.getElementById('headerRoomStatus').textContent = "オフライン";
-      showView('lobby');
-    }
+    });
 
-    async function startGame() {
-      if (!currentRoomData || !currentUser || currentRoomData.hostId !== currentUser.uid) return;
+    soloTestBtn.addEventListener('click', () => {
+      SoundFX.init();
+      myName = playerNameInput.value.trim() || 'エージェント';
+      localPlayer.name = myName;
+      isSoloBotMode = true;
+      isHost = true;
+      currentRoomId = "TEST";
+      setupSoloBots();
+      startGameMatch();
+    });
 
-      const playerKeys = Object.keys(currentRoomData.players || {});
-      if (playerKeys.length < 2) return showToast('最低2人必要です', 'danger');
+    function setupSoloBots() {
+      players = {};
+      players[myId] = localPlayer;
+      
+      const botNames = ['サイバーキャット', '零号機タチコマ', 'アンドロイドZ'];
+      const classKeys = Object.keys(BATTLE_CLASSES);
 
-      const updatedPlayers = { ...currentRoomData.players };
-      playerKeys.forEach(uid => {
-        const isWerewolf = Math.random() < 0.35; // 35% 独立判定
-        updatedPlayers[uid].role = isWerewolf ? 'werewolf' : 'citizen';
-        updatedPlayers[uid].action = null;
-        updatedPlayers[uid].vote = null;
-      });
-
-      try {
-        await updateDoc(getRoomDocRef(currentRoomData.code), {
-          status: 'in_game',
-          round: 1,
-          coreEnergy: 45,
-          players: updatedPlayers,
-          missionHistory: []
-        });
-        sfx.playAlarm();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    function renderRoomState(data) {
-      document.getElementById('headerRoomStatus').textContent = `ROOM: ${data.code}`;
-
-      if (data.status === 'waiting') {
-        showView('roomLobby');
-        document.getElementById('displayRoomCode').textContent = data.code;
+      botNames.forEach((bName, idx) => {
+        const bId = 'bot_' + idx;
+        const isWolf = Math.random() < WEREWOLF_PROBABILITY;
+        const bType = classKeys[Math.floor(Math.random() * classKeys.length)];
         
-        const badge = document.getElementById('displayKeywordBadge');
-        if (data.keyword) {
-          badge.classList.remove('hidden');
-          document.getElementById('displayKeywordText').textContent = data.keyword;
-        } else {
-          badge.classList.add('hidden');
-        }
+        players[bId] = {
+          id: bId,
+          name: bName,
+          x: core.x + (idx * 70 - 70),
+          y: core.y - 120,
+          radius: 20,
+          speed: 4.0,
+          angle: 0,
+          color: isWolf ? '#fb7185' : '#38bdf8',
+          role: isWolf ? 'werewolf' : 'citizen',
+          battleType: bType,
+          hp: 100,
+          isAlive: true,
+          isBot: true
+        };
+      });
+    }
 
-        const players = Object.values(data.players || {});
-        document.getElementById('playerCount').textContent = players.length;
+    async function enterWaitingRoom(roomId, asHost) {
+      displayRoomCode.textContent = roomId;
+      waitingRoom.classList.remove('hidden');
+      startConnectBtn.classList.add('hidden');
 
-        const rosterEl = document.getElementById('roomPlayerList');
-        rosterEl.innerHTML = '';
-        players.forEach(p => {
-          const isHost = p.uid === data.hostId;
-          const isMe = p.uid === currentUser.uid;
-          const row = document.createElement('div');
-          row.className = `flex items-center justify-between p-2 rounded-xl border ${isMe ? 'bg-cyan-950/40 border-cyan-500/60' : 'bg-space-900 border-slate-700'}`;
-          row.innerHTML = `
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold ${isMe ? 'text-cyan-300' : 'text-slate-200'}">${escapeHtml(p.nickname)} ${isMe ? '(自分)' : ''}</span>
-            </div>
-            ${isHost ? '<span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40">HOST</span>' : ''}
-          `;
-          rosterEl.appendChild(row);
+      localPlayer.color = getRandomColor();
+      players[myId] = localPlayer;
+
+      if (!isFirebaseReady || !db) {
+        renderLobbyList([{ id: myId, name: myName, isHost: asHost }]);
+        launchGameBtn.classList.toggle('hidden', !asHost);
+        return;
+      }
+
+      const roomRef = getRoomDocRef(roomId);
+      if (asHost) {
+        await setDoc(roomRef, {
+          hostId: myId,
+          state: 'waiting',
+          timer: GAME_DURATION,
+          members: [{ id: myId, name: myName, color: localPlayer.color }],
+          coreHp: 100
         });
-
-        const btnStart = document.getElementById('btnStartGame');
-        const hostNotice = document.getElementById('hostNotice');
-        if (currentUser && data.hostId === currentUser.uid) {
-          btnStart.classList.remove('hidden');
-          hostNotice.classList.add('hidden');
-        } else {
-          btnStart.classList.add('hidden');
-          hostNotice.classList.remove('hidden');
+      } else {
+        const snap = await getDoc(roomRef);
+        if (!snap.exists()) {
+          alertCustom("部屋が見つかりません。コードを確認してください。");
+          waitingRoom.classList.add('hidden');
+          startConnectBtn.classList.remove('hidden');
+          return;
         }
+        await updateDoc(roomRef, {
+          members: arrayUnion({ id: myId, name: myName, color: localPlayer.color })
+        });
+      }
+
+      roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
+        if (!snapshot.exists()) return;
+        const data = snapshot.data();
+        if (data.state === 'playing' && gameState === 'lobby') {
+          syncRolesAndStart(data);
+        } else if (data.state === 'voting' && gameState === 'playing') {
+          triggerVotingPhase("防衛時間終了またはコア破壊により会議招集");
+        }
+        renderLobbyList(data.members || []);
+      }, (err) => console.log("Room listener error", err));
+
+      launchGameBtn.classList.toggle('hidden', !asHost);
+    }
+
+    function renderLobbyList(members) {
+      playerCountBadge.textContent = `${members.length} / 8 人`;
+      lobbyPlayerList.innerHTML = members.map(m => `
+        <div class="flex items-center justify-between bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full" style="background:${m.color || '#38bdf8'}"></span>
+            <span class="text-xs font-semibold text-slate-200">${m.name} ${m.id === myId ? '(あなた)' : ''}</span>
+          </div>
+          ${m.isHost ? '<span class="text-[10px] bg-cyan-950 text-cyan-400 border border-cyan-500/40 px-1.5 py-0.5 rounded">HOST</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    launchGameBtn.addEventListener('click', async () => {
+      SoundFX.init();
+      if (isSoloBotMode) {
+        startGameMatch();
         return;
       }
 
-      if (data.status === 'in_game' || data.status === 'final_vote') {
-        showView('game');
-        renderActiveGame(data);
-        return;
-      }
+      const roomRef = getRoomDocRef(currentRoomId);
+      const snap = await getDoc(roomRef);
+      if (!snap.exists()) return;
 
-      if (data.status === 'ended') {
-        showView('gameOver');
-        renderGameOver(data);
-      }
-    }
+      const members = snap.data().members || [];
+      const assignedRoles = {};
+      const assignedClasses = {};
+      const classKeys = Object.keys(BATTLE_CLASSES);
 
-    function renderActiveGame(data) {
-      const myData = data.players[currentUser.uid];
-      const isWerewolf = myData?.role === 'werewolf';
-
-      const roleBadge = document.getElementById('roleBadge');
-      const roleDesc = document.getElementById('roleDescription');
-      if (isWerewolf) {
-        roleBadge.textContent = "⚠️ あなたは【潜入工作員 (人狼)】です";
-        roleBadge.className = "text-xs font-black px-3 py-1 rounded-full mb-1 bg-red-600/30 text-red-400 border border-red-500";
-        roleDesc.textContent = "ミッションを失敗させるか、告発を逃れて生き延びてください。";
-        document.getElementById('btnSabotageAction').classList.remove('hidden');
-      } else {
-        roleBadge.textContent = "🛡️ あなたは【正規市民】です";
-        roleBadge.className = "text-xs font-black px-3 py-1 rounded-full mb-1 bg-cyan-600/30 text-cyan-300 border border-cyan-400";
-        roleDesc.textContent = "エネルギー70%以上を維持し、人狼を特定してください。";
-        document.getElementById('btnSabotageAction').classList.add('hidden');
-      }
-
-      document.getElementById('gameRoundLabel').textContent = data.status === 'final_vote' ? '最終糾問フェーズ' : `第 ${data.round} / ${data.totalRounds} フェーズ`;
-
-      const energy = Math.max(0, Math.min(100, data.coreEnergy || 0));
-      document.getElementById('coreEnergyValue').textContent = `現在: ${energy}% (目標: ${data.targetEnergy}%)`;
-      const fill = document.getElementById('energyProgressFill');
-      fill.style.width = `${energy}%`;
-      document.getElementById('energyBarText').textContent = `${energy}% / 100%`;
-
-      const mIdx = Math.min((data.round || 1) - 1, MISSION_DATA.length - 1);
-      document.getElementById('missionEventTitle').textContent = MISSION_DATA[mIdx].title;
-      document.getElementById('missionEventDesc').textContent = MISSION_DATA[mIdx].desc;
-
-      const players = Object.values(data.players || {});
-      const submittedCount = players.filter(p => p.action !== null).length;
-      document.getElementById('submittedCountLabel').textContent = `${submittedCount} / ${players.length} 提出済`;
-
-      const hasSubmitted = myData && myData.action !== null;
-      document.getElementById('actionButtonGroup').classList.toggle('hidden', hasSubmitted);
-      document.getElementById('alreadySubmittedNotice').classList.toggle('hidden', !hasSubmitted);
-      document.getElementById('submissionStatusBadge').textContent = hasSubmitted ? "提出済み" : "未選択";
-
-      if (data.status === 'in_game' && submittedCount === players.length && data.hostId === currentUser.uid) {
-        evaluateMissionRound(data);
-      }
-
-      renderChat(data.chatLogs || []);
-
-      const finalSection = document.getElementById('finalTrialSection');
-      if (data.status === 'final_vote') {
-        document.getElementById('missionActionCard').classList.add('hidden');
-        finalSection.classList.remove('hidden');
-        renderFinalVoting(data);
-      } else {
-        document.getElementById('missionActionCard').classList.remove('hidden');
-        finalSection.classList.add('hidden');
-      }
-    }
-
-    async function submitAction(choice) {
-      if (!currentRoomData || !currentUser) return;
-      sfx.playClick();
-      try {
-        const updateObj = {};
-        updateObj[`players.${currentUser.uid}.action`] = choice;
-        await updateDoc(getRoomDocRef(currentRoomData.code), updateObj);
-        showToast('アクションを送信しました', 'success');
-      } catch (e) {
-        showToast('送信失敗', 'danger');
-      }
-    }
-
-    document.querySelectorAll('.action-choice-btn').forEach(btn => {
-      btn.addEventListener('click', () => submitAction(btn.getAttribute('data-action')));
-    });
-
-    async function evaluateMissionRound(data) {
-      const players = Object.values(data.players || {});
-      let support = 0, boost = 0, sabotage = 0;
-
-      players.forEach(p => {
-        if (p.action === 'support') support++;
-        else if (p.action === 'boost') boost++;
-        else if (p.action === 'sabotage') sabotage++;
+      members.forEach(m => {
+        assignedRoles[m.id] = Math.random() < WEREWOLF_PROBABILITY ? 'werewolf' : 'citizen';
+        assignedClasses[m.id] = classKeys[Math.floor(Math.random() * classKeys.length)];
       });
 
-      const delta = (support * 15) + (boost * 25) - (sabotage * 30);
-      const newEnergy = Math.max(0, Math.min(100, (data.coreEnergy || 0) + delta));
-      const currentTitle = MISSION_DATA[Math.min(data.round - 1, MISSION_DATA.length - 1)].title;
+      await updateDoc(roomRef, {
+        state: 'playing',
+        roles: assignedRoles,
+        classes: assignedClasses,
+        startTime: Date.now()
+      });
+    });
 
-      const historyEntry = {
-        round: data.round,
-        title: currentTitle,
-        delta: delta,
-        resultEnergy: newEnergy
-      };
+    function syncRolesAndStart(roomData) {
+      if (roomData.roles && roomData.roles[myId]) {
+        myRole = roomData.roles[myId];
+      }
+      if (roomData.classes && roomData.classes[myId]) {
+        myBattleType = roomData.classes[myId];
+      }
 
-      const newHistory = [...(data.missionHistory || []), historyEntry];
-      const isLastRound = data.round >= data.totalRounds || newEnergy <= 0;
+      localPlayer.role = myRole;
+      localPlayer.battleType = myBattleType;
+      
+      if (roomData.members) {
+        roomData.members.forEach(m => {
+          if (m.id !== myId) {
+            players[m.id] = {
+              id: m.id,
+              name: m.name,
+              x: core.x + (Math.random() * 120 - 60),
+              y: core.y + 110,
+              radius: 20,
+              speed: 4.8,
+              angle: 0,
+              color: m.color || '#38bdf8',
+              isAlive: true,
+              role: roomData.roles ? roomData.roles[m.id] : 'citizen',
+              battleType: roomData.classes ? roomData.classes[m.id] : 'slasher',
+              hp: 100
+            };
+          }
+        });
+      }
+      startGameMatch();
+    }
 
-      const resetPlayers = {};
-      Object.keys(data.players).forEach(uid => resetPlayers[`players.${uid}.action`] = null);
+    const roleModal = document.getElementById('role-modal');
+    const roleCard = document.getElementById('role-card');
+    const roleTitle = document.getElementById('role-title');
+    const roleDesc = document.getElementById('role-desc');
+    const roleIconBox = document.getElementById('role-icon-box');
+    const roleIcon = document.getElementById('role-icon');
+    const roleConfirmBtn = document.getElementById('role-confirm-btn');
+    const hudRoleBadge = document.getElementById('hud-role-badge');
+    const hudClassBadge = document.getElementById('hud-class-badge');
+    const classTitle = document.getElementById('class-title');
+    const classDesc = document.getElementById('class-desc');
+    const classAvatar = document.getElementById('class-avatar');
 
-      try {
-        if (isLastRound) {
-          await updateDoc(getRoomDocRef(data.code), {
-            ...resetPlayers,
-            coreEnergy: newEnergy,
-            missionHistory: newHistory,
-            status: 'final_vote'
-          });
-        } else {
-          await updateDoc(getRoomDocRef(data.code), {
-            ...resetPlayers,
-            coreEnergy: newEnergy,
-            missionHistory: newHistory,
-            round: data.round + 1
-          });
-        }
-      } catch (err) {
-        console.error(err);
+    function startGameMatch() {
+      if (isSoloBotMode) {
+        myRole = Math.random() < WEREWOLF_PROBABILITY ? 'werewolf' : 'citizen';
+        const classKeys = Object.keys(BATTLE_CLASSES);
+        myBattleType = classKeys[Math.floor(Math.random() * classKeys.length)];
+        localPlayer.role = myRole;
+        localPlayer.battleType = myBattleType;
+      }
+
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('hud-top').classList.remove('hidden');
+      document.getElementById('touch-controls').classList.remove('hidden');
+
+      const cConfig = BATTLE_CLASSES[myBattleType];
+      localPlayer.maxHp = 100 + cConfig.maxHpBonus;
+      localPlayer.hp = localPlayer.maxHp;
+      localPlayer.baseSpeed = 4.8 * cConfig.speedBonus;
+      localPlayer.speed = localPlayer.baseSpeed;
+
+      roleModal.classList.remove('hidden');
+      if (myRole === 'werewolf') {
+        roleCard.className = "w-full max-w-sm bg-slate-900 border-2 border-rose-500 rounded-3xl p-6 text-center neon-rose";
+        roleIconBox.className = "w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-3 bg-rose-950/80 text-rose-500 border border-rose-500/40";
+        roleIcon.className = "fa-solid fa-skull";
+        roleTitle.className = "text-2xl font-black my-1 text-rose-400 neon-text";
+        roleTitle.textContent = "人狼 (SABOTEUR)";
+        roleDesc.innerHTML = "防衛隊に潜入しコア陥落を目指せ！<br><span class='text-rose-300 font-bold'>【急襲破壊】</span>で強襲部隊を召喚可能。疑われずに妨害せよ！";
+        hudRoleBadge.className = "px-2 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider text-rose-300 bg-rose-950/90 border border-rose-500/50";
+        hudRoleBadge.textContent = "人狼 (SABOTEUR)";
+      } else {
+        roleCard.className = "w-full max-w-sm bg-slate-900 border-2 border-cyan-500 rounded-3xl p-6 text-center neon-cyan";
+        roleIconBox.className = "w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-3 bg-cyan-950/80 text-cyan-400 border border-cyan-500/40";
+        roleIcon.className = "fa-solid fa-shield-halved";
+        roleTitle.className = "text-2xl font-black my-1 text-cyan-400 neon-text";
+        roleTitle.textContent = "市民 (DEFENDER)";
+        roleDesc.innerHTML = "中央の防衛コアを制限時間まで守り抜け！<br>怪しい行動を取る味方（人狼）を観察し、追放せよ！";
+        hudRoleBadge.className = "px-2 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider text-cyan-300 bg-cyan-950/90 border border-cyan-500/50";
+        hudRoleBadge.textContent = "市民 (DEFENDER)";
+      }
+
+      classTitle.textContent = cConfig.name;
+      classDesc.textContent = cConfig.desc;
+      classAvatar.className = `w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0`;
+      classAvatar.style.backgroundColor = `${cConfig.color}25`;
+      classAvatar.style.color = cConfig.color;
+      classAvatar.innerHTML = `<i class="fa-solid ${cConfig.icon}"></i>`;
+
+      hudClassBadge.textContent = cConfig.name.split(' ')[0];
+      hudClassBadge.style.borderColor = `${cConfig.color}60`;
+      hudClassBadge.style.color = cConfig.color;
+
+      attackIcon.className = `fa-solid ${cConfig.icon} text-2xl`;
+      attackLabel.textContent = cConfig.name.split(' ')[0];
+
+      updateSkillUI();
+    }
+
+    function updateSkillUI() {
+      if (myRole === 'werewolf') {
+        skillBtn.className = "touch-btn relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-rose-600 to-red-800 text-white shadow-xl border border-red-400/40 flex flex-col items-center justify-center";
+        skillIcon.className = "fa-solid fa-biohazard text-lg text-red-200";
+        skillLabel.textContent = "急襲破壊";
+      } else {
+        skillBtn.className = "touch-btn relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white shadow-xl border border-emerald-400/40 flex flex-col items-center justify-center";
+        skillIcon.className = "fa-solid fa-wrench text-lg text-emerald-200";
+        skillLabel.textContent = "修復/加速";
       }
     }
 
-    function renderFinalVoting(data) {
-      const voteList = document.getElementById('voteOptionsList');
-      const confirmBtn = document.getElementById('btnConfirmVote');
-      const myData = data.players[currentUser.uid];
-      const hasVoted = myData && myData.vote !== null;
+    roleConfirmBtn.addEventListener('click', () => {
+      roleModal.classList.add('hidden');
+      gameState = 'playing';
+      matchTimeRemaining = GAME_DURATION;
 
-      confirmBtn.disabled = hasVoted || !selectedVoteTarget;
-      confirmBtn.textContent = hasVoted ? "投票済み" : (selectedVoteTarget ? "この選択で確定投票" : "選択してください");
+      for (let i = 0; i < 8; i++) spawnScaledEnemy();
+    });
 
-      voteList.innerHTML = '';
+    function spawnScaledEnemy() {
+      let x, y;
+      if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? 50 : ARENA_WIDTH - 50;
+        y = Math.random() * ARENA_HEIGHT;
+      } else {
+        x = Math.random() * ARENA_WIDTH;
+        y = Math.random() < 0.5 ? 50 : ARENA_HEIGHT - 50;
+      }
 
-      const noneBtn = document.createElement('button');
-      noneBtn.disabled = hasVoted;
-      const isSelectedNone = selectedVoteTarget === 'none' || myData?.vote === 'none';
-      noneBtn.className = `p-3 rounded-xl border text-left flex items-center justify-between ${isSelectedNone ? 'bg-amber-950/60 border-amber-400 text-amber-200' : 'bg-space-900 border-slate-700 text-slate-300'}`;
-      noneBtn.innerHTML = `<div><div class="text-xs font-bold">「人狼は0人である」</div></div>`;
-      noneBtn.addEventListener('click', () => { selectedVoteTarget = 'none'; renderFinalVoting(data); });
-      voteList.appendChild(noneBtn);
+      const progress = Math.min(1.0, (GAME_DURATION - matchTimeRemaining) / GAME_DURATION);
+      const roll = Math.random();
 
-      Object.values(data.players || {}).forEach(p => {
-        if (p.uid === currentUser.uid) return;
+      let type = 'drone';
+      let hp = 2.6 + progress * 4.5;
+      let speed = 2.1 + progress * 0.9;
+      let radius = 14;
+      let color = '#ef4444';
+      let dropVal = 1;
+
+      if (progress > 0.4 && roll < 0.28) {
+        type = 'tank';
+        hp = 12 + progress * 18;
+        speed = 1.3 + progress * 0.45;
+        radius = 24;
+        color = '#f97316';
+        dropVal = 4;
+      } else if (roll < 0.35) {
+        type = 'swarm';
+        hp = 1.5 + progress * 2.2;
+        speed = 3.3 + progress * 1.0;
+        radius = 11;
+        color = '#ec4899';
+        dropVal = 1;
+      }
+
+      enemies.push({
+        id: 'e_' + Math.random().toString(),
+        x, y,
+        hp, maxHp: hp,
+        speed,
+        baseSpeed: speed,
+        radius,
+        type,
+        color,
+        dropValue: dropVal,
+        slowTimer: 0
+      });
+    }
+
+    let lastTime = performance.now();
+    let enemySpawnCounter = 0;
+
+    function gameLoop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      if (gameState === 'playing') {
+        updateGame(dt);
+      }
+      renderGame();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateGame(dt) {
+      if (attackCooldown > 0) attackCooldown -= dt;
+      if (shieldTimer > 0) shieldTimer -= dt;
+
+      if (skillCooldown > 0) {
+        skillCooldown -= dt;
+        skillCooldownOverlay.classList.remove('hidden');
+        skillCooldownTimer.textContent = Math.ceil(skillCooldown);
+      } else {
+        skillCooldownOverlay.classList.add('hidden');
+      }
+
+      matchTimeRemaining -= dt;
+      if (matchTimeRemaining <= 0) {
+        matchTimeRemaining = 0;
+        triggerVotingPhase("5分間の防衛ミッション完遂！投票会議へ移行します。");
+      }
+      updateTimerHUD();
+
+      // Local Movement
+      let moveX = joystickDelta.x;
+      let moveY = joystickDelta.y;
+
+      if (keys['w'] || keys['arrowup']) moveY = -1;
+      if (keys['s'] || keys['arrowdown']) moveY = 1;
+      if (keys['a'] || keys['arrowleft']) moveX = -1;
+      if (keys['d'] || keys['arrowright']) moveX = 1;
+
+      if (moveX !== 0 || moveY !== 0) {
+        const len = Math.hypot(moveX, moveY);
+        const normX = moveX / len;
+        const normY = moveY / len;
+        localPlayer.x = Math.max(30, Math.min(ARENA_WIDTH - 30, localPlayer.x + normX * localPlayer.speed));
+        localPlayer.y = Math.max(30, Math.min(ARENA_HEIGHT - 30, localPlayer.y + normY * localPlayer.speed));
+        localPlayer.angle = Math.atan2(normY, normX);
+      }
+
+      if (isSoloBotMode) {
+        updateSoloBots(dt);
+      }
+
+      // Enemy Spawning Escalation
+      const progress = Math.min(1.0, (GAME_DURATION - matchTimeRemaining) / GAME_DURATION);
+      const spawnInterval = 2.0 - progress * 1.35;
+      enemySpawnCounter += dt;
+      if (enemySpawnCounter >= spawnInterval) {
+        enemySpawnCounter = 0;
+        spawnScaledEnemy();
+        if (progress > 0.6) spawnScaledEnemy();
+      }
+
+      // Update Enemies
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+
+        // Handle slow status
+        if (e.slowTimer > 0) {
+          e.slowTimer -= dt;
+          if (e.slowTimer <= 0) e.speed = e.baseSpeed;
+        }
+
+        const dx = core.x - e.x;
+        const dy = core.y - e.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > core.radius) {
+          e.x += (dx / dist) * e.speed;
+          e.y += (dy / dist) * e.speed;
+        } else {
+          // Core Damage (shield absorbs part if active)
+          const coreDmgRate = (shieldTimer > 0 ? 1.5 : 4.5) + progress * 3.5;
+          core.hp -= coreDmgRate * dt;
+          updateCoreHUD();
+          createSparks(core.x + (Math.random() * 40 - 20), core.y + (Math.random() * 40 - 20), '#f87171', 2);
+          if (core.hp <= 0) {
+            core.hp = 0;
+            updateCoreHUD();
+            triggerVotingPhase("防衛コアが陥落しました！裏切り者を暴く会議が招集されます。");
+            return;
+          }
+        }
+      }
+
+      // Update Slashes (Melee, Frost Nova & Guardian Pulses)
+      for (let sIdx = slashes.length - 1; sIdx >= 0; sIdx--) {
+        const s = slashes[sIdx];
+        s.life -= dt;
+
+        for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+          const e = enemies[eIdx];
+          const dist = Math.hypot(e.x - s.x, e.y - s.y);
+          if (dist < s.radius + e.radius) {
+            const angleToE = Math.atan2(e.y - s.y, e.x - s.x);
+            let diff = Math.abs(angleToE - s.angle);
+            while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+
+            if (diff <= s.arc / 2 || s.arc >= Math.PI * 1.9) {
+              e.hp -= s.damage * dt * 10;
+              createSparks(e.x, e.y, s.color, 4);
+
+              if (s.slowEffect) {
+                e.speed = e.baseSpeed * s.slowEffect;
+                e.slowTimer = 2.5;
+              }
+
+              if (e.hp <= 0) {
+                killEnemy(e, eIdx);
+              }
+            }
+          }
+        }
+
+        if (s.life <= 0) {
+          slashes.splice(sIdx, 1);
+        }
+      }
+
+      // Update Toxic Gas Clouds
+      for (let tIdx = toxicClouds.length - 1; tIdx >= 0; tIdx--) {
+        const t = toxicClouds[tIdx];
+        t.life -= dt;
+
+        for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+          const e = enemies[eIdx];
+          const dist = Math.hypot(e.x - t.x, e.y - t.y);
+          if (dist < t.radius + e.radius) {
+            e.hp -= t.damagePerSec * dt;
+            if (Math.random() < 0.25) createSparks(e.x, e.y, t.color, 2);
+            if (e.hp <= 0) {
+              killEnemy(e, eIdx);
+            }
+          }
+        }
+
+        if (t.life <= 0) {
+          toxicClouds.splice(tIdx, 1);
+        }
+      }
+
+      // Update Bullets, Grenades, Homing & Railgun Beams
+      for (let bIdx = bullets.length - 1; bIdx >= 0; bIdx--) {
+        const b = bullets[bIdx];
+
+        if (b.type === 'railgun_beam') {
+          b.life -= dt;
+          if (b.life >= b.maxLife - dt) {
+            const endX = b.startX + Math.cos(b.angle) * b.length;
+            const endY = b.startY + Math.sin(b.angle) * b.length;
+            for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+              const e = enemies[eIdx];
+              const distToLine = distToSegment({ x: e.x, y: e.y }, { x: b.startX, y: b.startY }, { x: endX, y: endY });
+              if (distToLine < e.radius + 12) {
+                e.hp -= b.damage;
+                createSparks(e.x, e.y, b.color, 8);
+                if (e.hp <= 0) {
+                  killEnemy(e, eIdx);
+                }
+              }
+            }
+          }
+          if (b.life <= 0) bullets.splice(bIdx, 1);
+          continue;
+        }
+
+        if (b.type === 'homing') {
+          let target = null;
+          let minD = 500;
+          enemies.forEach(e => {
+            const d = Math.hypot(e.x - b.x, e.y - b.y);
+            if (d < minD) { minD = d; target = e; }
+          });
+
+          if (target) {
+            const desiredAngle = Math.atan2(target.y - b.y, target.x - b.x);
+            let curAngle = Math.atan2(b.vy, b.vx);
+            let angleDiff = desiredAngle - curAngle;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            curAngle += angleDiff * b.turnSpeed;
+            b.vx = Math.cos(curAngle) * b.speed;
+            b.vy = Math.sin(curAngle) * b.speed;
+          }
+        }
+
+        b.x += b.vx;
+        b.y += b.vy;
+        b.life--;
+
+        // Check enemy collisions
+        let hit = false;
+        for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+          const e = enemies[eIdx];
+          const hitDist = Math.hypot(b.x - e.x, b.y - e.y);
+          if (hitDist < e.radius + b.radius) {
+            if (b.type === 'grenade') {
+              // AOE Explosion
+              SoundFX.explosion();
+              createSparks(b.x, b.y, '#f97316', 22);
+              for (let aIdx = enemies.length - 1; aIdx >= 0; aIdx--) {
+                const ae = enemies[aIdx];
+                const d = Math.hypot(ae.x - b.x, ae.y - b.y);
+                if (d < b.blastRadius + ae.radius) {
+                  ae.hp -= b.damage;
+                  if (ae.hp <= 0) killEnemy(ae, aIdx);
+                }
+              }
+            } else {
+              e.hp -= b.damage;
+              createSparks(e.x, e.y, b.color, 5);
+              if (e.hp <= 0) killEnemy(e, eIdx);
+            }
+            hit = true;
+            break;
+          }
+        }
+
+        if (hit || b.life <= 0) {
+          if (b.type === 'grenade' && b.life <= 0 && !hit) {
+            SoundFX.explosion();
+            createSparks(b.x, b.y, '#f97316', 22);
+            for (let aIdx = enemies.length - 1; aIdx >= 0; aIdx--) {
+              const ae = enemies[aIdx];
+              const d = Math.hypot(ae.x - b.x, ae.y - b.y);
+              if (d < b.blastRadius + ae.radius) {
+                ae.hp -= b.damage;
+                if (ae.hp <= 0) killEnemy(ae, aIdx);
+              }
+            }
+          }
+          bullets.splice(bIdx, 1);
+        }
+      }
+
+      // Update Dropped Coins & Magnet Attraction
+      for (let cIdx = droppedCoins.length - 1; cIdx >= 0; cIdx--) {
+        const coin = droppedCoins[cIdx];
+        const distToPlayer = Math.hypot(localPlayer.x - coin.x, localPlayer.y - coin.y);
+
+        if (distToPlayer < localPlayer.magnetRadius) {
+          const spd = 7.5;
+          coin.x += ((localPlayer.x - coin.x) / distToPlayer) * spd;
+          coin.y += ((localPlayer.y - coin.y) / distToPlayer) * spd;
+        }
+
+        if (distToPlayer < localPlayer.radius + 12) {
+          SoundFX.coin();
+          addMoney(coin.value);
+          createSparks(coin.x, coin.y, '#f59e0b', 6);
+          droppedCoins.splice(cIdx, 1);
+          continue;
+        }
+
+        coin.life -= dt;
+        if (coin.life <= 0) {
+          droppedCoins.splice(cIdx, 1);
+        }
+      }
+
+      // Update Particles
+      for (let pIdx = particles.length - 1; pIdx >= 0; pIdx--) {
+        const p = particles[pIdx];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.035;
+        if (p.alpha <= 0) {
+          particles.splice(pIdx, 1);
+        }
+      }
+    }
+
+    function distToSegment(p, v, w) {
+      const l2 = (v.x - w.x)**2 + (v.y - w.y)**2;
+      if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+      let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+    }
+
+    function killEnemy(e, eIdx) {
+      SoundFX.explosion();
+      createSparks(e.x, e.y, e.color, 16);
+      
+      droppedCoins.push({
+        x: e.x,
+        y: e.y,
+        value: e.dropValue || 1,
+        life: 30
+      });
+
+      enemies.splice(eIdx, 1);
+    }
+
+    function updateSoloBots(dt) {
+      Object.values(players).forEach(p => {
+        if (!p.isBot) return;
+
+        if (p.role === 'werewolf') {
+          p.x += Math.sin(performance.now() * 0.002 + p.id.charCodeAt(4)) * 1.6;
+          p.y += Math.cos(performance.now() * 0.002 + p.id.charCodeAt(4)) * 1.6;
+        } else {
+          let nearest = null;
+          let minDist = 380;
+          enemies.forEach(e => {
+            const d = Math.hypot(e.x - p.x, e.y - p.y);
+            if (d < minDist) { minDist = d; nearest = e; }
+          });
+
+          if (nearest) {
+            p.angle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+            p.x += Math.cos(p.angle) * 1.4;
+            p.y += Math.sin(p.angle) * 1.4;
+
+            if (Math.random() < 0.04) {
+              bullets.push({
+                id: Math.random().toString(),
+                playerId: p.id,
+                type: 'bullet',
+                x: p.x,
+                y: p.y,
+                vx: Math.cos(p.angle) * 11,
+                vy: Math.sin(p.angle) * 11,
+                damage: 2.0,
+                color: '#38bdf8',
+                radius: 4,
+                life: 60
+              });
+            }
+          }
+        }
+      });
+    }
+
+    function createSparks(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 3 + 1;
+        particles.push({
+          x, y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          color,
+          alpha: 1,
+          radius: Math.random() * 2.5 + 1.5
+        });
+      }
+    }
+
+    function renderGame() {
+      ctx.clearRect(0, 0, screenWidth, screenHeight);
+
+      const camX = screenWidth / 2 - localPlayer.x;
+      const camY = screenHeight / 2 - localPlayer.y;
+
+      ctx.save();
+      ctx.translate(camX, camY);
+
+      // Arena Grid & Core
+      renderGrid();
+      renderCore();
+
+      // Dropped Coins
+      droppedCoins.forEach(coin => {
+        ctx.save();
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#78350f';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('$', coin.x, coin.y + 3);
+        ctx.restore();
+      });
+
+      // Toxic Gas Clouds
+      toxicClouds.forEach(t => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `${t.color}35`;
+        ctx.fill();
+        ctx.strokeStyle = `${t.color}80`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Slashes & Nova pulses
+      slashes.forEach(s => {
+        ctx.save();
+        ctx.beginPath();
+        if (s.arc >= Math.PI * 1.9) {
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `${s.color}25`;
+          ctx.fill();
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        } else {
+          ctx.arc(s.x, s.y, s.radius, s.angle - s.arc / 2, s.angle + s.arc / 2);
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 6;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      // Bullets & Railgun Laser Beams
+      bullets.forEach(b => {
+        ctx.save();
+        if (b.type === 'railgun_beam') {
+          ctx.beginPath();
+          ctx.moveTo(b.startX, b.startY);
+          ctx.lineTo(b.startX + Math.cos(b.angle) * b.length, b.startY + Math.sin(b.angle) * b.length);
+          ctx.strokeStyle = '#fef08a';
+          ctx.lineWidth = 8;
+          ctx.stroke();
+          ctx.strokeStyle = b.color;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = b.color;
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      // Enemies
+      enemies.forEach(e => {
+        ctx.fillStyle = e.slowTimer > 0 ? '#38bdf8' : e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        const barW = e.radius * 2;
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(e.x - barW / 2, e.y - e.radius - 8, barW, 4);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(e.x - barW / 2, e.y - e.radius - 8, barW * (e.hp / e.maxHp), 4);
+      });
+
+      // Other Players
+      Object.values(players).forEach(p => {
+        if (p.id === myId) return;
+        renderPlayerEntity(p, false);
+      });
+
+      // Local Player
+      renderPlayerEntity(localPlayer, true);
+
+      // Energy Barrier Visual
+      if (shieldTimer > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(localPlayer.x, localPlayer.y, localPlayer.radius + 12, 0, Math.PI * 2);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Particles
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
+    function renderGrid() {
+      const gridSize = 90;
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= ARENA_WIDTH; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, ARENA_HEIGHT);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= ARENA_HEIGHT; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(ARENA_WIDTH, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+    }
+
+    function renderCore() {
+      const pulse = Math.sin(performance.now() * 0.005) * 6;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(core.x, core.y, core.radius + 15 + pulse, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.12)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(core.x, core.y, core.radius, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(core.x, core.y, 10, core.x, core.y, core.radius);
+      grad.addColorStop(0, '#67e8f9');
+      grad.addColorStop(1, '#0e7490');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('防衛コア', core.x, core.y + 4);
+    }
+
+    function renderPlayerEntity(p, isSelf) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+
+      ctx.rotate(p.angle);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(8, -3.5, 17, 7);
+      ctx.rotate(-p.angle);
+
+      const cConfig = BATTLE_CLASSES[p.battleType] || BATTLE_CLASSES.slasher;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color || '#38bdf8';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = cConfig.color;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, 0, -p.radius - 8);
+
+      ctx.restore();
+    }
+
+    function updateCoreHUD() {
+      const pct = Math.max(0, Math.round(core.hp));
+      const coreBar = document.getElementById('core-hp-bar');
+      const coreText = document.getElementById('core-hp-text');
+      coreBar.style.width = pct + '%';
+      coreText.textContent = pct + '%';
+
+      if (pct < 30) {
+        coreBar.className = "h-full bg-gradient-to-r from-red-600 to-rose-500 w-full transition-all duration-200 animate-pulse";
+      } else {
+        coreBar.className = "h-full bg-gradient-to-r from-emerald-500 to-cyan-400 w-full transition-all duration-200";
+      }
+    }
+
+    function updateTimerHUD() {
+      const minutes = Math.floor(matchTimeRemaining / 60);
+      const seconds = Math.floor(matchTimeRemaining % 60);
+      document.getElementById('hud-timer').textContent = 
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    const votingModal = document.getElementById('voting-modal');
+    const voteCandidateList = document.getElementById('vote-candidate-list');
+    const submitVoteBtn = document.getElementById('submit-vote-btn');
+    const votingTimerText = document.getElementById('voting-timer');
+    const voteChatBox = document.getElementById('vote-chat-box');
+    let voteTimerInterval = null;
+
+    function triggerVotingPhase(reasonMsg) {
+      if (gameState === 'voting' || gameState === 'result') return;
+      gameState = 'voting';
+
+      document.getElementById('touch-controls').classList.add('hidden');
+      toggleShop(false);
+      votingModal.classList.remove('hidden');
+      SoundFX.alarm();
+
+      appendChatMessage(`📢 ${reasonMsg}`);
+      renderVoteCandidates();
+
+      votingTimeRemaining = 35;
+      if (voteTimerInterval) clearInterval(voteTimerInterval);
+      voteTimerInterval = setInterval(() => {
+        votingTimeRemaining--;
+        votingTimerText.textContent = votingTimeRemaining + 's';
+        if (votingTimeRemaining <= 0) {
+          clearInterval(voteTimerInterval);
+          finalizeGameOutcome();
+        }
+      }, 1000);
+    }
+
+    function renderVoteCandidates() {
+      voteCandidateList.innerHTML = '';
+
+      const peaceBtn = document.createElement('button');
+      peaceBtn.className = "candidate-btn p-3 rounded-2xl bg-slate-800 border-2 border-emerald-500/40 hover:border-emerald-400 flex items-center justify-between text-left transition-all";
+      peaceBtn.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-950 flex items-center justify-center text-emerald-400">
+            <i class="fa-solid fa-dove"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-emerald-300">平和村 (人狼なし)</div>
+            <div class="text-[10px] text-slate-400">今回は人狼が0人だったと判定</div>
+          </div>
+        </div>
+        <i class="check-icon fa-solid fa-circle-check text-slate-600 text-lg"></i>
+      `;
+      peaceBtn.onclick = () => selectCandidate('PEACE_VILLAGE', peaceBtn);
+      voteCandidateList.appendChild(peaceBtn);
+
+      Object.values(players).forEach(p => {
         const btn = document.createElement('button');
-        btn.disabled = hasVoted;
-        const isSelected = selectedVoteTarget === p.uid || myData?.vote === p.uid;
-        btn.className = `p-3 rounded-xl border text-left flex items-center justify-between ${isSelected ? 'bg-red-950/60 border-red-500 text-red-200' : 'bg-space-900 border-slate-700 text-slate-300'}`;
-        btn.innerHTML = `<span class="text-xs font-bold">${escapeHtml(p.nickname)} を告発</span>`;
-        btn.addEventListener('click', () => { selectedVoteTarget = p.uid; renderFinalVoting(data); });
-        voteList.appendChild(btn);
+        btn.className = "candidate-btn p-3 rounded-2xl bg-slate-800 border-2 border-slate-700 hover:border-cyan-400 flex items-center justify-between text-left transition-all";
+        btn.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center text-xs font-bold" style="background:${p.color}">
+              ${p.name.charAt(0)}
+            </span>
+            <div>
+              <div class="text-xs font-bold text-slate-200">${p.name} ${p.id === myId ? '(自分)' : ''}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${BATTLE_CLASSES[p.battleType]?.name.split(' ')[0] || ''}</div>
+            </div>
+          </div>
+          <i class="check-icon fa-solid fa-circle-check text-slate-600 text-lg"></i>
+        `;
+        btn.onclick = () => selectCandidate(p.id, btn);
+        voteCandidateList.appendChild(btn);
       });
-
-      const allPlayers = Object.values(data.players || {});
-      const votedCount = allPlayers.filter(p => p.vote !== null).length;
-      if (votedCount === allPlayers.length && data.hostId === currentUser.uid && data.status === 'final_vote') {
-        concludeGame(data);
-      }
     }
 
-    document.getElementById('btnConfirmVote').addEventListener('click', async () => {
-      if (!selectedVoteTarget || !currentRoomData || !currentUser) return;
-      sfx.playClick();
-      const updateObj = {};
-      updateObj[`players.${currentUser.uid}.vote`] = selectedVoteTarget;
-      await updateDoc(getRoomDocRef(currentRoomData.code), updateObj);
+    function selectCandidate(candidateId, element) {
+      SoundFX.init();
+      selectedVoteCandidate = candidateId;
+      document.querySelectorAll('.candidate-btn').forEach(btn => {
+        btn.classList.remove('border-cyan-400', 'bg-cyan-950/40');
+        const icon = btn.querySelector('.check-icon');
+        if (icon) icon.className = "check-icon fa-solid fa-circle-check text-slate-600 text-lg";
+      });
+
+      element.classList.add('border-cyan-400', 'bg-cyan-950/40');
+      const activeIcon = element.querySelector('.check-icon');
+      if (activeIcon) activeIcon.className = "check-icon fa-solid fa-circle-check text-cyan-400 text-lg";
+      
+      submitVoteBtn.disabled = false;
+    }
+
+    submitVoteBtn.addEventListener('click', () => {
+      SoundFX.init();
+      submitVoteBtn.disabled = true;
+      submitVoteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 投票送信完了 (開票待機中...)';
+      appendChatMessage(`🗳️ あなたは投票を完了しました。`);
+
+      if (isSoloBotMode || !db) {
+        setTimeout(finalizeGameOutcome, 1800);
+      }
     });
 
-    async function concludeGame(data) {
-      const players = Object.values(data.players || {});
-      const actualWerewolves = players.filter(p => p.role === 'werewolf').map(p => p.uid);
-      const energySucceeded = (data.coreEnergy || 0) >= (data.targetEnergy || 70);
+    document.querySelectorAll('.quick-chat-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        appendChatMessage(`${localPlayer.name}: ${b.textContent}`);
+      });
+    });
 
-      const voteTally = {};
-      players.forEach(p => { if (p.vote) voteTally[p.vote] = (voteTally[p.vote] || 0) + 1; });
+    function appendChatMessage(msg) {
+      const d = document.createElement('div');
+      d.textContent = msg;
+      voteChatBox.appendChild(d);
+      voteChatBox.scrollTop = voteChatBox.scrollHeight;
+    }
 
-      let maxVotes = 0;
-      let accusedTarget = null;
-      for (const target in voteTally) {
-        if (voteTally[target] > maxVotes) {
-          maxVotes = voteTally[target];
-          accusedTarget = target;
+    const resultModal = document.getElementById('result-modal');
+    const resultTitle = document.getElementById('result-title');
+    const resultSubtitle = document.getElementById('result-subtitle');
+    const resultIcon = document.getElementById('result-icon');
+    const personalResultBox = document.getElementById('personal-result-box');
+    const summaryMissionStatus = document.getElementById('summary-mission-status');
+    const summaryVotedTarget = document.getElementById('summary-voted-target');
+    const summaryRolesList = document.getElementById('summary-roles-list');
+
+    function finalizeGameOutcome() {
+      if (gameState === 'result') return;
+      gameState = 'result';
+      votingModal.classList.add('hidden');
+      resultModal.classList.remove('hidden');
+
+      const missionSuccess = core.hp > 0;
+      let executedId = selectedVoteCandidate || 'PEACE_VILLAGE';
+      
+      const allPlayersList = Object.values(players);
+      const actualWerewolves = allPlayersList.filter(p => p.role === 'werewolf');
+      const werewolvesCount = actualWerewolves.length;
+      
+      let isExecutedWerewolf = false;
+      let executedName = "平和村";
+
+      if (executedId === 'PEACE_VILLAGE') {
+        executedName = "平和村 (追放なし)";
+        isExecutedWerewolf = (werewolvesCount === 0);
+      } else {
+        const target = players[executedId];
+        if (target) {
+          executedName = target.name;
+          isExecutedWerewolf = (target.role === 'werewolf');
         }
       }
 
-      let winner = 'werewolf';
-      let reason = '';
-
-      if (!energySucceeded) {
-        winner = 'werewolf';
-        reason = 'エネルギー不足で原子炉が崩壊しました。';
+      let teamOutcome = 'draw';
+      if (missionSuccess && isExecutedWerewolf) {
+        teamOutcome = 'citizen_win';
+      } else if (!missionSuccess && !isExecutedWerewolf) {
+        teamOutcome = 'werewolf_win';
       } else {
-        if (actualWerewolves.length === 0) {
-          if (accusedTarget === 'none') {
-            winner = 'citizen';
-            reason = '0人狼を正しく見抜き市民の完全勝利です！';
-          } else {
-            winner = 'paranoia';
-            reason = '無実の仲間を疑ってしまいました。';
-          }
-        } else {
-          if (actualWerewolves.includes(accusedTarget)) {
-            winner = 'citizen';
-            reason = '潜入工作員を捕獲しました！';
-          } else {
-            winner = 'werewolf';
-            reason = '人狼が告発を逃れました。';
-          }
-        }
+        teamOutcome = 'draw';
       }
 
-      await updateDoc(getRoomDocRef(data.code), {
-        status: 'ended',
-        endSummary: { winner, reason }
-      });
-    }
-
-    function renderGameOver(data) {
-      const summary = data.endSummary || {};
-      const banner = document.getElementById('resultBanner');
-      const title = document.getElementById('resultTitle');
-      const explain = document.getElementById('resultExplanation');
-
-      if (summary.winner === 'citizen') {
-        banner.className = "p-5 rounded-2xl border border-emerald-500 bg-emerald-950/70 text-center";
-        title.textContent = "正規市民陣営の勝利！";
-        sfx.playSuccess();
-      } else {
-        banner.className = "p-5 rounded-2xl border border-red-500 bg-red-950/70 text-center";
-        title.textContent = "潜入工作員の勝利！";
-        sfx.playFail();
+      let isPersonalLoss = false;
+      if (executedId === myId && myRole === 'citizen') {
+        isPersonalLoss = true;
       }
-      explain.textContent = summary.reason;
 
-      const roster = document.getElementById('truthRoster');
-      roster.innerHTML = '';
-      Object.values(data.players || {}).forEach(p => {
-        const isWw = p.role === 'werewolf';
-        const item = document.createElement('div');
-        item.className = `p-2 rounded-xl border flex items-center justify-between ${isWw ? 'bg-red-950/40 border-red-600' : 'bg-slate-800 border-slate-700'}`;
-        item.innerHTML = `<span>${escapeHtml(p.nickname)}</span><span class="text-xs font-bold">${isWw ? '人狼' : '市民'}</span>`;
-        roster.appendChild(item);
-      });
+      summaryMissionStatus.textContent = missionSuccess ? "防衛成功 (コア生存)" : "防衛失敗 (コア陥落)";
+      summaryMissionStatus.className = missionSuccess ? "font-bold text-emerald-400" : "font-bold text-rose-400";
+      summaryVotedTarget.textContent = `${executedName} (${isExecutedWerewolf ? '人狼' : '市民/平和村'})`;
+
+      if (teamOutcome === 'citizen_win') {
+        resultTitle.textContent = "市民チームの勝利！";
+        resultTitle.className = "text-2xl sm:text-3xl font-black mb-1 text-emerald-400 neon-text";
+        resultSubtitle.textContent = "コア防衛成功 & 人狼の追放に成功しました！";
+        resultIcon.className = "fa-solid fa-trophy text-4xl text-amber-400";
+      } else if (teamOutcome === 'werewolf_win') {
+        resultTitle.textContent = "人狼チームの勝利！";
+        resultTitle.className = "text-2xl sm:text-3xl font-black mb-1 text-rose-500 neon-text";
+        resultSubtitle.textContent = "ミッションは失敗し、人狼の工作が達成されました。";
+        resultIcon.className = "fa-solid fa-skull-crossbones text-4xl text-rose-400";
+      } else {
+        resultTitle.textContent = "引き分け (DRAW)";
+        resultTitle.className = "text-2xl sm:text-3xl font-black mb-1 text-amber-400 neon-text";
+        resultSubtitle.textContent = "防衛成否と追放対象の結果が拮抗しました。";
+        resultIcon.className = "fa-solid fa-handshake text-4xl text-amber-400";
+      }
+
+      if (isPersonalLoss) {
+        personalResultBox.className = "p-3 rounded-xl bg-red-950/70 border border-red-500/70 text-rose-300 text-xs sm:text-sm font-bold mb-4";
+        personalResultBox.innerHTML = `⚠️ あなた個人の結果: <span class="text-rose-400 font-black">誤認追放による個人敗北</span><br><span class="text-[11px] font-normal text-slate-400">市民でありながら仲間に追放されたため、個人成績は敗北となります。</span>`;
+      } else {
+        const isSelfWin = (teamOutcome === 'citizen_win' && myRole === 'citizen') || 
+                          (teamOutcome === 'werewolf_win' && myRole === 'werewolf');
+        personalResultBox.className = isSelfWin ? 
+          "p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/70 text-emerald-300 text-xs sm:text-sm font-bold mb-4" :
+          "p-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs sm:text-sm font-bold mb-4";
+        personalResultBox.innerHTML = `あなた個人の結果: <span class="${isSelfWin ? 'text-emerald-400' : 'text-slate-300'} font-black">${isSelfWin ? '勝利 (VICTORY)' : (teamOutcome === 'draw' ? '引き分け' : '敗北')}</span>`;
+      }
+
+      summaryRolesList.innerHTML = allPlayersList.map(p => `
+        <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
+          <span>${p.name} ${p.id === myId ? '(あなた)' : ''} [${BATTLE_CLASSES[p.battleType]?.name.split(' ')[0]}]:</span>
+          <span class="font-bold ${p.role === 'werewolf' ? 'text-rose-400' : 'text-cyan-400'}">
+            ${p.role === 'werewolf' ? '【人狼】' : '【市民】'}
+          </span>
+        </div>
+      `).join('');
     }
 
-    function renderChat(logs) {
-      const container = document.getElementById('chatMessages');
-      container.innerHTML = '';
-      logs.forEach(log => {
-        const line = document.createElement('div');
-        line.innerHTML = `<span class="font-bold text-cyan-400">${escapeHtml(log.sender)}:</span> ${escapeHtml(log.text)}`;
-        container.appendChild(line);
-      });
-      container.scrollTop = container.scrollHeight;
-    }
-
-    async function sendChatMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text || !currentRoomData) return;
-      input.value = '';
-      const newMsg = {
-        sender: myNickname,
-        text: text,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      const updatedChat = [...(currentRoomData.chatLogs || []), newMsg];
-      await updateDoc(getRoomDocRef(currentRoomData.code), { chatLogs: updatedChat });
-    }
-
-    document.getElementById('btnSendChat').addEventListener('click', sendChatMessage);
-    document.getElementById('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
-
-    // 長押し役職確認
-    const peekCard = document.getElementById('rolePeekCard');
-    const roleHiddenMsg = document.getElementById('roleHiddenMsg');
-    const roleRevealedMsg = document.getElementById('roleRevealedMsg');
-
-    function revealRole() {
-      roleHiddenMsg.classList.add('hidden');
-      roleRevealedMsg.classList.remove('hidden');
-      roleRevealedMsg.classList.add('flex');
-      sfx.playRoleCard();
-    }
-    function concealRole() {
-      roleRevealedMsg.classList.add('hidden');
-      roleRevealedMsg.classList.remove('flex');
-      roleHiddenMsg.classList.remove('hidden');
-    }
-    peekCard.addEventListener('mousedown', revealRole);
-    peekCard.addEventListener('mouseup', concealRole);
-    peekCard.addEventListener('mouseleave', concealRole);
-    peekCard.addEventListener('touchstart', (e) => { e.preventDefault(); revealRole(); });
-    peekCard.addEventListener('touchend', (e) => { e.preventDefault(); concealRole(); });
-
-    // UIボタンイベント
-    document.getElementById('btnRandomMatch').addEventListener('click', () => {
-      sfx.playClick();
-      startRandomMatch();
+    document.getElementById('return-lobby-btn').addEventListener('click', () => {
+      window.location.reload();
     });
 
-    document.getElementById('btnKeywordMatch').addEventListener('click', () => {
-      sfx.playClick();
-      const kw = document.getElementById('inputKeyword').value;
-      startKeywordMatch(kw);
-    });
-
-    document.getElementById('btnJoinRoom').addEventListener('click', () => {
-      const code = document.getElementById('inputRoomCode').value.trim().toUpperCase();
-      if (!code) return showToast('部屋コードを入力してください', 'danger');
-      sfx.playClick();
-      joinRoom(code);
-    });
-
-    document.getElementById('btnStartGame').addEventListener('click', () => { sfx.playClick(); startGame(); });
-    document.getElementById('btnLeaveRoom').addEventListener('click', () => { sfx.playClick(); leaveRoomLocal(); });
-    document.getElementById('btnReturnToLobby').addEventListener('click', () => { sfx.playClick(); leaveRoomLocal(); });
-
-    document.getElementById('btnCopyCode').addEventListener('click', () => {
-      if (!currentRoomCode) return;
-      navigator.clipboard.writeText(currentRoomCode).then(() => {
-        showToast('コードをコピーしました！', 'success');
-      }).catch(() => {
-        showToast('コード: ' + currentRoomCode, 'info');
-      });
-    });
-
-    function escapeHtml(str) {
-      return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+    function getRandomColor() {
+      const colors = ['#38bdf8', '#34d399', '#f472b6', '#a78bfa', '#fbbf24', '#f87171'];
+      return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    window.onload = async () => {
-      await initAuth();
-      showView('lobby');
+    function alertCustom(msg) {
+      const banner = document.createElement('div');
+      banner.className = "fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-rose-900/90 border border-rose-500 text-white text-xs px-4 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md transition-all";
+      banner.textContent = msg;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 2800);
+    }
+
+    window.onload = function () {
+      requestAnimationFrame(gameLoop);
     };
   </script>
 </body>
