@@ -575,8 +575,11 @@
 
       <!-- Candidate Selection Grid -->
       <div class="mb-3">
-        <div class="text-[11px] font-semibold text-slate-400 mb-1.5">追放投票先を選択 (平和村またはプレイヤー)</div>
-        <div id="vote-candidate-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1"></div>
+        <div class="flex justify-between items-center mb-1.5">
+          <div class="text-[11px] font-semibold text-slate-300">追放投票先を選択 (平和村 または プレイヤー)</div>
+          <div id="vote-status-counter" class="text-[10px] font-mono text-cyan-400 font-bold">投票済: 0 / 0</div>
+        </div>
+        <div id="vote-candidate-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1"></div>
       </div>
 
       <button id="submit-vote-btn" disabled class="touch-btn w-full py-3 rounded-xl bg-cyan-600 disabled:opacity-50 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2">
@@ -969,6 +972,8 @@
     let votingTimeRemaining = 45;
     let selectedVoteCandidate = null;
     let hasVoted = false;
+    let cachedRoomMembers = [];
+    let currentRoomVotes = {};
 
     // Difficulty Setting (Current standard is 10, no upper limit)
     let configuredDifficulty = 10;
@@ -1874,6 +1879,7 @@
         }
 
         if (data.members) {
+          cachedRoomMembers = data.members;
           // Re-evaluate host in case room ownership changed
           if (data.hostId) isHost = (data.hostId === myId);
           renderLobbyList(data.members);
@@ -1889,17 +1895,23 @@
             syncNetworkGameState(data);
           }
         } else if (data.state === 'voting') {
+          currentRoomVotes = data.votes || {};
+          updateVoteStatusCounter();
+
           if (gameState === 'playing') {
             triggerVotingPhase("防衛時間終了またはコア破壊により会議招集");
+          } else if (gameState === 'voting') {
+            // If already in voting, refresh options to ensure all candidates are displayed
+            renderVoteCandidates();
           }
 
           // Instant vote check: if all members have voted, finalize immediately!
-          if (data.votes && data.members) {
+          if (data.members && data.members.length > 0) {
             const memberCount = data.members.length;
-            const voteCount = Object.keys(data.votes).length;
-            if (memberCount > 0 && voteCount >= memberCount) {
+            const voteCount = Object.keys(currentRoomVotes).length;
+            if (voteCount >= memberCount) {
               if (voteTimerInterval) clearInterval(voteTimerInterval);
-              finalizeGameOutcomeWithVotes(data.votes);
+              finalizeGameOutcomeWithVotes(currentRoomVotes);
             }
           }
         }
@@ -2881,12 +2893,94 @@
     const voteChatBox = document.getElementById('vote-chat-box');
     const chatInputForm = document.getElementById('chat-input-form');
     const chatTextInput = document.getElementById('chat-text-input');
+    const voteStatusCounter = document.getElementById('vote-status-counter');
     let voteTimerInterval = null;
+
+    function appendChatMessage(msg, senderName = null) {
+      if (!voteChatBox) return;
+      const row = document.createElement('div');
+      row.className = "leading-tight break-words";
+      if (senderName) {
+        row.innerHTML = `<span class="text-cyan-400 font-bold">[${escapeHtml(senderName)}]</span>: ${escapeHtml(msg)}`;
+      } else {
+        row.innerHTML = `<span class="text-slate-400 font-medium">${msg}</span>`;
+      }
+      voteChatBox.appendChild(row);
+      voteChatBox.scrollTop = voteChatBox.scrollHeight;
+    }
+
+    function syncChatBox(chatList) {
+      if (!voteChatBox || !Array.isArray(chatList)) return;
+      voteChatBox.innerHTML = '';
+      chatList.forEach(m => {
+        appendChatMessage(m.text, m.name);
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Chat form submit
+    if (chatInputForm) {
+      chatInputForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = chatTextInput.value.trim();
+        if (!text) return;
+        chatTextInput.value = '';
+
+        if (isSoloBotMode || !db || !currentRoomId) {
+          appendChatMessage(text, localPlayer.name);
+          // Simple simulated bot response
+          setTimeout(() => {
+            const bots = Object.values(players).filter(p => p.isBot);
+            if (bots.length > 0) {
+              const randBot = bots[Math.floor(Math.random() * bots.length)];
+              const remarks = [
+                "自分はコア近くで迎撃してました！",
+                "さっきコアから離れていた人怪しくない？",
+                "平和村の可能性も全然あると思います！",
+                "私じゃないです、信じてください！"
+              ];
+              appendChatMessage(remarks[Math.floor(Math.random() * remarks.length)], randBot.name);
+            }
+          }, 1200);
+          return;
+        }
+
+        try {
+          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+          await updateDoc(roomRef, {
+            chatMessages: arrayUnion({
+              name: localPlayer.name,
+              text: text,
+              time: Date.now()
+            })
+          });
+        } catch (err) {
+          console.error("Chat send error:", err);
+        }
+      });
+    }
+
+    function updateVoteStatusCounter() {
+      if (!voteStatusCounter) return;
+      const totalMembers = cachedRoomMembers.length > 0 ? cachedRoomMembers.length : Object.keys(players).length;
+      const votedCount = Object.keys(currentRoomVotes).length;
+      voteStatusCounter.textContent = `投票済: ${votedCount} / ${Math.max(1, totalMembers)}`;
+    }
 
     function triggerVotingPhase(reasonMsg) {
       if (gameState === 'voting' || gameState === 'result') return;
       gameState = 'voting';
       hasVoted = false;
+      selectedVoteCandidate = null;
 
       document.getElementById('touch-controls').classList.add('hidden');
       toggleShop(false);
@@ -2895,6 +2989,12 @@
 
       appendChatMessage(`📢 ${reasonMsg}`);
       renderVoteCandidates();
+      updateVoteStatusCounter();
+
+      if (isHost && isFirebaseReady && db && currentRoomId && !isSoloBotMode) {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+        updateDoc(roomRef, { state: 'voting' }).catch(() => {});
+      }
 
       votingTimeRemaining = 45;
       if (voteTimerInterval) clearInterval(voteTimerInterval);
@@ -2905,6 +3005,164 @@
           clearInterval(voteTimerInterval);
           finalizeGameOutcome();
         }
+      }, 1000);
+    }
+
+    function renderVoteCandidates() {
+      if (!voteCandidateList) return;
+      voteCandidateList.innerHTML = '';
+
+      // 1. Always Render "Peace Village" Option
+      const peaceBtn = document.createElement('button');
+      peaceBtn.type = 'button';
+      const isPeaceSelected = (selectedVoteCandidate === 'PEACE_VILLAGE');
+      peaceBtn.className = `candidate-btn p-3 rounded-2xl border-2 transition-all flex items-center justify-between text-left cursor-pointer ${
+        isPeaceSelected ? 'border-emerald-400 bg-emerald-950/60 shadow-lg shadow-emerald-500/20' : 'bg-slate-800 border-emerald-500/40 hover:border-emerald-400'
+      }`;
+      peaceBtn.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-950 flex items-center justify-center text-emerald-400 text-lg shrink-0">
+            <i class="fa-solid fa-dove"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-emerald-300">平和村 (人狼なし)</div>
+            <div class="text-[9px] text-slate-400">今回は人狼が0人だったと判定</div>
+          </div>
+        </div>
+        <i class="check-icon fa-solid ${isPeaceSelected ? 'fa-circle-check text-emerald-400' : 'fa-circle text-slate-600'} text-base"></i>
+      `;
+      peaceBtn.addEventListener('click', () => selectCandidate('PEACE_VILLAGE', peaceBtn));
+      voteCandidateList.appendChild(peaceBtn);
+
+      // 2. Gather candidates with fallback (players map or cachedRoomMembers or localPlayer)
+      let candidatePool = [];
+
+      if (Object.keys(players).length > 0) {
+        candidatePool = Object.values(players);
+      } else if (cachedRoomMembers && cachedRoomMembers.length > 0) {
+        candidatePool = cachedRoomMembers.map(m => ({
+          id: m.id,
+          name: m.name,
+          color: m.color || '#38bdf8',
+          battleType: m.battleType || 'slasher'
+        }));
+      }
+
+      // Ensure local player is always included
+      if (!candidatePool.some(p => p.id === myId)) {
+        candidatePool.unshift(localPlayer);
+      }
+
+      candidatePool.forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = (selectedVoteCandidate === p.id);
+        const classNameText = BATTLE_CLASSES[p.battleType]?.name ? BATTLE_CLASSES[p.battleType].name.split(' ')[0] : '隊員';
+
+        btn.className = `candidate-btn p-3 rounded-2xl border-2 transition-all flex items-center justify-between text-left cursor-pointer ${
+          isSelected ? 'border-cyan-400 bg-cyan-950/60 shadow-lg shadow-cyan-500/20' : 'bg-slate-800 border-slate-700 hover:border-cyan-400'
+        }`;
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl border border-slate-600 flex items-center justify-center text-xs font-black text-white shrink-0" style="background:${p.color || '#38bdf8'}">
+              ${(p.name || 'エ').charAt(0)}
+            </span>
+            <div class="overflow-hidden">
+              <div class="text-xs font-bold text-slate-100 truncate">${escapeHtml(p.name || 'エージェント')} ${p.id === myId ? '<span class="text-cyan-400">(自分)</span>' : ''}</div>
+              <div class="text-[9px] text-slate-400 font-mono">${classNameText}</div>
+            </div>
+          </div>
+          <i class="check-icon fa-solid ${isSelected ? 'fa-circle-check text-cyan-400' : 'fa-circle text-slate-600'} text-base"></i>
+        `;
+        btn.addEventListener('click', () => selectCandidate(p.id, btn));
+        voteCandidateList.appendChild(btn);
+      });
+    }
+
+    function selectCandidate(candidateId, element) {
+      if (hasVoted) return;
+      SoundFX.init();
+      selectedVoteCandidate = candidateId;
+
+      document.querySelectorAll('.candidate-btn').forEach(btn => {
+        btn.classList.remove('border-cyan-400', 'bg-cyan-950/60', 'border-emerald-400', 'bg-emerald-950/60', 'shadow-lg');
+        btn.classList.add('bg-slate-800', 'border-slate-700');
+        const icon = btn.querySelector('.check-icon');
+        if (icon) icon.className = "check-icon fa-solid fa-circle text-slate-600 text-base";
+      });
+
+      if (candidateId === 'PEACE_VILLAGE') {
+        element.classList.remove('bg-slate-800', 'border-slate-700');
+        element.classList.add('border-emerald-400', 'bg-emerald-950/60', 'shadow-lg', 'shadow-emerald-500/20');
+        const activeIcon = element.querySelector('.check-icon');
+        if (activeIcon) activeIcon.className = "check-icon fa-solid fa-circle-check text-emerald-400 text-base";
+      } else {
+        element.classList.remove('bg-slate-800', 'border-slate-700');
+        element.classList.add('border-cyan-400', 'bg-cyan-950/60', 'shadow-lg', 'shadow-cyan-500/20');
+        const activeIcon = element.querySelector('.check-icon');
+        if (activeIcon) activeIcon.className = "check-icon fa-solid fa-circle-check text-cyan-400 text-base";
+      }
+
+      submitVoteBtn.disabled = false;
+      submitVoteBtn.className = "touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer";
+    }
+
+    // Free Input Chat submission
+    submitVoteBtn.addEventListener('click', async () => {
+      if (hasVoted || !selectedVoteCandidate) return;
+      SoundFX.init();
+      hasVoted = true;
+      submitVoteBtn.disabled = true;
+      submitVoteBtn.className = "touch-btn w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm shadow-lg flex items-center justify-center gap-2 cursor-not-allowed";
+      submitVoteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 投票送信完了 (集計待機中...)';
+
+      let targetLabel = "平和村";
+      if (selectedVoteCandidate !== 'PEACE_VILLAGE') {
+        const cand = players[selectedVoteCandidate] || cachedRoomMembers.find(m => m.id === selectedVoteCandidate);
+        targetLabel = cand ? cand.name : selectedVoteCandidate;
+      }
+      appendChatMessage(`🗳️ あなたは [${targetLabel}] へ投票しました。`);
+
+      currentRoomVotes[myId] = selectedVoteCandidate;
+      updateVoteStatusCounter();
+
+      if (isSoloBotMode || !db || !currentRoomId) {
+        // In bot mode, simulate bots voting immediately
+        Object.values(players).forEach(p => {
+          if (p.isBot) {
+            const candKeys = ['PEACE_VILLAGE', ...Object.keys(players)];
+            currentRoomVotes[p.id] = candKeys[Math.floor(Math.random() * candKeys.length)];
+          }
+        });
+        updateVoteStatusCounter();
+
+        setTimeout(() => {
+          if (voteTimerInterval) clearInterval(voteTimerInterval);
+          finalizeGameOutcomeWithVotes(currentRoomVotes);
+        }, 900);
+        return;
+      }
+
+      // Record vote in Firestore
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+        await runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(roomRef);
+          if (!snap.exists()) return;
+          const data = snap.data();
+          const votes = data.votes || {};
+          votes[myId] = selectedVoteCandidate;
+          transaction.update(roomRef, { votes: votes });
+        });
+      } catch (err) {
+        console.error("Error submitting vote:", err);
+      }
+    });
+
+    function finalizeGameOutcome() {
+      finalizeGameOutcomeWithVotes(currentRoomVotes);
+    }
       }, 1000);
     }
 
