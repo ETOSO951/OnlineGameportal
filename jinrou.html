@@ -455,13 +455,15 @@
     const sfx = new AudioFx();
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'paradoxt-werewolf-game';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-      ? JSON.parse(__firebase_config) 
-      : {
-          apiKey: "dummy-key",
-          authDomain: "dummy.firebaseapp.com",
-          projectId: "dummy-project"
-        };
+    const firebaseConfig = {
+  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+  authDomain: "onlinegame-341cf.firebaseapp.com",
+  projectId: "onlinegame-341cf",
+  storageBucket: "onlinegame-341cf.firebasestorage.app",
+  messagingSenderId: "995082102439",
+  appId: "1:995082102439:web:49e57d48312e25f7879d82",
+  measurementId: "G-LBFXFHP9MF"
+};
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
