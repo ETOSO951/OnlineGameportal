@@ -476,6 +476,13 @@
           <span>ランダムマッチング開始 (QUICK MATCH)</span>
         </button>
 
+        <div class="flex items-center gap-2">
+          <input id="room-code-input" type="text" maxlength="6" placeholder="部屋コード (任意)" class="w-1/2 bg-slate-800/90 border border-slate-700 rounded-xl py-2 px-3 text-xs text-center text-cyan-300 font-mono tracking-widest uppercase focus:outline-none focus:border-cyan-400">
+          <button id="join-code-btn" class="touch-btn w-1/2 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-right-to-bracket"></i> コード参加/作成
+          </button>
+        </div>
+
         <button id="solo-test-btn" class="touch-btn w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-2">
           <i class="fa-solid fa-robot"></i> 1人テストプレイ (設定難易度でボット3名同期)
         </button>
@@ -483,12 +490,16 @@
 
       <!-- Waiting Room Overlay -->
       <div id="waiting-room" class="hidden mt-5 pt-4 border-t border-slate-800 text-left">
-        <div class="flex justify-between items-center mb-2.5">
+        <div class="flex justify-between items-center mb-1">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
             <span id="match-status-label" class="text-xs font-bold text-cyan-300">マッチング中...</span>
           </div>
           <span id="player-count-badge" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300 font-mono">1 / 8 人</span>
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono mb-2 flex items-center justify-between">
+          <span>部屋ID: <span id="display-room-id" class="text-cyan-400 font-bold select-all">------</span></span>
+          <span class="text-slate-500">(合言葉でフレンドも参加可能)</span>
         </div>
 
         <div id="lobby-player-list" class="space-y-1.5 max-h-32 overflow-y-auto mb-3.5 p-1"></div>
@@ -771,7 +782,8 @@
       collection,
       getDocs,
       onSnapshot, 
-      arrayUnion
+      arrayUnion,
+      runTransaction
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-sabotage-v5';
@@ -956,6 +968,7 @@
     let matchTimeRemaining = GAME_DURATION;
     let votingTimeRemaining = 45;
     let selectedVoteCandidate = null;
+    let hasVoted = false;
 
     // Difficulty Setting (Current standard is 10, no upper limit)
     let configuredDifficulty = 10;
@@ -1675,6 +1688,8 @@
     });
 
     const quickRandomMatchBtn = document.getElementById('quick-random-match-btn');
+    const joinCodeBtn = document.getElementById('join-code-btn');
+    const roomCodeInput = document.getElementById('room-code-input');
     const soloTestBtn = document.getElementById('solo-test-btn');
     const waitingRoom = document.getElementById('waiting-room');
     const matchStatusLabel = document.getElementById('match-status-label');
@@ -1690,8 +1705,22 @@
       localPlayer.name = myName;
       configuredDifficulty = Math.max(1, parseInt(difficultyInput.value) || 10);
       quickRandomMatchBtn.disabled = true;
-      quickRandomMatchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 防衛セッションを探索中...';
-      await startSeamlessRandomMatch();
+      joinCodeBtn.disabled = true;
+      quickRandomMatchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 部屋を検索・参加中...';
+      await startAtomicMatchmaking(null);
+    });
+
+    joinCodeBtn.addEventListener('click', async () => {
+      SoundFX.init();
+      myName = playerNameInput.value.trim() || 'エージェント';
+      localPlayer.name = myName;
+      configuredDifficulty = Math.max(1, parseInt(difficultyInput.value) || 10);
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) return;
+      quickRandomMatchBtn.disabled = true;
+      joinCodeBtn.disabled = true;
+      joinCodeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 照会中...';
+      await startAtomicMatchmaking(code);
     });
 
     soloTestBtn.addEventListener('click', () => {
@@ -1706,7 +1735,7 @@
       startGameMatch();
     });
 
-    async function startSeamlessRandomMatch() {
+    async function startAtomicMatchmaking(specificCode) {
       waitingRoom.classList.remove('hidden');
 
       if (!isFirebaseReady || !db) {
@@ -1719,44 +1748,114 @@
 
       try {
         const publicRoomsRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+
+        if (specificCode) {
+          // Direct room code path
+          const targetRoomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', 'ROOM_' + specificCode);
+          await runTransaction(db, async (transaction) => {
+            const snap = await transaction.get(targetRoomRef);
+            if (!snap.exists()) {
+              isHost = true;
+              transaction.set(targetRoomRef, {
+                hostId: myId,
+                roomCode: specificCode,
+                state: 'waiting',
+                timer: GAME_DURATION,
+                difficulty: configuredDifficulty,
+                members: [{ id: myId, name: myName, color: getRandomColor() }],
+                coreHp: 100,
+                enemies: [],
+                votes: {},
+                chatMessages: []
+              });
+            } else {
+              const rData = snap.data();
+              if (rData.state !== 'waiting') throw new Error("すでにゲームが開始されています");
+              if (rData.members && rData.members.length >= 8) throw new Error("部屋が満員です");
+              const exists = (rData.members || []).some(m => m.id === myId);
+              if (!exists) {
+                const updated = [...(rData.members || []), { id: myId, name: myName, color: getRandomColor() }];
+                transaction.update(targetRoomRef, { members: updated });
+              }
+              isHost = (rData.hostId === myId);
+            }
+          });
+          currentRoomId = 'ROOM_' + specificCode;
+          document.getElementById('display-room-id').textContent = specificCode;
+          matchStatusLabel.textContent = isHost ? "部屋を作成 (ホスト)" : "部屋に参加完了";
+          listenToRoom(targetRoomRef);
+          return;
+        }
+
+        // Random Matchmaking with Concurrency-safe Transaction
         const snap = await getDocs(publicRoomsRef);
-        
-        let foundRoomDoc = null;
+        let eligibleRoomIds = [];
         snap.forEach(d => {
-          const rData = d.data();
-          if (rData.state === 'waiting' && rData.members && rData.members.length < 8) {
-            foundRoomDoc = d;
+          const data = d.data();
+          if (data.state === 'waiting' && data.members && data.members.length < 8) {
+            eligibleRoomIds.push(d.id);
           }
         });
 
-        if (foundRoomDoc) {
-          currentRoomId = foundRoomDoc.id;
-          isHost = false;
-          matchStatusLabel.textContent = "既存セッションに合流しました";
-          const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
-          await updateDoc(rRef, {
-            members: arrayUnion({ id: myId, name: myName, color: getRandomColor() })
+        let joined = false;
+        for (let candId of eligibleRoomIds) {
+          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', candId);
+          try {
+            await runTransaction(db, async (transaction) => {
+              const rSnap = await transaction.get(roomRef);
+              if (!rSnap.exists()) return;
+              const rData = rSnap.data();
+              if (rData.state === 'waiting' && rData.members && rData.members.length < 8) {
+                const exists = rData.members.some(m => m.id === myId);
+                if (!exists) {
+                  const updated = [...rData.members, { id: myId, name: myName, color: getRandomColor() }];
+                  transaction.update(roomRef, { members: updated });
+                }
+                joined = true;
+                currentRoomId = candId;
+                isHost = (rData.hostId === myId);
+              }
+            });
+            if (joined) {
+              matchStatusLabel.textContent = "既存セッションへ合流しました！";
+              document.getElementById('display-room-id').textContent = candId.replace('room_', '').substring(0, 6).toUpperCase();
+              listenToRoom(roomRef);
+              break;
+            }
+          } catch (e) {
+            // Concurrency retry next room
+          }
+        }
+
+        if (!joined) {
+          // No open rooms: atomize creation of a new room
+          const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const newRoomId = 'room_' + newRoomCode;
+          const newRoomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
+
+          await runTransaction(db, async (transaction) => {
+            transaction.set(newRoomRef, {
+              hostId: myId,
+              state: 'waiting',
+              timer: GAME_DURATION,
+              difficulty: configuredDifficulty,
+              members: [{ id: myId, name: myName, color: getRandomColor() }],
+              coreHp: 100,
+              enemies: [],
+              votes: {},
+              chatMessages: []
+            });
           });
-          listenToRoom(rRef);
-        } else {
-          currentRoomId = 'room_' + Math.random().toString(36).substring(2, 9);
+
+          currentRoomId = newRoomId;
           isHost = true;
+          document.getElementById('display-room-id').textContent = newRoomCode;
           matchStatusLabel.textContent = "新規セッション作成：ホストとして他隊員を待機中";
-          const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
-          await setDoc(rRef, {
-            hostId: myId,
-            state: 'waiting',
-            timer: GAME_DURATION,
-            difficulty: configuredDifficulty,
-            members: [{ id: myId, name: myName, color: getRandomColor() }],
-            coreHp: 100,
-            enemies: [],
-            chatMessages: []
-          });
-          listenToRoom(rRef);
+          listenToRoom(newRoomRef);
         }
       } catch (err) {
         console.error("Matchmaking fallback:", err);
+        matchStatusLabel.textContent = "接続エラー：ソロモードへ移行";
         isSoloBotMode = true;
         isHost = true;
         setupSoloBots();
@@ -1774,17 +1873,35 @@
           document.getElementById('hud-difficulty-num').textContent = configuredDifficulty;
         }
 
+        if (data.members) {
+          // Re-evaluate host in case room ownership changed
+          if (data.hostId) isHost = (data.hostId === myId);
+          renderLobbyList(data.members);
+          launchGameBtn.classList.toggle('hidden', !isHost);
+        }
+
         if (data.state === 'waiting') {
-          renderLobbyList(data.members || []);
-          launchGameBtn.classList.toggle('hidden', data.hostId !== myId);
+          // Stay in lobby
         } else if (data.state === 'playing') {
           if (gameState === 'lobby') {
             syncRolesAndStart(data);
           } else {
             syncNetworkGameState(data);
           }
-        } else if (data.state === 'voting' && gameState === 'playing') {
-          triggerVotingPhase("防衛時間終了またはコア破壊により会議招集");
+        } else if (data.state === 'voting') {
+          if (gameState === 'playing') {
+            triggerVotingPhase("防衛時間終了またはコア破壊により会議招集");
+          }
+
+          // Instant vote check: if all members have voted, finalize immediately!
+          if (data.votes && data.members) {
+            const memberCount = data.members.length;
+            const voteCount = Object.keys(data.votes).length;
+            if (memberCount > 0 && voteCount >= memberCount) {
+              if (voteTimerInterval) clearInterval(voteTimerInterval);
+              finalizeGameOutcomeWithVotes(data.votes);
+            }
+          }
         }
 
         // Sabotage sync for non-host
@@ -2769,6 +2886,7 @@
     function triggerVotingPhase(reasonMsg) {
       if (gameState === 'voting' || gameState === 'result') return;
       gameState = 'voting';
+      hasVoted = false;
 
       document.getElementById('touch-controls').classList.add('hidden');
       toggleShop(false);
@@ -2847,70 +2965,70 @@
     }
 
     // Free Input Chat submission
-    chatInputForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const txt = chatTextInput.value.trim();
-      if (!txt) return;
-      chatTextInput.value = '';
-
-      const formatted = `${localPlayer.name}: ${txt}`;
-      appendChatMessage(formatted);
-
-      if (isFirebaseReady && db && currentRoomId && !isSoloBotMode) {
-        try {
-          const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
-          await updateDoc(rRef, {
-            chatMessages: arrayUnion(formatted)
-          });
-        } catch (err) {}
-      }
-    });
-
-    function appendChatMessage(msg) {
-      const d = document.createElement('div');
-      d.textContent = msg;
-      voteChatBox.appendChild(d);
-      voteChatBox.scrollTop = voteChatBox.scrollHeight;
-    }
-
-    function syncChatBox(messages) {
-      voteChatBox.innerHTML = '';
-      messages.forEach(m => {
-        const d = document.createElement('div');
-        d.textContent = m;
-        voteChatBox.appendChild(d);
-      });
-      voteChatBox.scrollTop = voteChatBox.scrollHeight;
-    }
-
-    submitVoteBtn.addEventListener('click', () => {
+    submitVoteBtn.addEventListener('click', async () => {
+      if (hasVoted || !selectedVoteCandidate) return;
       SoundFX.init();
+      hasVoted = true;
       submitVoteBtn.disabled = true;
-      submitVoteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 投票送信完了 (開票待機中...)';
+      submitVoteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 投票送信完了 (集計待機中...)';
       appendChatMessage(`🗳️ あなたは投票を完了しました。`);
 
-      if (isSoloBotMode || !db) {
-        setTimeout(finalizeGameOutcome, 1800);
+      if (isSoloBotMode || !db || !currentRoomId) {
+        // In bot mode, bots vote instantly and we immediately finalize
+        setTimeout(() => {
+          if (voteTimerInterval) clearInterval(voteTimerInterval);
+          finalizeGameOutcome();
+        }, 800);
+        return;
+      }
+
+      // Record vote in Firestore
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+        await runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(roomRef);
+          if (!snap.exists()) return;
+          const data = snap.data();
+          const votes = data.votes || {};
+          votes[myId] = selectedVoteCandidate;
+          transaction.update(roomRef, { votes: votes });
+        });
+      } catch (err) {
+        console.error("Error submitting vote:", err);
       }
     });
 
-    const resultModal = document.getElementById('result-modal');
-    const resultTitle = document.getElementById('result-title');
-    const resultSubtitle = document.getElementById('result-subtitle');
-    const resultIcon = document.getElementById('result-icon');
-    const personalResultBox = document.getElementById('personal-result-box');
-    const summaryMissionStatus = document.getElementById('summary-mission-status');
-    const summaryVotedTarget = document.getElementById('summary-voted-target');
-    const summaryRolesList = document.getElementById('summary-roles-list');
-
     function finalizeGameOutcome() {
+      finalizeGameOutcomeWithVotes(null);
+    }
+
+    function finalizeGameOutcomeWithVotes(votesMap) {
       if (gameState === 'result') return;
       gameState = 'result';
       votingModal.classList.add('hidden');
       resultModal.classList.remove('hidden');
 
       const missionSuccess = core.hp > 0;
-      let executedId = selectedVoteCandidate || 'PEACE_VILLAGE';
+      let executedId = 'PEACE_VILLAGE';
+
+      if (votesMap && Object.keys(votesMap).length > 0) {
+        // Tally up most voted candidate
+        const counts = {};
+        Object.values(votesMap).forEach(target => {
+          counts[target] = (counts[target] || 0) + 1;
+        });
+        let topTarget = null;
+        let topCount = -1;
+        for (let target in counts) {
+          if (counts[target] > topCount) {
+            topCount = counts[target];
+            topTarget = target;
+          }
+        }
+        executedId = topTarget || 'PEACE_VILLAGE';
+      } else {
+        executedId = selectedVoteCandidate || 'PEACE_VILLAGE';
+      }
       
       const allPlayersList = Object.values(players);
       const actualWerewolves = allPlayersList.filter(p => p.role === 'werewolf');
