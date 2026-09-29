@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CYBER NEXUS: TITAN ODYSSEY</title>
+  <title>サイバーネクサス：タイタン・オデッセイ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,414 +69,416 @@
 <body class="text-slate-100 flex flex-col justify-between items-center relative overflow-hidden select-none">
   <canvas id="gameCanvas" class="absolute inset-0 z-0 w-full h-full block bg-[#010409]"></canvas>
 
-  <!-- SCREEN EDGE NAVIGATION COMPASS LAYER -->
+  <!-- 画面端ナビゲーションコンパス層 -->
   <div id="navCompassLayer" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
 
-  <!-- TOP HUD -->
+  <!-- 上部HUD -->
   <header id="topHud" class="w-full max-w-lg px-3 pt-2 z-20 flex flex-col gap-1.5 pointer-events-none transition-all">
     <div class="flex items-start justify-between">
       
-      <!-- Left: Biome, Shards, Core HP, Bounty -->
+      <!-- 左側: バイオーム、シャード、コアHP、キルストリーク -->
       <div class="pointer-events-auto bg-slate-950/95 border border-slate-800 rounded-2xl px-3 py-1.5 backdrop-blur flex items-center gap-2 shadow-2xl">
         <div>
           <div class="text-[8px] text-cyan-400 font-cyber flex items-center gap-1 font-bold">
-            <span id="biomeIcon">ð</span> <span id="biomeName">TITAN WORLD 10,000</span>
+            <span id="biomeIcon">🌌</span> <span id="biomeName">タイタン・ワールド 10,000</span>
           </div>
           <div class="flex items-center gap-1.5 mt-0.5">
-            <span class="text-xs">ð</span>
+            <span class="text-xs">💎</span>
             <span id="hudShards" class="text-sm font-cyber font-black text-cyan-300">0</span>
-            <span class="text-[9px] text-amber-400 font-mono ml-1 font-bold">â<span id="hudKillstreak">0</span></span>
+            <span class="text-[9px] text-amber-400 font-mono ml-1 font-bold">★<span id="hudKillstreak">0</span></span>
           </div>
         </div>
         <div class="w-px h-7 bg-slate-800"></div>
         <div>
-          <div class="text-[8px] text-slate-400 font-mono">èªè»ã³ã¢ (2500 HP)</div>
+          <div class="text-[8px] text-slate-400 font-mono">自軍コア (2500 HP)</div>
           <div id="hudMyCoreHp" class="text-xs font-cyber font-bold text-emerald-400">2500 / 2500</div>
         </div>
         <div id="hudLastStandTag" class="hidden px-2 py-0.5 rounded-lg bg-rose-950/90 border border-rose-500 text-[9px] font-cyber text-rose-300 font-black animate-pulse">
-          â ï¸ LAST STAND (+25% ATK)
+          ⚠️ ラストスタンド (攻撃力+25%)
         </div>
       </div>
 
-      <!-- Right: Shop, Mute, Minimap -->
+      <!-- 右側: ショップ、ミュート、ミニマップ -->
       <div class="flex items-start gap-1.5">
         <div class="pointer-events-auto flex flex-col gap-1 items-end">
           <button id="btnOpenUpgradeShop" class="btn-action bg-amber-950/90 border border-amber-500 text-amber-300 px-2.5 py-1.5 rounded-xl text-[10px] font-cyber font-black flex items-center gap-1 shadow-lg active:scale-95">
-            <span>â¡ å¼·å [B]</span>
+            <span>⚡ 強化 [B]</span>
           </button>
           <button id="btnAudioToggle" class="bg-slate-900/90 border border-slate-700 p-1.5 rounded-xl text-xs active:scale-90">
-            <span id="audioIcon">ð</span>
+            <span id="audioIcon">🔊</span>
           </button>
         </div>
 
-        <!-- 10000px Radar Minimap -->
+        <!-- 10000px レーダーミニマップ -->
         <div class="pointer-events-auto relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-cyan-500/60 bg-slate-950/95 shadow-[0_0_18px_rgba(6,182,212,0.3)]">
           <canvas id="minimapCanvas" width="96" height="96" class="w-full h-full block"></canvas>
-          <div class="absolute bottom-0.5 right-1 text-[7px] text-cyan-300 font-mono font-bold pointer-events-none">10kÃ10k</div>
+          <div class="absolute bottom-0.5 right-1 text-[7px] text-cyan-300 font-mono font-bold pointer-events-none">10k×10k</div>
         </div>
       </div>
     </div>
 
-    <!-- Active Mutator & Cores Tracker -->
+    <!-- 変異ルール ＆ コア状況トラッカー -->
     <div class="pointer-events-auto bg-slate-950/95 border border-slate-800 rounded-2xl px-2.5 py-1 backdrop-blur shadow-md flex items-center justify-between gap-1 text-[9px]">
       <div class="flex items-center gap-1 text-amber-300 font-cyber font-semibold">
-        <span id="mutatorIcon">ð</span>
-        <span id="mutatorName">MUTATOR: STANDARD</span>
+        <span id="mutatorIcon">🌀</span>
+        <span id="mutatorName">特殊ルール: スタンダード</span>
       </div>
       <div id="coreStatusBar" class="grid grid-cols-6 gap-1 text-center font-mono"></div>
     </div>
   </header>
 
-  <!-- SPECTATE HUD OVERLAY -->
+  <!-- 観戦オーバーレイ -->
   <div id="spectateOverlay" class="hidden absolute top-24 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 pointer-events-auto">
     <div class="px-4 py-1.5 rounded-full bg-slate-950/95 border-2 border-cyan-400 text-white font-cyber text-xs shadow-2xl flex items-center gap-3 backdrop-blur">
-      <span class="text-rose-400 font-bold animate-pulse">ðï¸ è¦³æ¦ã«ã¡ã©èµ·åä¸­</span>
+      <span class="text-rose-400 font-bold animate-pulse">👁️ 観戦カメラ起動中</span>
       <span id="spectatingTargetName" class="text-cyan-300 font-black">---</span>
     </div>
     <div class="flex items-center gap-3">
       <button id="btnPrevSpectate" class="px-3 py-1 rounded-xl bg-slate-900/90 border border-slate-700 text-cyan-300 text-xs font-bold active:scale-95 shadow">
-        â åã®æ©ä½
+        ◀ 前の機体
       </button>
       <button id="btnNextSpectate" class="px-3 py-1 rounded-xl bg-slate-900/90 border border-slate-700 text-cyan-300 text-xs font-bold active:scale-95 shadow">
-        æ¬¡ã®æ©ä½ â¶
+        次の機体 ▶
       </button>
     </div>
   </div>
 
-  <!-- BANNERS & ANNOUNCEMENTS -->
+  <!-- アナウンスバナー -->
   <div id="lastStandBanner" class="hidden absolute top-28 left-1/2 -translate-x-1/2 z-30 px-5 py-2 rounded-2xl bg-rose-950/95 border-2 border-rose-500 text-white font-cyber text-center pointer-events-none shadow-2xl animate-bounce">
-    <div class="text-sm font-black text-rose-400">â ï¸ ã³ã¢é¥è½ï¼LAST STAND çªå¥ï¼</div>
-    <div class="text-[10px] text-slate-300 font-sans">ãªã¹ãã¼ã³ä¸è½ï¼ã¢ãã¬ããªã³åæ³ã«ããæ»æå+25%ï¼çå­ããï¼</div>
+    <div class="text-sm font-black text-rose-400">⚠️ コア陥落：ラストスタンド突入！</div>
+    <div class="text-[10px] text-slate-300 font-sans">リスポーン不能！アドレナリン分泌により攻撃力+25%！生存せよ！</div>
   </div>
 
   <div id="announcementBanner" class="hidden absolute top-36 left-1/2 -translate-x-1/2 z-30 px-5 py-1.5 rounded-2xl bg-gradient-to-r from-amber-950/95 via-rose-950/95 to-amber-950/95 border border-amber-400 text-amber-200 font-cyber text-center pointer-events-none shadow-2xl transition-all">
-    <div id="announcementTitle" class="text-xs font-black tracking-widest text-amber-300">KILLSTREAK!</div>
-    <div id="announcementSubtitle" class="text-[10px] text-slate-300">NexusAce is on a RAMPAGE!</div>
+    <div id="announcementTitle" class="text-xs font-black tracking-widest text-amber-300">連キル発生！</div>
+    <div id="announcementSubtitle" class="text-[10px] text-slate-300">敵を圧倒しています！</div>
   </div>
 
-  <!-- RESPAWN OVERLAY (Cleanly handles core destruction while countdown is active) -->
+  <!-- リスポーンオーバーレイ -->
   <div id="respawnOverlay" class="hidden absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-none transition-opacity">
     <div class="text-center space-y-2 p-6 rounded-3xl bg-slate-950/95 border border-cyan-500/50 shadow-2xl">
-      <div class="text-4xl animate-bounce">â¡</div>
-      <h3 class="text-base font-cyber font-black text-cyan-300">ãããããªã¯ã¹åæ§ç¯ä¸­</h3>
-      <p class="text-xs text-slate-400">èªè»ã³ã¢ãããªã¹ãã¼ã³ãããå°åºå¾æ©ä¸­...</p>
+      <div class="text-4xl animate-bounce">⚡</div>
+      <h3 class="text-base font-cyber font-black text-cyan-300">ナノマトリクス再構築中</h3>
+      <p class="text-xs text-slate-400">自軍コアからリスポーンポッド射出待機中...</p>
       <div id="respawnTimerNum" class="text-6xl font-cyber font-black text-emerald-400">5</div>
-      <div class="text-[10px] text-rose-400 font-mono animate-pulse">â»ãªã¹ãã¼ã³å®äºåã«ã³ã¢ãç ´å£ãããã¨å®å¨è±è½ã¨ãªãã¾ã</div>
+      <div class="text-[10px] text-rose-400 font-mono animate-pulse">※リスポーン完了前にコアが破壊されると完全脱落となります</div>
     </div>
   </div>
 
-  <!-- BOTTOM HUD & TOUCH CONTROLS -->
+  <!-- 下部操作パネル & タッチコントロール -->
   <footer id="bottomControls" class="w-full max-w-lg px-3 pb-3 z-20 flex items-end justify-between pointer-events-none transition-all">
     
-    <!-- LEFT: Virtual Floating Joystick -->
+    <!-- 左側: 仮想ジョイスティック -->
     <div id="joystickTouchZone" class="pointer-events-auto relative w-32 h-32 rounded-full bg-slate-950/45 border border-slate-700/60 flex items-center justify-center shadow-inner">
       <div id="joystickBaseCircle" class="w-20 h-20 rounded-full border border-cyan-500/40 flex items-center justify-center relative">
         <div id="joystickKnob" class="w-10 h-10 rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.9)] transition-transform duration-75"></div>
       </div>
     </div>
 
-    <!-- CENTER: Weapon Slots, Ultimate Overdrive Meter & Pickup Prompt -->
+    <!-- 中央: 武器スロット、ULTメーター、武器拾得ボタン -->
     <div class="pointer-events-auto flex flex-col items-center gap-1.5 mb-1">
       <button id="btnPickupWeapon" class="hidden btn-action px-3 py-1.5 rounded-xl bg-amber-600/95 border border-amber-300 text-white text-[11px] font-cyber font-bold shadow-lg animate-pulse flex items-center gap-1.5">
-        <span id="pickupIcon">ð¦</span>
-        <span id="pickupName">æ¾ã [E/F]</span>
+        <span id="pickupIcon">📦</span>
+        <span id="pickupName">拾う [E/F]</span>
       </button>
 
-      <!-- Ultimate Overdrive Progress Bar -->
+      <!-- ULTゲージ -->
       <div class="w-36 bg-slate-950/90 border border-slate-800 rounded-full h-3.5 p-0.5 relative shadow-inner overflow-hidden">
         <div id="ultBarFill" class="h-full bg-gradient-to-r from-rose-500 to-amber-400 rounded-full transition-all duration-200" style="width: 0%;"></div>
         <div class="absolute inset-0 flex items-center justify-center text-[8px] font-cyber font-bold text-white tracking-widest pointer-events-none">
-          ULT: <span id="ultPctText">0%</span>
+          必殺技: <span id="ultPctText">0%</span>
         </div>
       </div>
 
       <div id="weaponCard" class="px-3 py-1 rounded-xl bg-slate-900/95 border border-cyan-500/50 flex items-center gap-2 shadow-lg backdrop-blur">
-        <span id="weaponIcon" class="text-xl">ð«</span>
+        <span id="weaponIcon" class="text-xl">🔫</span>
         <div>
-          <div id="weaponName" class="text-[10px] font-cyber font-bold text-cyan-300">PLASMA RIFLE</div>
-          <div id="ammoCount" class="text-[11px] font-mono font-black text-amber-300">â</div>
+          <div id="weaponName" class="text-[10px] font-cyber font-bold text-cyan-300">プラズマライフル</div>
+          <div id="ammoCount" class="text-[11px] font-mono font-black text-amber-300">∞</div>
         </div>
       </div>
       <button id="btnSwitchWeapon" class="btn-action px-2.5 py-1 rounded-lg border border-slate-700 text-[9px] text-slate-300 font-bold active:scale-95">
-        ð åµè£åæ¿ [Q]
+        🔄 兵装切替 [Q]
       </button>
     </div>
 
-    <!-- RIGHT: Action Buttons (FIRE, DASH, BARRIER, ULTIMATE) -->
+    <!-- 右側: アクションボタン（射撃、ダッシュ、シールド、ULT） -->
     <div class="pointer-events-auto flex flex-col items-end gap-1.5 mb-1">
       <div class="flex items-center gap-1.5">
-        <!-- Ultimate Overdrive Button -->
+        <!-- 必殺技ボタン -->
         <button id="btnUltimate" class="btn-action w-12 h-12 rounded-full border border-slate-700 text-slate-500 flex flex-col items-center justify-center relative shadow-lg active:scale-90 transition-all opacity-60">
-          <span class="text-sm">ð¥</span>
-          <span class="text-[7px] font-cyber font-black tracking-tight">TITAN</span>
+          <span class="text-sm">💥</span>
+          <span class="text-[7px] font-cyber font-black tracking-tight">必殺技</span>
         </button>
 
-        <!-- Shield Overcharge -->
+        <!-- シールドオーバーチャージ -->
         <button id="btnOvercharge" class="btn-action w-11 h-11 rounded-full border border-emerald-400/80 text-emerald-300 flex flex-col items-center justify-center relative shadow-lg active:scale-90">
-          <span class="text-xs">ð¡ï¸</span>
-          <span class="text-[7px] font-cyber font-black tracking-tight">SHIELD</span>
+          <span class="text-xs">🛡️</span>
+          <span class="text-[7px] font-cyber font-black tracking-tight">防御</span>
           <div id="overchargeCdCover" class="absolute inset-0 rounded-full bg-black/75 hidden pointer-events-none"></div>
         </button>
 
-        <!-- Dash Evade -->
+        <!-- 回避ダッシュ -->
         <button id="btnDash" class="btn-action w-11 h-11 rounded-full border border-amber-400/80 text-amber-300 flex flex-col items-center justify-center relative shadow-lg active:scale-90">
-          <span class="text-xs">â¡</span>
-          <span class="text-[7px] font-cyber font-black tracking-tight">DASH</span>
+          <span class="text-xs">⚡</span>
+          <span class="text-[7px] font-cyber font-black tracking-tight">回避</span>
           <div id="dashCdCover" class="absolute inset-0 rounded-full bg-black/75 hidden pointer-events-none"></div>
         </button>
       </div>
 
-      <!-- Fire Button -->
+      <!-- 射撃ボタン -->
       <button id="btnFire" class="btn-action w-20 h-20 rounded-full border-2 border-rose-500 text-rose-300 flex flex-col items-center justify-center shadow-[0_0_24px_rgba(244,63,94,0.65)] active:scale-95 relative">
-        <span class="text-2xl">ð¯</span>
-        <span class="text-[9px] font-cyber font-black tracking-wider text-white">FIRE</span>
+        <span class="text-2xl">🎯</span>
+        <span class="text-[9px] font-cyber font-black tracking-wider text-white">射撃</span>
       </button>
     </div>
   </footer>
 
-  <!-- MODAL: EXPANDED UPGRADE SHOP (10 Upgrades) -->
+  <!-- モーダル: 強化ショップ (全10種) -->
   <div id="modalUpgradeShop" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-3">
     <div id="shopBackdropTap" class="absolute inset-0 -z-10"></div>
 
     <div class="relative w-full max-w-sm bg-slate-900/98 border border-amber-500/70 rounded-3xl p-4 shadow-2xl space-y-2.5 my-auto max-h-[88vh] overflow-y-auto custom-scroll">
       
-      <!-- Modal Header -->
+      <!-- ショップヘッダー -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center gap-1.5">
-          <span class="text-base">â¡</span>
+          <span class="text-base">⚡</span>
           <div>
-            <h3 class="text-xs font-cyber font-black text-amber-400">ãã¯ãµã¹æ ç¹ï¼æ©ä½ç·åå¼·å</h3>
-            <div class="text-[9px] text-slate-400">å¨10é ç® / æ¦æ³ã«å¿ãããã«ããæ§ç¯</div>
+            <h3 class="text-xs font-cyber font-black text-amber-400">ネクサス拠点＆機体総合強化</h3>
+            <div class="text-[9px] text-slate-400">全10項目 / 戦況に応じたビルドを構築</div>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <div class="text-xs font-mono font-bold text-cyan-300 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800">
-            ð <span id="shopShardsVal">0</span>
+            💎 <span id="shopShardsVal">0</span>
           </div>
           <button id="btnCloseShopX" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 border border-slate-700 flex items-center justify-center font-bold text-sm transition-all active:scale-90">
-            â
+            ✕
           </button>
         </div>
       </div>
 
       <div class="space-y-1.5 text-xs">
-        <!-- 1. Turret -->
+        <!-- 1. タレット -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð¼ 1. é²è¡ã¿ã¬ããå¼·å (Lv.<span id="lvlTurret">0</span>)</div>
-            <div class="text-[9px] text-slate-400">å¨å+14 & æå°é »åº¦UP</div>
+            <div class="font-cyber font-bold text-slate-200">🗼 1. 防衛タレット強化 (Lv.<span id="lvlTurret">0</span>)</div>
+            <div class="text-[9px] text-slate-400">威力+14 ＆ 掃射頻度UP</div>
           </div>
-          <button id="btnBuyTurret" class="btn-action px-3 py-1.5 rounded-lg bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-[10px]">50 ð</button>
+          <button id="btnBuyTurret" class="btn-action px-3 py-1.5 rounded-lg bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-[10px]">50 💎</button>
         </div>
 
         <!-- 2. HP -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">â¤ï¸ 2. ããè£ç²ãã¼ã¹ã (Lv.<span id="lvlHp">0</span>)</div>
-            <div class="text-[9px] text-slate-400">æ©ä½æå¤§HP+60 & å³åº§ã«å¨åå¾©</div>
+            <div class="font-cyber font-bold text-slate-200">❤️ 2. ナノ装甲ブースト (Lv.<span id="lvlHp">0</span>)</div>
+            <div class="text-[9px] text-slate-400">機体最大HP+60 ＆ 即座に全回復</div>
           </div>
-          <button id="btnBuyHp" class="btn-action px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold text-[10px]">40 ð</button>
+          <button id="btnBuyHp" class="btn-action px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold text-[10px]">40 💎</button>
         </div>
 
-        <!-- 3. Speed -->
+        <!-- 3. スピード -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð 3. ã¹ã©ã¹ã¿å é (Lv.<span id="lvlSpeed">0</span>)</div>
-            <div class="text-[9px] text-slate-400">ç§»åéåº¦+20% & ããã·ã¥CDç­ç¸®</div>
+            <div class="font-cyber font-bold text-slate-200">🚀 3. スラスター加速 (Lv.<span id="lvlSpeed">0</span>)</div>
+            <div class="text-[9px] text-slate-400">移動速度+20% ＆ ダッシュクールダウン短縮</div>
           </div>
-          <button id="btnBuySpeed" class="btn-action px-3 py-1.5 rounded-lg bg-amber-950 border border-amber-500 text-amber-300 font-bold text-[10px]">35 ð</button>
+          <button id="btnBuySpeed" class="btn-action px-3 py-1.5 rounded-lg bg-amber-950 border border-amber-500 text-amber-300 font-bold text-[10px]">35 💎</button>
         </div>
 
-        <!-- 4. Damage -->
+        <!-- 4. ダメージ -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð¥ 4. åµè£é«åºåå (Lv.<span id="lvlDmg">0</span>)</div>
-            <div class="text-[9px] text-slate-400">å¨æ­¦å¨ã®åºç¤ãã¡ã¼ã¸+25%</div>
+            <div class="font-cyber font-bold text-slate-200">💥 4. 兵装高出力化 (Lv.<span id="lvlDmg">0</span>)</div>
+            <div class="text-[9px] text-slate-400">全武器の基礎ダメージ+25%</div>
           </div>
-          <button id="btnBuyDmg" class="btn-action px-3 py-1.5 rounded-lg bg-rose-950 border border-rose-500 text-rose-300 font-bold text-[10px]">60 ð</button>
+          <button id="btnBuyDmg" class="btn-action px-3 py-1.5 rounded-lg bg-rose-950 border border-rose-500 text-rose-300 font-bold text-[10px]">60 💎</button>
         </div>
 
-        <!-- 5. Nano Shield -->
+        <!-- 5. ナノシールド -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð¡ï¸ 5. ããã·ã¼ã«ãé²å£ (Lv.<span id="lvlShield">0</span>)</div>
-            <div class="text-[9px] text-slate-400">è¢«ãã¡20%ã«ãã & èªåå¾®å°ä¿®å¾©</div>
+            <div class="font-cyber font-bold text-slate-200">🛡️ 5. ナノシールド防壁 (Lv.<span id="lvlShield">0</span>)</div>
+            <div class="text-[9px] text-slate-400">被ダメージ20%カット ＆ 自動微小修復</div>
           </div>
-          <button id="btnBuyShieldGen" class="btn-action px-3 py-1.5 rounded-lg bg-indigo-950 border border-indigo-500 text-indigo-300 font-bold text-[10px]">55 ð</button>
+          <button id="btnBuyShieldGen" class="btn-action px-3 py-1.5 rounded-lg bg-indigo-950 border border-indigo-500 text-indigo-300 font-bold text-[10px]">55 💎</button>
         </div>
 
-        <!-- 6. Rapid Fire -->
+        <!-- 6. 連射機構 -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">â¡ 6. ãã©ãºãé£å°æ©æ§ (Lv.<span id="lvlRapid">0</span>)</div>
-            <div class="text-[9px] text-slate-400">å¨åµè£ã®å°æãã£ã¬ã¤-25%ç­ç¸®</div>
+            <div class="font-cyber font-bold text-slate-200">⚡ 6. プラズマ連射機構 (Lv.<span id="lvlRapid">0</span>)</div>
+            <div class="text-[9px] text-slate-400">全兵装の射撃ディレイ-25%短縮</div>
           </div>
-          <button id="btnBuyRapid" class="btn-action px-3 py-1.5 rounded-lg bg-teal-950 border border-teal-500 text-teal-300 font-bold text-[10px]">50 ð</button>
+          <button id="btnBuyRapid" class="btn-action px-3 py-1.5 rounded-lg bg-teal-950 border border-teal-500 text-teal-300 font-bold text-[10px]">50 💎</button>
         </div>
 
-        <!-- 7. Magnet Drone -->
+        <!-- 7. マグネットドローン -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð§² 7. ãã°ããããã­ã¼ã³ (Lv.<span id="lvlMagnet">0</span>)</div>
-            <div class="text-[9px] text-slate-400">ã·ã£ã¼ãã»ã¢ã¤ãã å¸å¼ç¯å²2.5å</div>
+            <div class="font-cyber font-bold text-slate-200">🧲 7. マグネットドローン (Lv.<span id="lvlMagnet">0</span>)</div>
+            <div class="text-[9px] text-slate-400">シャード・アイテム吸引範囲2.5倍</div>
           </div>
-          <button id="btnBuyMagnet" class="btn-action px-3 py-1.5 rounded-lg bg-yellow-950 border border-yellow-500 text-yellow-300 font-bold text-[10px]">45 ð</button>
+          <button id="btnBuyMagnet" class="btn-action px-3 py-1.5 rounded-lg bg-yellow-950 border border-yellow-500 text-yellow-300 font-bold text-[10px]">45 💎</button>
         </div>
 
-        <!-- 8. Lifesteal (NEW) -->
+        <!-- 8. ナノ吸血 -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð©¸ 8. ããå¸è¡ã·ã¹ãã  (Lv.<span id="lvlLifesteal">0</span>)</div>
-            <div class="text-[9px] text-slate-400">æµã«ä¸ãããã¡ã¼ã¸ã®18%ãHPå¤æ</div>
+            <div class="font-cyber font-bold text-slate-200">🩸 8. ナノ吸血システム (Lv.<span id="lvlLifesteal">0</span>)</div>
+            <div class="text-[9px] text-slate-400">敵に与えたダメージの18%をHP変換</div>
           </div>
-          <button id="btnBuyLifesteal" class="btn-action px-3 py-1.5 rounded-lg bg-red-950 border border-red-500 text-red-300 font-bold text-[10px]">65 ð</button>
+          <button id="btnBuyLifesteal" class="btn-action px-3 py-1.5 rounded-lg bg-red-950 border border-red-500 text-red-300 font-bold text-[10px]">65 💎</button>
         </div>
 
-        <!-- 9. Companion Attack Drone (NEW) -->
+        <!-- 9. 護衛攻撃ドローン -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð¸ 9. è­·è¡æ»æãã­ã¼ã³ (Lv.<span id="lvlDrone">0</span>)</div>
-            <div class="text-[9px] text-slate-400">æ©ä½å¨å²ãæåãèªåè¿æã¬ã¼ã¶ã¼æ´è­·</div>
+            <div class="font-cyber font-bold text-slate-200">🛸 9. 護衛攻撃ドローン (Lv.<span id="lvlDrone">0</span>)</div>
+            <div class="text-[9px] text-slate-400">機体周囲を旋回し自動迎撃レーザー援護</div>
           </div>
-          <button id="btnBuyDrone" class="btn-action px-3 py-1.5 rounded-lg bg-sky-950 border border-sky-400 text-sky-300 font-bold text-[10px]">70 ð</button>
+          <button id="btnBuyDrone" class="btn-action px-3 py-1.5 rounded-lg bg-sky-950 border border-sky-400 text-sky-300 font-bold text-[10px]">70 💎</button>
         </div>
 
-        <!-- 10. Core Auto-Repair Nanobots (NEW) -->
+        <!-- 10. コア遠隔修復スウォーム -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
-            <div class="font-cyber font-bold text-slate-200">ð§ 10. ã³ã¢é éä¿®å¾©ã¹ã¦ã©ã¼ã  (Lv.<span id="lvlCoreRepair">0</span>)</div>
-            <div class="text-[9px] text-slate-400">èªè»ã³ã¢ã®å¸¸æãããã·ã³èªå·±ä¿®å¾©éåº¦+150%</div>
+            <div class="font-cyber font-bold text-slate-200">🔧 10. コア遠隔修復スウォーム (Lv.<span id="lvlCoreRepair">0</span>)</div>
+            <div class="text-[9px] text-slate-400">自軍コアの常時ナノマシン自己修復速度+150%</div>
           </div>
-          <button id="btnBuyCoreRepair" class="btn-action px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-400 text-emerald-300 font-bold text-[10px]">60 ð</button>
+          <button id="btnBuyCoreRepair" class="btn-action px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-400 text-emerald-300 font-bold text-[10px]">60 💎</button>
         </div>
       </div>
 
       <button id="btnCloseShopBottom" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-cyber font-bold rounded-xl border border-slate-700 text-xs active:scale-95 transition-all">
-        â ã¡ãã¥ã¼ãéãã
+        ✕ メニューを閉じる
       </button>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION -->
+  <!-- トースト通知 -->
   <div id="globalToast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-1.5 rounded-full text-xs font-cyber font-bold bg-slate-900/95 border border-cyan-400 text-cyan-300 shadow-2xl backdrop-blur transition-all pointer-events-none">
-    <span id="toastMsg">MESSAGE</span>
+    <span id="toastMsg">メッセージ</span>
   </div>
 
-  <!-- MODAL: MAIN LOBBY -->
+  <!-- モーダル: メインロビー -->
   <div id="modalLobby" class="absolute inset-0 z-40 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 overflow-y-auto">
     <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 my-auto">
       
       <div class="text-center space-y-1">
-        <div class="text-4xl animate-bounce">ðð°ï¸â¡</div>
+        <div class="text-4xl animate-bounce">🌌🛰️⚡</div>
         <h2 class="text-xl font-cyber font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-emerald-300 to-rose-400 tracking-wider">
-          CYBER NEXUS: ODYSSEY
+          サイバーネクサス：オデッセイ
         </h2>
-        <p class="text-xs text-slate-400 font-mono">10,000 x 10,000 EXPANDED MOBA</p>
-        <p class="text-[11px] text-cyan-300/80">å¿æ®ºæULTã»é»ç£ã¿ã¯ã¼å¶å§ã»ä¿®å¾©ã®æ³ã»æ°å¼·å10ç¨®ãå®å¨æ­è¼ï¼</p>
+        <p class="text-xs text-slate-400 font-mono">10,000 × 10,000 拡張MOBAアリーナ</p>
+        <p class="text-[11px] text-cyan-300/80">必殺技ULT・電磁タワー制圧・修復の泉・新強化10種を完全搭載！</p>
       </div>
 
       <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between gap-2">
-        <label class="text-[11px] text-slate-400 font-bold">åå:</label>
-        <input id="inputPlayerName" type="text" maxlength="10" value="NexusAce" class="flex-1 bg-slate-900 text-white font-cyber text-xs px-3 py-1.5 rounded-xl border border-slate-700 focus:border-cyan-400 focus:outline-none">
+        <label class="text-[11px] text-slate-400 font-bold">プレイヤー名:</label>
+        <input id="inputPlayerName" type="text" maxlength="10" value="ネクサスエース" class="flex-1 bg-slate-900 text-white font-cyber text-xs px-3 py-1.5 rounded-xl border border-slate-700 focus:border-cyan-400 focus:outline-none">
       </div>
 
+      <!-- ボット戦 -->
       <div class="bg-gradient-to-br from-indigo-950/70 to-slate-900 border border-indigo-500/40 rounded-2xl p-3.5 space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-cyber font-bold text-indigo-300 flex items-center gap-1.5">
-            <span>ð¤</span> ãããæ¦ (AI BATTLE)
+            <span>🤖</span> ボット戦 (AI対戦)
           </h3>
-          <span class="text-[9px] bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full font-mono">ãªãã©ã¤ã³å³æåºæ</span>
+          <span class="text-[9px] bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full font-mono">オフライン即時出撃</span>
         </div>
         
         <div class="flex items-center justify-between text-xs text-slate-300">
-          <span>é£å¶å½¢å¼:</span>
+          <span>陣営形式:</span>
           <div class="flex gap-1" id="botCountSelector">
-            <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-xs font-bold" data-count="1">1v1</button>
-            <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-indigo-400 bg-indigo-950 text-indigo-200 text-xs font-bold" data-count="3">4é£å¶ä¹±æ¦</button>
+            <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-xs font-bold" data-count="1">1対1</button>
+            <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-indigo-400 bg-indigo-950 text-indigo-200 text-xs font-bold" data-count="3">4陣営乱戦</button>
           </div>
         </div>
 
         <button id="btnStartBotMatch" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-cyber font-bold rounded-xl shadow-lg active:scale-95 text-xs tracking-wider">
-          åºæãã (10,000pxä¸çãçæ)
+          出撃する (10,000px世界を生成)
         </button>
       </div>
 
+      <!-- オンライン対戦 -->
       <div class="bg-gradient-to-br from-cyan-950/70 to-slate-900 border border-cyan-500/40 rounded-2xl p-3.5 space-y-2">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-cyber font-bold text-cyan-300 flex items-center gap-1.5">
-            <span>ð</span> ãªã³ã©ã¤ã³2ã4äººå¯¾æ¦
+            <span>🌐</span> オンライン2〜4人対戦
           </h3>
-          <span class="text-[9px] bg-cyan-900/60 text-cyan-300 px-2 py-0.5 rounded-full font-mono">FIREBASE</span>
+          <span class="text-[9px] bg-cyan-900/60 text-cyan-300 px-2 py-0.5 rounded-full font-mono">FIREBASE接続</span>
         </div>
         
         <div class="flex gap-2">
           <button id="btnCreateOnlineLobby" class="flex-1 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-cyber font-bold rounded-xl active:scale-95 text-xs">
-            é¨å±ãä½ã (HOST)
+            部屋を作る (ホスト)
           </button>
         </div>
 
         <div class="flex gap-2">
-          <input id="inputRoomCode" type="text" placeholder="åè¨è(4æ¡)" maxlength="4" class="flex-1 bg-slate-950 text-center font-cyber uppercase tracking-widest text-xs px-2 py-1.5 rounded-xl border border-slate-700 focus:border-cyan-400 focus:outline-none">
+          <input id="inputRoomCode" type="text" placeholder="合言葉(4桁)" maxlength="4" class="flex-1 bg-slate-950 text-center font-cyber uppercase tracking-widest text-xs px-2 py-1.5 rounded-xl border border-slate-700 focus:border-cyan-400 focus:outline-none">
           <button id="btnJoinOnlineLobby" class="py-1.5 px-3 bg-slate-800 border border-cyan-500/50 text-cyan-300 font-cyber font-bold rounded-xl active:scale-95 text-xs">
-            åæµãã
+            合流する
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: ONLINE WAITING ROOM -->
+  <!-- モーダル: オンライン待機室 -->
   <div id="modalWaitRoom" class="hidden absolute inset-0 z-40 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900/90 border border-cyan-500/40 rounded-3xl p-6 text-center space-y-4">
-      <div class="text-xs font-cyber text-cyan-400 tracking-widest uppercase">ROOM CODE</div>
+      <div class="text-xs font-cyber text-cyan-400 tracking-widest uppercase">ルームコード</div>
       <div id="waitRoomCodeText" class="text-5xl font-cyber font-black tracking-widest text-white">----</div>
-      <p class="text-xs text-slate-400">åè¨èãå±æãã¦åæµãå¾æ© (2ã4äºº)</p>
+      <p class="text-xs text-slate-400">合言葉を共有して合流を待機 (2〜4人)</p>
 
       <div class="grid grid-cols-4 gap-2 py-2" id="waitSlotGrid"></div>
 
       <div class="flex gap-2">
         <button id="btnStartOnlineNow" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-cyber font-bold rounded-xl active:scale-95 hidden">
-          å¨å¡æã£ãï¼è©¦åéå§ï¼
+          全員揃った！試合開始！
         </button>
       </div>
 
       <div class="flex gap-2">
         <button id="btnCopyRoomCode" class="flex-1 py-2 bg-slate-800 text-xs font-bold rounded-xl border border-slate-700 active:scale-95">
-          ð ã³ã¼ããã³ãã¼
+          📋 コードをコピー
         </button>
         <button id="btnExitWaitRoom" class="px-3 py-2 bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-bold rounded-xl active:scale-95">
-          è§£æ£
+          解散
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: MATCH RESULT -->
+  <!-- モーダル: 試合結果 -->
   <div id="modalResult" class="hidden absolute inset-0 z-40 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900/90 border border-slate-800 rounded-3xl p-6 text-center space-y-4">
-      <div id="resEmoji" class="text-6xl animate-bounce">ð</div>
+      <div id="resEmoji" class="text-6xl animate-bounce">🏆</div>
       <h2 id="resTitle" class="text-3xl font-cyber font-black tracking-wider text-amber-300">VICTORY NEXUS</h2>
-      <p id="resSubtitle" class="text-xs text-slate-400">æµå¨é£å¶ããã³çå­èãæ®²æ»ãã¢ãªã¼ããå¶å§ããï¼</p>
+      <p id="resSubtitle" class="text-xs text-slate-400">敵全陣営および生存者を殲滅しアリーナを制圧した！</p>
 
       <div class="flex items-center justify-around bg-slate-950 p-3 rounded-2xl border border-slate-800">
         <div>
-          <div class="text-[10px] text-slate-500 font-mono">YOUR KILLS</div>
+          <div class="text-[10px] text-slate-500 font-mono">撃破数</div>
           <div id="resKills" class="text-2xl font-cyber font-black text-cyan-400">0</div>
         </div>
         <div class="w-px h-8 bg-slate-800"></div>
         <div>
-          <div class="text-[10px] text-slate-500 font-mono">CORES DESTROYED</div>
+          <div class="text-[10px] text-slate-500 font-mono">破壊したコア</div>
           <div id="resCoresDestroyed" class="text-2xl font-cyber font-black text-rose-400">0</div>
         </div>
       </div>
 
       <div class="space-y-2">
         <button id="btnRematch" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 text-white font-cyber font-bold rounded-xl active:scale-95 text-xs">
-          æ°ããªã¹ãã¼ã¸ã§åæ¦
+          新たなステージで再戦
         </button>
         <button id="btnBackToLobby" class="w-full py-2 bg-slate-800 text-slate-300 font-cyber font-bold rounded-xl border border-slate-700 active:scale-95 text-xs">
-          ã­ãã¼ã«æ»ã
+          ロビーに戻る
         </button>
       </div>
     </div>
@@ -487,7 +489,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- SOUND ENGINE (Web Audio API) ---
+    // --- サウンドエンジン (Web Audio API) ---
     let audioCtx = null;
     let isSoundMuted = false;
 
@@ -572,18 +574,18 @@
       }
     };
 
-    // Firebase Configurations
+    // Firebase設定
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-nexus-titan-odyssey';
     const firebaseConfig = {
-  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
-  authDomain: "onlinegame-341cf.firebaseapp.com",
-  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
-  projectId: "onlinegame-341cf",
-  storageBucket: "onlinegame-341cf.firebasestorage.app",
-  messagingSenderId: "995082102439",
-  appId: "1:995082102439:web:49e57d48312e25f7879d82",
-  measurementId: "G-LBFXFHP9MF"
-};
+      apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+      authDomain: "onlinegame-341cf.firebaseapp.com",
+      databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
+      projectId: "onlinegame-341cf",
+      storageBucket: "onlinegame-341cf.firebasestorage.app",
+      messagingSenderId: "995082102439",
+      appId: "1:995082102439:web:49e57d48312e25f7879d82",
+      measurementId: "G-LBFXFHP9MF"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -597,7 +599,7 @@
     let roomListenerUnsub = null;
     let isMatchLive = false;
 
-    // Upgrades (10 Types)
+    // 強化レベル (全10種)
     let upgradeTurretLevel = 0;
     let upgradeHpLevel = 0;
     let upgradeSpeedLevel = 0;
@@ -609,14 +611,14 @@
     let upgradeDroneLevel = 0;
     let upgradeCoreRepairLevel = 0;
 
-    // Spectator state
+    // 観戦モード状態
     let isSpectating = false;
     let spectateTargetIndex = 0;
 
-    // WORLD EXPANDED TO 10,000 x 10,000 px
+    // 10,000 x 10,000 px の広大マップ
     const WORLD_SIZE = 10000;
 
-    // Canvas Setup
+    // Canvas準備
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const minimapCanvas = document.getElementById('minimapCanvas');
@@ -636,33 +638,33 @@
     resizeViewport();
 
     const TEAM_COLORS = [
-      { main: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', name: 'BLUE' },
-      { main: '#f43f5e', glow: 'rgba(244, 63, 94, 0.4)', name: 'RED' },
-      { main: '#10b981', glow: 'rgba(16, 185, 129, 0.4)', name: 'GREEN' },
-      { main: '#f59e0b', glow: 'rgba(245, 158, 11, 0.4)', name: 'GOLD' }
+      { main: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', name: '青チーム' },
+      { main: '#f43f5e', glow: 'rgba(244, 63, 94, 0.4)', name: '赤チーム' },
+      { main: '#10b981', glow: 'rgba(16, 185, 129, 0.4)', name: '緑チーム' },
+      { main: '#f59e0b', glow: 'rgba(245, 158, 11, 0.4)', name: '金チーム' }
     ];
 
     const WEAPON_REGISTRY = {
-      rifle: { id: 'rifle', name: 'PLASMA RIFLE', icon: 'ð«', ammo: Infinity, maxAmmo: Infinity, dmg: 18, speed: 13, spread: 0.04, count: 1, fireDelay: 190, color: '#06b6d4' },
-      shotgun: { id: 'shotgun', name: 'SCATTER CANNON', icon: 'ð¥', ammo: 30, maxAmmo: 30, dmg: 14, speed: 11, spread: 0.35, count: 5, fireDelay: 520, color: '#f59e0b' },
-      sniper: { id: 'sniper', name: 'RAILGUN SNIPER', icon: 'â¡', ammo: 15, maxAmmo: 15, dmg: 80, speed: 22, spread: 0.01, count: 1, fireDelay: 850, color: '#a855f7' },
-      rocket: { id: 'rocket', name: 'DOOM LAUNCHER', icon: 'ð', ammo: 10, maxAmmo: 10, dmg: 95, speed: 9, spread: 0.03, count: 1, fireDelay: 950, isExplosive: true, color: '#ef4444' },
-      minigun: { id: 'minigun', name: 'HYPER GATLING', icon: 'ð¥', ammo: 90, maxAmmo: 90, dmg: 11, speed: 14, spread: 0.12, count: 1, fireDelay: 80, color: '#ec4899' },
-      singularity: { id: 'singularity', name: 'SINGULARITY CANNON', icon: 'ð', ammo: 5, maxAmmo: 5, dmg: 150, speed: 7, spread: 0, count: 1, fireDelay: 1400, isExplosive: true, color: '#818cf8', isLegendary: true },
-      flamer: { id: 'flamer', name: 'INFERNO PROJECTOR', icon: 'ð', ammo: 60, maxAmmo: 60, dmg: 16, speed: 10, spread: 0.28, count: 2, fireDelay: 110, color: '#fb923c', isLegendary: true }
+      rifle: { id: 'rifle', name: 'プラズマライフル', icon: '🔫', ammo: Infinity, maxAmmo: Infinity, dmg: 18, speed: 13, spread: 0.04, count: 1, fireDelay: 190, color: '#06b6d4' },
+      shotgun: { id: 'shotgun', name: '散弾キャノン', icon: '💥', ammo: 30, maxAmmo: 30, dmg: 14, speed: 11, spread: 0.35, count: 5, fireDelay: 520, color: '#f59e0b' },
+      sniper: { id: 'sniper', name: 'レールガンスナイパー', icon: '⚡', ammo: 15, maxAmmo: 15, dmg: 80, speed: 22, spread: 0.01, count: 1, fireDelay: 850, color: '#a855f7' },
+      rocket: { id: 'rocket', name: 'ドゥームランチャー', icon: '🚀', ammo: 10, maxAmmo: 10, dmg: 95, speed: 9, spread: 0.03, count: 1, fireDelay: 950, isExplosive: true, color: '#ef4444' },
+      minigun: { id: 'minigun', name: 'ハイパーガトリング', icon: '🔥', ammo: 90, maxAmmo: 90, dmg: 11, speed: 14, spread: 0.12, count: 1, fireDelay: 80, color: '#ec4899' },
+      singularity: { id: 'singularity', name: 'シンギュラリティ砲', icon: '🌀', ammo: 5, maxAmmo: 5, dmg: 150, speed: 7, spread: 0, count: 1, fireDelay: 1400, isExplosive: true, color: '#818cf8', isLegendary: true },
+      flamer: { id: 'flamer', name: 'インフェルノ放射器', icon: '🌋', ammo: 60, maxAmmo: 60, dmg: 16, speed: 10, spread: 0.28, count: 2, fireDelay: 110, color: '#fb923c', isLegendary: true }
     };
 
     const BIOMES = [
-      { id: 'titan_frontier', name: 'TITAN FRONTIER 10k', icon: 'ð', bgColor: '#020617', gridColor: 'rgba(6, 182, 212, 0.09)', friction: 0.88, hazardType: 'speed_pad' },
-      { id: 'magma_core', name: 'MAGMA CRATER 10k', icon: 'ð', bgColor: '#160505', gridColor: 'rgba(239, 68, 68, 0.11)', friction: 0.88, hazardType: 'lava' },
-      { id: 'cryo_tundra', name: 'CRYO TUNDRA 10k', icon: 'âï¸', bgColor: '#02101e', gridColor: 'rgba(56, 189, 248, 0.12)', friction: 0.96, hazardType: 'ice' }
+      { id: 'titan_frontier', name: 'タイタン辺境 10k', icon: '🌌', bgColor: '#020617', gridColor: 'rgba(6, 182, 212, 0.09)', friction: 0.88, hazardType: 'speed_pad' },
+      { id: 'magma_core', name: 'マグマ火口 10k', icon: '🌋', bgColor: '#160505', gridColor: 'rgba(239, 68, 68, 0.11)', friction: 0.88, hazardType: 'lava' },
+      { id: 'cryo_tundra', name: '極冷ツンドラ 10k', icon: '❄️', bgColor: '#02101e', gridColor: 'rgba(56, 189, 248, 0.12)', friction: 0.96, hazardType: 'ice' }
     ];
 
     const MUTATORS = [
-      { id: 'standard', name: 'STANDARD PROTOCOL', icon: 'ð¡ï¸', desc: 'éå¸¸ã¬ã®ã¥ã¬ã¼ã·ã§ã³' },
-      { id: 'double_shards', name: 'OVERCHARGED SHARDS', icon: 'ð', desc: 'ã·ã£ã¼ãååé2åï¼' },
-      { id: 'hyper_speed', name: 'SONIC ACCELERATION', icon: 'â¡', desc: 'å¨éå+30% & ããã·ã¥CDç­ç¸®ï¼' },
-      { id: 'lethal_strike', name: 'LETHAL ENERGY', icon: 'ð¥', desc: 'å¨ãã¡ã¼ã¸+25%ï¼' }
+      { id: 'standard', name: '通常プロトコル', icon: '🛡️', desc: '標準レギュレーション' },
+      { id: 'double_shards', name: '過充電シャード', icon: '💎', desc: 'シャード回収量2倍！' },
+      { id: 'hyper_speed', name: '音速加速', icon: '⚡', desc: '全速力+30% ＆ ダッシュCD短縮！' },
+      { id: 'lethal_strike', name: '致死エネルギー', icon: '💥', desc: '全ダメージ+25%！' }
     ];
 
     let currentBiome = BIOMES[0];
@@ -709,30 +711,25 @@
         this.hp = Math.max(0, this.hp - amount);
         SFX.coreHit();
 
-        // When Core Falls
         if (this.hp <= 0 && this.isAlive) {
           this.isAlive = false;
           SFX.coreDestroyed();
           spawnExplosion(this.x, this.y, this.color.main, 110);
-          showToast(`ð¥ ${this.color.name}è»ã®ã³ã¢é¥è½ï¼`);
+          showToast(`💥 ${this.color.name}のコア陥落！`);
 
-          // CRITICAL BUG FIX: Check all players belonging to this core
           players.forEach(p => {
             if (p.teamIndex === this.index) {
               if (p.isRespawning) {
-                // If core is destroyed WHILE player is currently waiting on respawn countdown:
-                // ABORT respawn immediately and convert to eliminated / spectate to prevent glitching/hanging!
                 p.isRespawning = false;
                 p.isAlive = false;
                 p.respawnTimer = 0;
                 
                 if (p.isSelf) {
                   document.getElementById('respawnOverlay').classList.add('hidden');
-                  showToast("â ï¸ ãªã¹ãã¼ã³å¾æ©ä¸­ã«ã³ã¢ãç ´å£ãããããå®å¨è±è½ï¼");
+                  showToast("⚠️ リスポーン待機中にコアが破壊されたため完全脱落！");
                   enterSpectatorMode();
                 }
               } else if (p.isAlive) {
-                // Active on field -> triggers Last Stand
                 p.isLastStand = true;
                 if (p.isSelf) {
                   document.getElementById('lastStandBanner').classList.remove('hidden');
@@ -753,12 +750,10 @@
         if (this.turretCd > 0) this.turretCd--;
         if (this.empDisabledTimer > 0) this.empDisabledTimer--;
 
-        // Auto Repair from upgrade
         if (this.index === mySlotIndex && upgradeCoreRepairLevel > 0 && this.hp < this.maxHp) {
           this.hp = Math.min(this.maxHp, this.hp + 0.35 * upgradeCoreRepairLevel);
         }
 
-        // Core Repair Zone when standing nearby
         players.forEach(p => {
           if (p.teamIndex === this.index && p.isAlive && !p.isRespawning) {
             const dist = Math.hypot(p.x - this.x, p.y - this.y);
@@ -769,7 +764,6 @@
           }
         });
 
-        // Sentry laser (disabled if affected by captured EMP tower)
         if (this.turretCd <= 0 && this.empDisabledTimer <= 0) {
           let closestEnemy = null;
           let minDist = this.turretRange;
@@ -837,7 +831,7 @@
             c.font = '24px sans-serif';
             c.textAlign = 'center';
             c.textBaseline = 'middle';
-            c.fillText('â¡â', 0, 0);
+            c.fillText('⚡❌', 0, 0);
           } else {
             c.beginPath();
             c.arc(0, 0, this.radius * 0.45, 0, Math.PI * 2);
@@ -860,8 +854,8 @@
           c.font = '10px Orbitron, sans-serif';
           c.fillStyle = '#f8fafc';
           c.textAlign = 'center';
-          const empTag = this.empDisabledTimer > 0 ? ' [EMP JAMS]' : '';
-          c.fillText(`${this.color.name} CORE (${Math.ceil(this.hp)}/2500)${empTag}`, scrX, scrY - this.radius - 36);
+          const empTag = this.empDisabledTimer > 0 ? ' [EMP停止中]' : '';
+          c.fillText(`${this.color.name} コア (${Math.ceil(this.hp)}/2500)${empTag}`, scrX, scrY - this.radius - 36);
         } else {
           c.beginPath();
           c.arc(0, 0, this.radius, 0, Math.PI * 2);
@@ -873,18 +867,17 @@
           c.font = '28px sans-serif';
           c.textAlign = 'center';
           c.textBaseline = 'middle';
-          c.fillText('ð', 0, 0);
+          c.fillText('💀', 0, 0);
           c.restore();
 
           c.font = '10px Orbitron, sans-serif';
           c.fillStyle = '#ef4444';
           c.textAlign = 'center';
-          c.fillText(`${this.color.name} (RUINED)`, scrX, scrY - this.radius - 14);
+          c.fillText(`${this.color.name} (壊滅)`, scrX, scrY - this.radius - 14);
         }
       }
     }
 
-    // Gimmick 1: Capturable EMP Relay Towers
     class EmpTower {
       constructor(id, x, y, name) {
         this.id = id;
@@ -893,11 +886,10 @@
         this.name = name;
         this.radius = 48;
         this.capturedTeam = null;
-        this.captureProgress = 0; // -100 to 100
+        this.captureProgress = 0;
         this.controllingTeam = -1;
       }
       update() {
-        // Check players in range
         let occupyingTeam = null;
         let count = 0;
         players.forEach(p => {
@@ -916,9 +908,8 @@
               this.controllingTeam = occupyingTeam;
               this.captureProgress = 20;
               SFX.empCapture();
-              showToast(`ð¡ [${this.name}] ã TEAM ${occupyingTeam + 1} ãå¶å§ï¼æµã¿ã¬ãããä¸æåæ­¢ï¼`);
+              showToast(`📡 [${this.name}] を 第${occupyingTeam + 1}陣営が制圧！敵タレットを一時停止！`);
               
-              // Jams all enemy turrets for 10 seconds
               teamCores.forEach(c => {
                 if (c.index !== occupyingTeam) c.empDisabledTimer = 600;
               });
@@ -945,17 +936,16 @@
         c.font = '22px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð¡', 0, 0);
+        c.fillText('📡', 0, 0);
         c.restore();
 
         c.font = '9px Orbitron, sans-serif';
         c.fillStyle = col;
         c.textAlign = 'center';
-        c.fillText(`EMP TOWER: ${this.name}`, scrX, scrY - this.radius - 8);
+        c.fillText(`EMPタワー: ${this.name}`, scrX, scrY - this.radius - 8);
       }
     }
 
-    // Gimmick 2: Healing Sanctuary / Nano Fountain
     class HealingSanctuary {
       constructor(x, y) {
         this.x = x;
@@ -996,16 +986,15 @@
         c.font = '24px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('â²', scrX, scrY);
+        c.fillText('⛲', scrX, scrY);
 
         c.font = '9px Orbitron, sans-serif';
         c.fillStyle = '#34d399';
         c.textAlign = 'center';
-        c.fillText('NANO FOUNTAIN (HEAL)', scrX, scrY - this.radius - 6);
+        c.fillText('ナノの泉 (持続回復)', scrX, scrY - this.radius - 6);
       }
     }
 
-    // Gimmick 3: Bounce Shield Barrier
     class BounceBarrier {
       constructor(x, y, radius = 40) {
         this.x = x;
@@ -1031,12 +1020,11 @@
         c.font = '16px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð¡ï¸', 0, 0);
+        c.fillText('🛡️', 0, 0);
         c.restore();
       }
     }
 
-    // High Speed Jump Pad
     class JumpPad {
       constructor(x, y, targetDirX, targetDirY, power = 26) {
         this.x = x;
@@ -1074,7 +1062,6 @@
       }
     }
 
-    // Teleport Gate
     class TeleportGate {
       constructor(x, y, destX, destY, label) {
         this.x = x;
@@ -1113,13 +1100,13 @@
         c.font = '18px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð', 0, 0);
+        c.fillText('🌀', 0, 0);
         c.restore();
 
         c.font = '9px Orbitron, sans-serif';
         c.fillStyle = '#c084fc';
         c.textAlign = 'center';
-        c.fillText(`WARP: ${this.label}`, scrX, scrY - this.radius - 8);
+        c.fillText(`ワープ: ${this.label}`, scrX, scrY - this.radius - 8);
       }
     }
 
@@ -1168,7 +1155,7 @@
           const killer = players.find(p => p.id === attackerId);
           if (killer && killer.isSelf) {
             killer.addUltMeter(12);
-            showToast("ð¾ ãã­ã¼ã³æç ´ï¼ +25 ð & ULTãã£ã¼ã¸");
+            showToast("👾 ドローン撃破！ +25 💎 & ULTチャージ");
           }
         }
       }
@@ -1190,7 +1177,7 @@
         c.font = '12px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð¤', 0, 0);
+        c.fillText('🤖', 0, 0);
         c.restore();
 
         const barW = 28;
@@ -1254,7 +1241,7 @@
         if (this.hp <= 0) {
           this.isAlive = false;
           spawnExplosion(this.x, this.y, this.color, 110);
-          showToast(`ð ${this.name} æç ´ï¼ã¬ã¸ã§ã³ããªã¼åµè£æä¸ï¼`);
+          showToast(`👑 ${this.name} 撃破！伝説兵装投下！`);
           
           spawnWeaponDrop(this.x - 50, this.y, 'singularity');
           spawnWeaponDrop(this.x + 50, this.y, 'flamer');
@@ -1357,7 +1344,7 @@
         c.font = '18px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð¦', scrX, scrY);
+        c.fillText('📦', scrX, scrY);
         c.restore();
       }
     }
@@ -1382,7 +1369,7 @@
           c.fillRect(scrX, scrY, this.w, this.h);
           c.strokeRect(scrX, scrY, this.w, this.h);
           c.font = '12px sans-serif';
-          c.fillText('ð¥ æº¶å²©å°å¸¯', scrX + 8, scrY + 18);
+          c.fillText('🔥 溶岩地帯', scrX + 8, scrY + 18);
         } else if (this.type === 'ice') {
           c.fillStyle = 'rgba(56, 189, 248, 0.25)';
           c.strokeStyle = '#38bdf8';
@@ -1390,7 +1377,7 @@
           c.fillRect(scrX, scrY, this.w, this.h);
           c.strokeRect(scrX, scrY, this.w, this.h);
           c.font = '12px sans-serif';
-          c.fillText('âï¸ æ°·åºã¹ãªãã', scrX + 8, scrY + 18);
+          c.fillText('❄️ 氷床スリップ', scrX + 8, scrY + 18);
         } else if (this.type === 'speed_pad') {
           c.fillStyle = 'rgba(6, 182, 212, 0.22)';
           c.strokeStyle = '#06b6d4';
@@ -1398,7 +1385,7 @@
           c.fillRect(scrX, scrY, this.w, this.h);
           c.strokeRect(scrX, scrY, this.w, this.h);
           c.font = '12px sans-serif';
-          c.fillText('â© ãã¤ãã¼å éå¸¯', scrX + 8, scrY + 18);
+          c.fillText('⏩ ハイパー加速帯', scrX + 8, scrY + 18);
         }
       }
     }
@@ -1439,13 +1426,13 @@
         c.font = '14px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText(wDef ? wDef.icon : 'ð¦', 0, 0);
+        c.fillText(wDef ? wDef.icon : '📦', 0, 0);
         c.restore();
 
         c.font = '9px Orbitron, sans-serif';
         c.fillStyle = wDef ? wDef.color : '#fff';
         c.textAlign = 'center';
-        c.fillText(wDef ? wDef.name : 'WEAPON', scrX, scrY - 22);
+        c.fillText(wDef ? wDef.name : '武器', scrX, scrY - 22);
       }
     }
 
@@ -1488,7 +1475,7 @@
           c.lineWidth = 1.5;
           c.stroke();
           c.font = '16px sans-serif';
-          c.fillText('ð¿', scrX + this.w / 2 - 8, scrY + this.h / 2 + 5);
+          c.fillText('🌿', scrX + this.w / 2 - 8, scrY + this.h / 2 + 5);
         }
       }
     }
@@ -1555,7 +1542,7 @@
         c.font = '12px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText('ð', 0, 0);
+        c.fillText('💎', 0, 0);
         c.restore();
       }
     }
@@ -1587,7 +1574,6 @@
         this.coresDestroyed = 0;
         this.shards = 0;
 
-        // Ultimate Overdrive
         this.ultMeter = 0;
         this.isTitanOverdrive = false;
         this.titanTimer = 0;
@@ -1669,7 +1655,7 @@
           }
         } else {
           this.isRespawning = false;
-          showToast(`ð ${this.name} ã¯å®å¨è±è½ããï¼`);
+          showToast(`💀 ${this.name} は完全脱落した！`);
           
           if (this.isSelf) {
             enterSpectatorMode();
@@ -1681,19 +1667,17 @@
       update() {
         if (this.isRespawning || !this.isAlive) return;
 
-        // Titan Overdrive Timer
         if (this.isTitanOverdrive) {
           this.titanTimer--;
           if (this.titanTimer <= 0) {
             this.isTitanOverdrive = false;
             this.radius = 18;
-            if (this.isSelf) showToast("ãªã¼ãã¼ãã©ã¤ãè§£é¤");
+            if (this.isSelf) showToast("オーバードライブ解除");
           } else {
-            this.hp = Math.min(this.maxHp, this.hp + 0.2); // Regen while Titan
+            this.hp = Math.min(this.maxHp, this.hp + 0.2);
           }
         }
 
-        // Micro-regen
         if (this.isSelf && upgradeShieldGenLevel > 0 && this.hp < this.maxHp) {
           this.hp = Math.min(this.maxHp, this.hp + 0.05 * upgradeShieldGenLevel);
         }
@@ -1711,7 +1695,6 @@
         if (this.overchargeCooldown > 0) this.overchargeCooldown -= 16;
         if (this.teleportCooldown > 0) this.teleportCooldown -= 16;
 
-        // Companion Drone System (New Upgrade)
         if (this.isSelf && upgradeDroneLevel > 0) {
           this.companionDroneAngle += 0.05;
           if (this.companionFireCd > 0) this.companionFireCd--;
@@ -1732,7 +1715,6 @@
           }
         }
 
-        // Magnet Drone
         if (this.isSelf && upgradeMagnetLevel > 0) {
           const magnetRadius = 80 + upgradeMagnetLevel * 60;
           shardDrops.forEach(s => {
@@ -1746,7 +1728,6 @@
           });
         }
 
-        // Jump Pads Check
         jumpPads.forEach(jp => {
           if (Math.hypot(this.x - jp.x, this.y - jp.y) < jp.radius + this.radius) {
             this.vx = jp.targetDirX * jp.power;
@@ -1756,7 +1737,6 @@
           }
         });
 
-        // Bouncy Shield Barriers (Deflects with velocity push)
         bounceBarriers.forEach(bb => {
           const d = Math.hypot(this.x - bb.x, this.y - bb.y);
           if (d < bb.radius + this.radius) {
@@ -1768,7 +1748,6 @@
           }
         });
 
-        // Teleport Gates Check
         if (this.teleportCooldown <= 0) {
           teleportGates.forEach(tg => {
             if (Math.hypot(this.x - tg.x, this.y - tg.y) < tg.radius) {
@@ -1779,12 +1758,11 @@
               this.teleportCooldown = 240;
               SFX.teleport();
               spawnExplosion(this.x, this.y, '#a855f7', 30);
-              if (this.isSelf) showToast(`ð ãã¬ãã¼ãï¼ [${tg.label}]`);
+              if (this.isSelf) showToast(`🌀 テレポート！ [${tg.label}]`);
             }
           });
         }
 
-        // Biome Hazards check
         hazardZones.forEach(h => {
           if (this.x > h.x && this.x < h.x + h.w && this.y > h.y && this.y < h.y + h.h) {
             if (h.type === 'lava') {
@@ -1801,7 +1779,7 @@
         if (!this.isAlive || this.isRespawning) return;
 
         if (this.isTitanOverdrive) {
-          amount *= 0.35; // 65% damage resistance during Titan Overdrive!
+          amount *= 0.35;
         }
 
         if (this.isSelf && upgradeShieldGenLevel > 0) {
@@ -1829,7 +1807,7 @@
               if (killer.isSelf) {
                 document.getElementById('hudKillstreak').textContent = killer.killstreak;
                 showKillstreakBanner(killer.name, killer.killstreak);
-                showToast(`æµæç ´ï¼ +${shardYield} ð & +35% ULT`);
+                showToast(`敵撃破！ +${shardYield} 💎 & +35% ULT`);
                 updateShopHUD();
               }
             }
@@ -1852,7 +1830,6 @@
           c.globalAlpha = 0.55;
         }
 
-        // Draw Companion Drone
         if (this.isSelf && upgradeDroneLevel > 0) {
           const cdx = Math.cos(this.companionDroneAngle) * 36;
           const cdy = Math.sin(this.companionDroneAngle) * 36;
@@ -1913,8 +1890,8 @@
         c.font = '10px Orbitron, sans-serif';
         c.fillStyle = this.isLastStand ? '#ef4444' : '#e2e8f0';
         c.textAlign = 'center';
-        const titanTag = this.isTitanOverdrive ? ' [TITAN]' : '';
-        const label = this.isLastStand ? `â ï¸ ${this.name} [STAND]${titanTag}` : `${this.name}${titanTag}`;
+        const titanTag = this.isTitanOverdrive ? ' [タイタン]' : '';
+        const label = this.isLastStand ? `⚠️ ${this.name} [奮戦]${titanTag}` : `${this.name}${titanTag}`;
         c.fillText(label, scrX, scrY - this.radius - 16);
       }
     }
@@ -1927,7 +1904,6 @@
     let projectiles = [];
     let particles = [];
 
-    // 4 Corner Cores in 10000x10000 World
     const CORE_SPAWNS = [
       { x: 900, y: 900 },
       { x: WORLD_SIZE - 900, y: 900 },
@@ -1961,35 +1937,29 @@
       teamCores = [];
       matchTimeFrames = 0;
 
-      // 1. Cores at 4 Corners (2500 HP)
       for (let i = 0; i < 4; i++) {
         const pos = CORE_SPAWNS[i];
         teamCores.push(new BaseCore(i, pos.x, pos.y, TEAM_COLORS[i]));
       }
 
-      // 2. Central Mega Boss & Outer Boss
       const cx = WORLD_SIZE / 2;
       const cy = WORLD_SIZE / 2;
-      worldBosses.push(new WorldBoss('TITAN PRIME', cx, cy, 'ð¾', 3200, '#c084fc'));
-      worldBosses.push(new WorldBoss('CYBER DRAKE', cx - 2200, cy + 2200, 'ð', 2600, '#f43f5e'));
+      worldBosses.push(new WorldBoss('タイタンプライム', cx, cy, '👾', 3200, '#c084fc'));
+      worldBosses.push(new WorldBoss('サイバードレイク', cx - 2200, cy + 2200, '🐉', 2600, '#f43f5e'));
 
-      // 3. Capturable EMP Relay Towers
-      empTowers.push(new EmpTower('emp_north', cx, 2400, 'ALPHA RELAY'));
-      empTowers.push(new EmpTower('emp_south', cx, WORLD_SIZE - 2400, 'OMEGA RELAY'));
+      empTowers.push(new EmpTower('emp_north', cx, 2400, 'アルファ中継局'));
+      empTowers.push(new EmpTower('emp_south', cx, WORLD_SIZE - 2400, 'オメガ中継局'));
 
-      // 4. Healing Sanctuaries / Nano Fountains
       healingSanctuaries.push(new HealingSanctuary(cx - 1500, cy - 1500));
       healingSanctuaries.push(new HealingSanctuary(cx + 1500, cy + 1500));
       healingSanctuaries.push(new HealingSanctuary(cx, cy));
 
-      // 5. Bounce Barriers
       for (let i = 0; i < 16; i++) {
         const bx = 1600 + Math.random() * (WORLD_SIZE - 3200);
         const by = 1600 + Math.random() * (WORLD_SIZE - 3200);
         bounceBarriers.push(new BounceBarrier(bx, by, 36));
       }
 
-      // 6. Jump Pads connecting sectors
       const jpCoords = [
         { x: 1800, y: 1800, dx: 1, dy: 1 },
         { x: WORLD_SIZE - 1800, y: 1800, dx: -1, dy: 1 },
@@ -2000,27 +1970,23 @@
       ];
       jpCoords.forEach(j => jumpPads.push(new JumpPad(j.x, j.y, j.dx, j.dy, 28)));
 
-      // 7. Teleport Gate Network
-      teleportGates.push(new TeleportGate(1400, 1400, WORLD_SIZE - 1400, WORLD_SIZE - 1400, 'SE SECTOR'));
-      teleportGates.push(new TeleportGate(WORLD_SIZE - 1400, WORLD_SIZE - 1400, 1400, 1400, 'NW SECTOR'));
-      teleportGates.push(new TeleportGate(WORLD_SIZE - 1400, 1400, 1400, WORLD_SIZE - 1400, 'SW SECTOR'));
-      teleportGates.push(new TeleportGate(1400, WORLD_SIZE - 1400, WORLD_SIZE - 1400, 1400, 'NE SECTOR'));
+      teleportGates.push(new TeleportGate(1400, 1400, WORLD_SIZE - 1400, WORLD_SIZE - 1400, '南東セクター'));
+      teleportGates.push(new TeleportGate(WORLD_SIZE - 1400, WORLD_SIZE - 1400, 1400, 1400, '北西セクター'));
+      teleportGates.push(new TeleportGate(WORLD_SIZE - 1400, 1400, 1400, WORLD_SIZE - 1400, '南西セクター'));
+      teleportGates.push(new TeleportGate(1400, WORLD_SIZE - 1400, WORLD_SIZE - 1400, 1400, '北東セクター'));
 
-      // 8. Creep Drone Camps
       for (let i = 0; i < 24; i++) {
         const dx = 1500 + Math.random() * (WORLD_SIZE - 3000);
         const dy = 1500 + Math.random() * (WORLD_SIZE - 3000);
         creepDrones.push(new CreepDrone(dx, dy));
       }
 
-      // 9. Hazard Zones
       for (let i = 0; i < 18; i++) {
         const hx = 1200 + Math.random() * (WORLD_SIZE - 2400);
         const hy = 1200 + Math.random() * (WORLD_SIZE - 2400);
         hazardZones.push(new HazardZone(hx, hy, 350, 350, currentBiome.hazardType));
       }
 
-      // 10. Barriers & Stealth Bushes
       for (let i = 0; i < 40; i++) {
         const ox = 1000 + Math.random() * (WORLD_SIZE - 2000);
         const oy = 1000 + Math.random() * (WORLD_SIZE - 2000);
@@ -2028,7 +1994,6 @@
         obstacles.push(new Obstacle(ox + 50, oy + 70, 160, 160, 'bush'));
       }
 
-      // 11. Initial Shard Drops & Weapons
       for (let i = 0; i < 120; i++) spawnRandomShard();
       for (let i = 0; i < 35; i++) spawnRandomWeapon();
     }
@@ -2109,13 +2074,13 @@
       const subtitle = document.getElementById('announcementSubtitle');
 
       if (streak >= 5) {
-        title.textContent = 'ð GODLIKE ANNIHILATOR!';
+        title.textContent = '🌟 神がかり的殲滅者！';
       } else if (streak >= 3) {
-        title.textContent = 'ð¥ RAMPAGE KILLSTREAK!';
+        title.textContent = '🔥 連キル大暴走！';
       } else {
-        title.textContent = 'â¡ ENEMY ELIMINATED';
+        title.textContent = '⚡ 敵プレイヤー撃破！';
       }
-      subtitle.textContent = `${killerName} is dominating the frontier! (${streak} Streak)`;
+      subtitle.textContent = `${killerName} が戦場を支配中！（${streak} 連続キル）`;
       banner.classList.remove('hidden');
       setTimeout(() => banner.classList.add('hidden'), 3500);
     }
@@ -2131,7 +2096,7 @@
         spectateTargetIndex = 0;
         updateSpectateTargetDisplay();
       }
-      showToast("ðï¸ æ©ä½å®å¨å¤§ç ´ï¼è¦³æ¦ã«ã¡ã©ã¸ç§»è¡ãã¾ãã");
+      showToast("👁️ 機体完全大破！観戦カメラへ移行しました");
     }
 
     function getAlivePlayersForSpectate() {
@@ -2141,7 +2106,7 @@
     function updateSpectateTargetDisplay() {
       const aliveList = getAlivePlayersForSpectate();
       if (aliveList.length === 0) {
-        document.getElementById('spectatingTargetName').textContent = 'å¨å¡æ®²æ»';
+        document.getElementById('spectatingTargetName').textContent = '全員殲滅';
         return;
       }
       spectateTargetIndex = (spectateTargetIndex + aliveList.length) % aliveList.length;
@@ -2167,7 +2132,7 @@
       }
     });
 
-    // Touch Joystick
+    // タッチジョイスティック制御
     let joyActive = false;
     let joyTouchId = null;
     let joyOriginX = 0;
@@ -2233,7 +2198,7 @@
       joyVecY = my / maxR;
     }
 
-    // Keyboard controls
+    // キーボード操作
     const keyMap = {};
     window.addEventListener('keydown', (e) => {
       keyMap[e.key.toLowerCase()] = true;
@@ -2313,7 +2278,7 @@
       if (now - self.lastFireTime < fireDelay) return;
 
       if (def.ammo !== Infinity && self.ammo[wKey] <= 0) {
-        showToast("å¼¾åãï¼ã©ã¤ãã«ã«èªååæ¿");
+        showToast("弾切れ！ライフルに自動切替");
         self.inventory = ['rifle'];
         self.currentWeaponIndex = 0;
         updateWeaponHUD();
@@ -2369,21 +2334,20 @@
       const self = getSelfPlayer();
       if (!self || !self.isAlive || self.isRespawning || isSpectating) return;
       if (self.ultMeter < 100) {
-        showToast("ULTã²ã¼ã¸æªåå¡«ï¼(æµãæ»æãã¦ãã£ã¼ã¸)");
+        showToast("ULTゲージ未充填！(敵を攻撃してチャージ)");
         return;
       }
 
       self.ultMeter = 0;
       self.isTitanOverdrive = true;
-      self.titanTimer = 480; // ~8 seconds
+      self.titanTimer = 480;
       self.radius = 28;
       self.addUltMeter(0);
 
       SFX.ultimate();
       triggerScreenShake();
-      showToast("ð¥ TITAN OVERLOAD èµ·åï¼å¨æ¹ä½ã¡ã¬ã¬ã¼ã¶ã¼æå°ï¼");
+      showToast("💥 タイタンオーバーロード起動！全方位メガレーザー掃射！");
 
-      // Radial laser burst
       for (let i = 0; i < 24; i++) {
         const ang = (Math.PI * 2 / 24) * i;
         projectiles.push(new Projectile(
@@ -2430,7 +2394,7 @@
         myCore.shieldOvercharge += 500;
       }
       self.hp = Math.min(self.maxHp, self.hp + 60);
-      showToast("ð¡ï¸ ã³ã¢ & æ©ä½ããªã¢å±éï¼(+500 SHIELD)");
+      showToast("🛡️ コア ＆ 機体バリア展開！(+500 シールド)");
 
       const cdCover = document.getElementById('overchargeCdCover');
       cdCover.classList.remove('hidden');
@@ -2471,7 +2435,7 @@
           }
 
           SFX.pickup();
-          showToast(`â¡ ${wDef.name} è£åï¼(æ®å¼¾: ${wDef.maxAmmo})`);
+          showToast(`⚡ ${wDef.name} 装備！(残弾: ${wDef.maxAmmo})`);
           updateWeaponHUD();
           break;
         }
@@ -2496,8 +2460,8 @@
 
       if (nearby) {
         const wDef = WEAPON_REGISTRY[nearby.weaponId];
-        document.getElementById('pickupIcon').textContent = wDef ? wDef.icon : 'ð¦';
-        document.getElementById('pickupName').textContent = `æ¾ã: ${wDef ? wDef.name : 'WEAPON'}`;
+        document.getElementById('pickupIcon').textContent = wDef ? wDef.icon : '📦';
+        document.getElementById('pickupName').textContent = `拾う: ${wDef ? wDef.name : '武器'}`;
         btn.classList.remove('hidden');
       } else {
         btn.classList.add('hidden');
@@ -2511,7 +2475,7 @@
       const def = WEAPON_REGISTRY[wKey];
       document.getElementById('weaponName').textContent = def.name;
       document.getElementById('weaponIcon').textContent = def.icon;
-      const ammoVal = def.ammo === Infinity ? 'â' : self.ammo[wKey];
+      const ammoVal = def.ammo === Infinity ? '∞' : self.ammo[wKey];
       document.getElementById('ammoCount').textContent = ammoVal;
     }
 
@@ -2534,7 +2498,6 @@
         let targetY = WORLD_SIZE / 2;
         let targetEnemy = null;
 
-        // Weapon hunt
         if (bot.getCurrentWeaponKey() === 'rifle') {
           for (let wd of weaponDrops) {
             if (!wd.collected && Math.hypot(bot.x - wd.x, bot.y - wd.y) < 650) {
@@ -2551,7 +2514,6 @@
           }
         }
 
-        // Enemy Core prioritize
         let nearestEnemyCore = null;
         let minCoreDist = Infinity;
         teamCores.forEach(c => {
@@ -2564,7 +2526,6 @@
           }
         });
 
-        // Nearby opponent
         let nearestOpp = null;
         let minOppDist = 750;
         players.forEach(other => {
@@ -2601,7 +2562,6 @@
           bot.vy += Math.sin(angleToTarget) * moveSpeed;
         }
 
-        // Bot Firing
         if (targetEnemy && Math.hypot(targetX - bot.x, targetY - bot.y) < 500 && Math.random() < 0.08) {
           const wKey = bot.getCurrentWeaponKey();
           const def = WEAPON_REGISTRY[wKey];
@@ -2615,7 +2575,6 @@
           ));
         }
 
-        // Dash escape
         if (bot.dashCooldown <= 0 && nearestOpp && minOppDist < 130 && Math.random() < 0.09) {
           bot.dashCooldown = bot.dashMaxCooldown;
           const escapeAng = angleToTarget + Math.PI;
@@ -2639,14 +2598,13 @@
           if (p.isRespawning) {
             const homeCore = teamCores[p.teamIndex];
             
-            // Check if core was ruined while waiting
             if (!homeCore || !homeCore.isAlive) {
               p.isRespawning = false;
               p.isAlive = false;
               p.respawnTimer = 0;
               if (p.isSelf) {
                 document.getElementById('respawnOverlay').classList.add('hidden');
-                showToast("â ï¸ ã³ã¢é¥è½ã«ãããªã¹ãã¼ã³ä¸è½ï¼å®å¨è±è½ï¼");
+                showToast("⚠️ コア陥落によりリスポーン不能！完全脱落！");
                 enterSpectatorMode();
               }
               checkMatchEndCondition();
@@ -2663,7 +2621,7 @@
               SFX.respawn();
               if (p.isSelf) {
                 document.getElementById('respawnOverlay').classList.add('hidden');
-                showToast("â¡ ãªã¹ãã¼ã³å®äºï¼æ¦ç·ã«å¾©å¸°ï¼");
+                showToast("⚡ リスポーン完了！戦線に復帰！");
               }
             }
           }
@@ -2680,7 +2638,7 @@
       supplyDrops.push(new SupplyPod(x, y, pick));
       SFX.airdrop();
 
-      showToast(`ð¦ è£çµ¦ãããæä¸ï¼ [${WEAPON_REGISTRY[pick].name}]`);
+      showToast(`📦 補給ポッド投下！ [${WEAPON_REGISTRY[pick].name}]`);
     }
 
     function updatePhysics() {
@@ -2701,7 +2659,6 @@
         if (supplyDrops[i].landed) supplyDrops.splice(i, 1);
       }
 
-      // Walls & Bushes collision
       players.forEach(p => {
         if (!p.isAlive || p.isRespawning) return;
 
@@ -2731,7 +2688,6 @@
         });
       });
 
-      // Projectiles Collision
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const prj = projectiles[i];
         prj.update();
@@ -2754,7 +2710,6 @@
           continue;
         }
 
-        // Creep hit
         let hitCreep = false;
         for (let cr of creepDrones) {
           if (cr.isAlive && Math.hypot(prj.x - cr.x, prj.y - cr.y) < cr.radius + prj.radius) {
@@ -2769,7 +2724,6 @@
           continue;
         }
 
-        // World Boss hit
         let hitBoss = false;
         for (let b of worldBosses) {
           if (b.isAlive && Math.hypot(prj.x - b.x, prj.y - b.y) < b.radius + prj.radius) {
@@ -2784,7 +2738,6 @@
           continue;
         }
 
-        // Core hit
         let hitCore = false;
         for (let c of teamCores) {
           if (c.isAlive && Math.hypot(prj.x - c.x, prj.y - c.y) < c.radius + prj.radius) {
@@ -2802,7 +2755,7 @@
                 shooter.coresDestroyed++;
                 shooter.shards += 150;
                 if (shooter.isSelf) {
-                  showToast("ð æµã³ã¢å®å¨ç ´å£ï¼ +150 ð");
+                  showToast("🏆 敵コア完全破壊！ +150 💎");
                   updateShopHUD();
                 }
               }
@@ -2815,7 +2768,6 @@
           continue;
         }
 
-        // Player hit
         let hitPlayer = false;
         for (let p of players) {
           if (p.isAlive && !p.isRespawning && p.id !== prj.shooterId) {
@@ -2826,7 +2778,6 @@
                 p.takeDamage(prj.dmg, prj.shooterId);
                 spawnExplosion(prj.x, prj.y, prj.color, prj.isExplosive ? 24 : 8);
 
-                // Lifesteal system for attacker
                 if (shooter && shooter.isSelf && upgradeLifestealLevel > 0) {
                   shooter.hp = Math.min(shooter.maxHp, shooter.hp + prj.dmg * 0.18 * upgradeLifestealLevel);
                 }
@@ -2843,7 +2794,6 @@
         }
       }
 
-      // Shard collection
       shardDrops.forEach(s => {
         if (s.collected) return;
         players.forEach(p => {
@@ -2889,12 +2839,12 @@
       const self = getSelfPlayer();
       const isWinner = self && self.teamIndex === winningTeamIndex;
 
-      document.getElementById('resTitle').textContent = isWinner ? 'VICTORY NEXUS' : 'MATCH FINISHED';
+      document.getElementById('resTitle').textContent = isWinner ? 'VICTORY NEXUS' : '試合終了';
       document.getElementById('resTitle').className = `text-3xl font-cyber font-black tracking-wider ${isWinner ? 'text-amber-300' : 'text-rose-500'}`;
-      document.getElementById('resEmoji').textContent = isWinner ? 'ð' : (isSpectating ? 'ðï¸' : 'ð');
+      document.getElementById('resEmoji').textContent = isWinner ? '🏆' : (isSpectating ? '👁️' : '💀');
       document.getElementById('resSubtitle').textContent = isWinner 
-        ? 'å¨æµé£å¶ããã³æ®åãå®å¨æè¨ãã¢ãªã¼ãã®è¦èã¨ãªã£ãï¼' 
-        : (isSpectating ? `è¦³æ¦çµäºï¼ TEAM ${winningTeamIndex !== undefined ? winningTeamIndex + 1 : '---'} ãåå©ãã¾ããï¼` : 'å¨æ¦åãå£æ»ãã... æ ç¹å¼·åãã¦åæ¦ãããï¼');
+        ? '全敵陣営および残党を完全掃討しアリーナの覇者となった！' 
+        : (isSpectating ? `観戦終了！ 第${winningTeamIndex !== undefined ? winningTeamIndex + 1 : '---'}陣営が勝利しました！` : '全戦力が壊滅した... 拠点を強化して再戦しよう！');
       document.getElementById('resKills').textContent = self ? self.kills : 0;
       document.getElementById('resCoresDestroyed').textContent = self ? self.coresDestroyed : 0;
 
@@ -2972,15 +2922,15 @@
       const targets = [];
 
       if (myCore && myCore.isAlive) {
-        targets.push({ x: myCore.x, y: myCore.y, label: 'MY CORE', color: myCore.color.main, icon: 'ð ' });
+        targets.push({ x: myCore.x, y: myCore.y, label: '自軍コア', color: myCore.color.main, icon: '🏠' });
       }
 
       empTowers.forEach(et => {
-        targets.push({ x: et.x, y: et.y, label: et.name, color: et.controllingTeam >= 0 ? TEAM_COLORS[et.controllingTeam].main : '#64748b', icon: 'ð¡' });
+        targets.push({ x: et.x, y: et.y, label: et.name, color: et.controllingTeam >= 0 ? TEAM_COLORS[et.controllingTeam].main : '#64748b', icon: '📡' });
       });
 
       healingSanctuaries.forEach(hs => {
-        targets.push({ x: hs.x, y: hs.y, label: 'HEAL', color: '#10b981', icon: 'â²' });
+        targets.push({ x: hs.x, y: hs.y, label: '回復', color: '#10b981', icon: '⛲' });
       });
 
       worldBosses.forEach(b => {
@@ -2988,7 +2938,7 @@
       });
 
       supplyDrops.forEach(sp => {
-        targets.push({ x: sp.x, y: sp.y, label: 'SUPPLY', color: '#f59e0b', icon: 'ð¦' });
+        targets.push({ x: sp.x, y: sp.y, label: '補給', color: '#f59e0b', icon: '📦' });
       });
 
       const pad = 36;
@@ -3066,7 +3016,6 @@
       ctx.lineWidth = 5;
       ctx.strokeRect(-camX, -camY, WORLD_SIZE, WORLD_SIZE);
 
-      // Viewport Culled Draws
       hazardZones.forEach(h => h.draw(ctx, camX, camY));
       healingSanctuaries.forEach(hs => hs.draw(ctx, camX, camY));
       obstacles.forEach(o => o.draw(ctx, camX, camY));
@@ -3115,7 +3064,7 @@
         const pct = Math.ceil((c.hp / c.maxHp) * 100);
         item.innerHTML = `
           <div class="font-cyber font-bold text-[8px]" style="color:${c.color.main}">${c.color.name}</div>
-          <div class="font-mono text-[9px] ${c.isAlive ? 'text-slate-200' : 'text-rose-400 font-bold'}">${c.isAlive ? pct + '%' : 'RUIN'}</div>
+          <div class="font-mono text-[9px] ${c.isAlive ? 'text-slate-200' : 'text-rose-400 font-bold'}">${c.isAlive ? pct + '%' : '破壊'}</div>
         `;
         statusBar.appendChild(item);
       });
@@ -3126,7 +3075,7 @@
         const bPct = Math.ceil((b.hp / b.maxHp) * 100);
         bItem.innerHTML = `
           <div class="font-cyber font-bold text-[8px] text-purple-300">${b.name.split(' ')[0]}</div>
-          <div class="font-mono text-[9px] text-purple-200">${b.isAlive ? bPct + '%' : 'DEAD'}</div>
+          <div class="font-mono text-[9px] text-purple-200">${b.isAlive ? bPct + '%' : '撃破'}</div>
         `;
         statusBar.appendChild(bItem);
       });
@@ -3173,56 +3122,56 @@
     document.getElementById('btnCloseShopBottom').addEventListener('click', closeUpgradeShop);
     document.getElementById('shopBackdropTap').addEventListener('click', closeUpgradeShop);
 
-    // Purchase handlers for all 10 upgrades
+    // 10種の強化購入処理
     document.getElementById('btnBuyTurret').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 50) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 50; upgradeTurretLevel++; showToast("ð¼ èªè»ã¿ã¬ãããå¼·åï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 50) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 50; upgradeTurretLevel++; showToast("🗼 自軍タレットを強化！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyHp').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 40) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 40; upgradeHpLevel++; self.maxHp += 60; self.hp = self.maxHp; showToast("â¤ï¸ èä¹å¤ããã¼ã¹ã & å¨åå¾©ï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 40) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 40; upgradeHpLevel++; self.maxHp += 60; self.hp = self.maxHp; showToast("❤️ 耐久値をブースト ＆ 全回復！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuySpeed').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 35) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 35; upgradeSpeedLevel++; self.speed += 0.85; showToast("ð ã¹ã©ã¹ã¿ãå éï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 35) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 35; upgradeSpeedLevel++; self.speed += 0.85; showToast("🚀 スラスターを加速！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyDmg').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 60) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 60; upgradeDmgLevel++; showToast("ð¥ å¨åµè£ãã¡ã¼ã¸+25%ï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 60) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 60; upgradeDmgLevel++; showToast("💥 全兵装ダメージ+25%！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyShieldGen').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 55) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 55; upgradeShieldGenLevel++; showToast("ð¡ï¸ ããã·ã¼ã«ãé²å£ãæ§ç¯ï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 55) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 55; upgradeShieldGenLevel++; showToast("🛡️ ナノシールド防壁を構築！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyRapid').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 50) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 50; upgradeRapidLevel++; showToast("â¡ ãã©ãºãé£å°æ©æ§ãè£çï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 50) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 50; upgradeRapidLevel++; showToast("⚡ プラズマ連射機構を装着！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyMagnet').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 45) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 45; upgradeMagnetLevel++; showToast("ð§² ãã°ããããã­ã¼ã³èµ·åï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 45) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 45; upgradeMagnetLevel++; showToast("🧲 マグネットドローン起動！"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyLifesteal').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 65) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 65; upgradeLifestealLevel++; showToast("ð©¸ ããå¸è¡ã·ã¹ãã è£çï¼(ä¸ãã¡åå¾©)"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 65) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 65; upgradeLifestealLevel++; showToast("🩸 ナノ吸血システム装着！(与ダメ回復)"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyDrone').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 70) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 70; upgradeDroneLevel++; showToast("ð¸ è­·è¡æ»æãã­ã¼ã³åºæï¼(èªåè¿æ)"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 70) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 70; upgradeDroneLevel++; showToast("🛸 護衛攻撃ドローン出撃！(自動迎撃)"); updateShopHUD(); SFX.overcharge();
     });
     document.getElementById('btnBuyCoreRepair').addEventListener('click', () => {
       const self = getSelfPlayer();
-      if (!self || self.shards < 60) { showToast("ð ã·ã£ã¼ãä¸è¶³ï¼"); return; }
-      self.shards -= 60; upgradeCoreRepairLevel++; showToast("ð§ ã³ã¢èªå·±ä¿®å¾©ã¹ã¦ã©ã¼ã èµ·åï¼"); updateShopHUD(); SFX.overcharge();
+      if (!self || self.shards < 60) { showToast("💎 シャード不足！"); return; }
+      self.shards -= 60; upgradeCoreRepairLevel++; showToast("🔧 コア自己修復スウォーム起動！"); updateShopHUD(); SFX.overcharge();
     });
 
     async function authenticatePlayer() {
@@ -3295,7 +3244,7 @@
 
       roomListenerUnsub = onSnapshot(roomRef, (snapshot) => {
         if (!snapshot.exists()) {
-          showToast("é¨å±ãåæ­ããã¾ãã");
+          showToast("部屋が切断されました");
           quitMatchToLobby();
           return;
         }
@@ -3311,10 +3260,10 @@
             slotEl.className = 'flex flex-col items-center justify-center p-2 rounded-2xl border ' + (s ? 'border-cyan-500/60 bg-cyan-950/40' : 'border-dashed border-slate-700 bg-slate-950/40');
             slotEl.innerHTML = s ? `
               <div class="text-xs font-cyber font-bold text-cyan-300 truncate max-w-[55px]">${s.name}</div>
-              <span class="text-[8px] font-mono" style="color:${TEAM_COLORS[idx].main}">TEAM ${idx+1}</span>
+              <span class="text-[8px] font-mono" style="color:${TEAM_COLORS[idx].main}">第${idx+1}陣営</span>
             ` : `
-              <div class="text-lg text-slate-600">ð¤</div>
-              <span class="text-[8px] text-slate-500 font-mono">å¾æ©ä¸­</span>
+              <div class="text-lg text-slate-600">👤</div>
+              <span class="text-[8px] text-slate-500 font-mono">待機中</span>
             `;
             slotGrid.appendChild(slotEl);
           });
@@ -3386,7 +3335,6 @@
       isMatchLive = true;
       isSpectating = false;
 
-      // Clean reset all 10 upgrades
       upgradeTurretLevel = 0;
       upgradeHpLevel = 0;
       upgradeSpeedLevel = 0;
@@ -3419,7 +3367,7 @@
       updateWeaponHUD();
       updateShopHUD();
       startRespawnLoop();
-      showToast(`â¡ 10000pxã¢ãªã¼ãåºæï¼ [${currentBiome.name}]`);
+      showToast(`⚡ 10000pxアリーナ出撃！ [${currentBiome.name}]`);
     }
 
     function quitMatchToLobby() {
@@ -3456,19 +3404,19 @@
     document.getElementById('btnAudioToggle').addEventListener('click', () => {
       initAudio();
       isSoundMuted = !isSoundMuted;
-      document.getElementById('audioIcon').textContent = isSoundMuted ? 'ð' : 'ð';
+      document.getElementById('audioIcon').textContent = isSoundMuted ? '🔇' : '🔊';
     });
 
     document.getElementById('btnStartBotMatch').addEventListener('click', () => {
       initAudio();
       gameMode = 'bot';
 
-      const myName = document.getElementById('inputPlayerName').value.trim() || 'NexusAce';
+      const myName = document.getElementById('inputPlayerName').value.trim() || 'ネクサスエース';
 
       players = [];
       players.push(new Player('p_self', myName, 0, true));
 
-      const botNames = ['RedViper', 'GreenTitan', 'GoldPhantom'];
+      const botNames = ['レッドバイパー', 'グリーンタイタン', 'ゴールドファントム'];
       for (let i = 0; i < botCountSetting; i++) {
         players.push(new Player(`bot_${i}`, botNames[i], i + 1, false));
       }
@@ -3483,7 +3431,7 @@
 
       gameMode = 'online';
       mySlotIndex = 0;
-      const myName = document.getElementById('inputPlayerName').value.trim() || 'HostAce';
+      const myName = document.getElementById('inputPlayerName').value.trim() || 'ホストエース';
 
       const code = Math.floor(1000 + Math.random() * 9000).toString();
       currentRoomCode = code;
@@ -3516,7 +3464,7 @@
         listenOnlineRoom(code);
       } catch(e) {
         console.error(e);
-        showToast("é¨å±ä½æã«å¤±æãã¾ãã");
+        showToast("部屋作成に失敗しました");
       }
     });
 
@@ -3527,23 +3475,23 @@
 
       const code = document.getElementById('inputRoomCode').value.trim();
       if (!code) {
-        showToast("4æ¡ã®åè¨èãå¥åãã¦ãã ãã");
+        showToast("4桁の合言葉を入力してください");
         return;
       }
 
       gameMode = 'online';
-      const myName = document.getElementById('inputPlayerName').value.trim() || 'GuestStriker';
+      const myName = document.getElementById('inputPlayerName').value.trim() || 'ゲストストライカー';
 
       const roomRef = getRoomDocRef(code);
       try {
         const snap = await getDoc(roomRef);
         if (!snap.exists()) {
-          showToast("é¨å±ãè¦ã¤ããã¾ãã");
+          showToast("部屋が見つかりません");
           return;
         }
         const data = snap.data();
         if (data.status !== 'waiting') {
-          showToast("ãã®é¨å±ã¯è©¦åä¸­ã¾ãã¯æºå¡ã§ã");
+          showToast("この部屋は試合中または満員です");
           return;
         }
 
@@ -3556,7 +3504,7 @@
         }
 
         if (openSlot === -1) {
-          showToast("é¨å±ãæºå¡ã§ã (æå¤§4äºº)");
+          showToast("部屋が満員です (最大4人)");
           return;
         }
 
@@ -3585,7 +3533,7 @@
         listenOnlineRoom(code);
       } catch(e) {
         console.error(e);
-        showToast("åå ã¨ã©ã¼ãçºçãã¾ãã");
+        showToast("参加エラーが発生しました");
       }
     });
 
@@ -3612,7 +3560,7 @@
       el.select();
       document.execCommand('copy');
       document.body.removeChild(el);
-      showToast("åè¨èã³ã¼ããã³ãã¼ãã¾ããï¼");
+      showToast("合言葉コードをコピーしました！");
     });
 
     document.getElementById('btnExitWaitRoom').addEventListener('click', quitMatchToLobby);
