@@ -574,12 +574,16 @@
 
     // Firebase Configurations
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-nexus-titan-odyssey';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-      apiKey: "demo-key",
-      authDomain: "demo.firebaseapp.com",
-      projectId: "demo-project",
-      storageBucket: "demo.appspot.com"
-    };
+    const firebaseConfig = {
+  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+  authDomain: "onlinegame-341cf.firebaseapp.com",
+  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
+  projectId: "onlinegame-341cf",
+  storageBucket: "onlinegame-341cf.firebasestorage.app",
+  messagingSenderId: "995082102439",
+  appId: "1:995082102439:web:49e57d48312e25f7879d82",
+  measurementId: "G-LBFXFHP9MF"
+};
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
