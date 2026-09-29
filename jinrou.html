@@ -13,6 +13,7 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      box-sizing: border-box;
     }
     body, html {
       margin: 0;
@@ -46,10 +47,11 @@
     }
     .touch-btn {
       transition: transform 0.08s ease, filter 0.08s ease;
+      cursor: pointer;
     }
     .touch-btn:active {
-      transform: scale(0.92);
-      filter: brightness(1.25);
+      transform: scale(0.94);
+      filter: brightness(1.2);
     }
     ::-webkit-scrollbar {
       width: 4px;
@@ -74,16 +76,16 @@
     <!-- Main Game Canvas -->
     <canvas id="gameCanvas" class="w-full h-full absolute inset-0 z-0"></canvas>
 
-    <!-- Sabotage Blackout Overlay (Blind Effect) -->
+    <!-- Sabotage Blackout Overlay -->
     <div id="blackout-overlay" class="pointer-events-none absolute inset-0 z-10 bg-slate-950/85 backdrop-blur-[6px] opacity-0 transition-opacity duration-500 flex items-center justify-center">
-      <div class="text-rose-500 font-mono text-sm tracking-widest uppercase font-extrabold flex items-center gap-2">
-        <i class="fa-solid fa-eye-slash animate-pulse text-lg"></i> センサー妨害・視界遮断中 (BLACKOUT)
+      <div class="text-rose-500 font-mono text-xs sm:text-sm tracking-widest uppercase font-extrabold flex items-center gap-2">
+        <i class="fa-solid fa-eye-slash animate-pulse text-base sm:text-lg"></i> センサー妨害・視界遮断中 (BLACKOUT)
       </div>
     </div>
 
     <!-- Top HUD Status -->
     <div id="hud-top" class="hidden absolute top-0 left-0 right-0 p-2 sm:p-3 pointer-events-none z-20 flex justify-between items-start">
-      <!-- Core Status, Timer & Host Difficulty Indicator -->
+      <!-- Core Status, Timer & Difficulty -->
       <div class="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto">
         <div class="flex items-center gap-2">
           <i id="core-icon" class="fa-solid fa-cube text-cyan-400 animate-pulse text-base sm:text-lg"></i>
@@ -138,6 +140,7 @@
       </div>
     </div>
 
+    <!-- Mobile Virtual Controls -->
     <div id="touch-controls" class="hidden absolute inset-0 pointer-events-none z-20 flex justify-between items-end p-4 pb-8 sm:p-8">
       <!-- Left Virtual Joystick Zone -->
       <div id="joystick-zone" class="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-slate-900/60 border border-slate-700/60 pointer-events-auto backdrop-blur-sm flex items-center justify-center">
@@ -148,7 +151,7 @@
 
       <!-- Right Ergonomic Buttons Block -->
       <div class="flex flex-col gap-2.5 items-end pointer-events-auto">
-        <!-- Quick Shop Button (Always above attack buttons for thumb access) -->
+        <!-- Quick Shop Button -->
         <button id="open-shop-btn" class="touch-btn relative px-3 py-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-lg shadow-amber-500/30 flex items-center gap-2 border border-amber-300">
           <i class="fa-solid fa-cart-shopping text-sm text-slate-950"></i>
           <span class="text-xs tracking-wider uppercase font-black">強化ストア</span>
@@ -185,6 +188,7 @@
     </div>
   </div>
 
+  <!-- Sabotage Console Modal -->
   <div id="sabotage-modal" class="hidden fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="w-full sm:max-w-lg bg-slate-900 border-t sm:border border-rose-500/60 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       <div class="flex justify-between items-center pb-3 border-b border-rose-950">
@@ -202,9 +206,7 @@
         </button>
       </div>
 
-      <!-- Sabotages List (6 Types) -->
       <div class="overflow-y-auto py-3 space-y-2 pr-1">
-        <!-- 1. Core Blitz -->
         <button onclick="executeSabotageAction('blitz')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-rose-500/40 hover:border-rose-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center"><i class="fa-solid fa-bolt text-lg"></i></div>
@@ -216,7 +218,6 @@
           <span class="text-[11px] font-mono font-bold text-amber-400">CT 20s</span>
         </button>
 
-        <!-- 2. Blackout -->
         <button onclick="executeSabotageAction('blackout')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-purple-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-eye-slash text-lg"></i></div>
@@ -228,7 +229,6 @@
           <span class="text-[11px] font-mono font-bold text-amber-400">CT 24s</span>
         </button>
 
-        <!-- 3. Core EMP -->
         <button onclick="executeSabotageAction('emp')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-cyan-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-lg"></i></div>
@@ -240,7 +240,6 @@
           <span class="text-[11px] font-mono font-bold text-amber-400">CT 25s</span>
         </button>
 
-        <!-- 4. Gravity Surge -->
         <button onclick="executeSabotageAction('gravity')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-indigo-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-weight-hanging text-lg"></i></div>
@@ -252,7 +251,6 @@
           <span class="text-[11px] font-mono font-bold text-amber-400">CT 22s</span>
         </button>
 
-        <!-- 5. Enrage Swarm -->
         <button onclick="executeSabotageAction('enrage')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-red-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-fire text-lg"></i></div>
@@ -264,7 +262,6 @@
           <span class="text-[11px] font-mono font-bold text-amber-400">CT 26s</span>
         </button>
 
-        <!-- 6. Decoy Beacon -->
         <button onclick="executeSabotageAction('decoy')" class="sabotage-action-btn w-full text-left p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-yellow-400 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center"><i class="fa-solid fa-tower-broadcast text-lg"></i></div>
@@ -279,9 +276,9 @@
     </div>
   </div>
 
+  <!-- Upgrade Store Modal -->
   <div id="shop-modal" class="hidden fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="w-full sm:max-w-lg bg-slate-900 border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
-      <!-- Modal Header -->
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
@@ -303,7 +300,6 @@
         </div>
       </div>
 
-      <!-- Upgrades Grid -->
       <div class="overflow-y-auto py-3 space-y-2 pr-1">
         <!-- 1. Attack DMG -->
         <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700">
@@ -330,7 +326,7 @@
             </div>
             <div>
               <div class="text-xs font-bold text-white">スマート照準・補正 (Smart Aim+)</div>
-              <div class="text-[10px] text-slate-400">Lv.<span id="up-aim-lvl">1</span> (オートエイム距離と誘導角拡大)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-aim-lvl">1</span> (オートエイム距離拡大)</div>
             </div>
           </div>
           <button id="buy-aim-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold flex items-center gap-1 shadow">
@@ -364,7 +360,7 @@
             </div>
             <div>
               <div class="text-xs font-bold text-white">攻撃範囲・当たり判定拡大</div>
-              <div class="text-[10px] text-slate-400">Lv.<span id="up-area-lvl">1</span> (斬撃・弾丸・爆風の半径+25%)</div>
+              <div class="text-[10px] text-slate-400">Lv.<span id="up-area-lvl">1</span> (半径+25%)</div>
             </div>
           </div>
           <button id="buy-area-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white text-xs font-bold flex items-center gap-1 shadow">
@@ -381,7 +377,7 @@
             </div>
             <div>
               <div class="text-xs font-bold text-white">自律迎撃ドローン配備 (Drone)</div>
-              <div class="text-[10px] text-slate-400">自機の周囲を旋回し自動で最も近い敵を掃討</div>
+              <div class="text-[10px] text-slate-400">自機周囲を旋回し自動で最も近い敵を掃討</div>
             </div>
           </div>
           <button id="buy-drone-btn" class="touch-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold flex items-center gap-1 shadow">
@@ -407,7 +403,7 @@
           </button>
         </div>
 
-        <!-- 7. Core Emergency First-Aid (Limited Heal) -->
+        <!-- 7. Core Emergency First-Aid -->
         <div class="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-amber-950/40 border border-amber-500/40">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base">
@@ -427,6 +423,7 @@
     </div>
   </div>
 
+  <!-- Lobby Screen -->
   <div id="lobby-screen" class="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl text-center">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 text-xs font-semibold mb-3">
@@ -449,7 +446,7 @@
         </div>
       </div>
 
-      <!-- Host Configurable Base Difficulty (基準難易度: 10標準, 上限なし) -->
+      <!-- Host Configurable Base Difficulty -->
       <div class="mb-5 text-left bg-slate-800/60 border border-slate-700/80 rounded-2xl p-3.5">
         <div class="flex justify-between items-center mb-1">
           <label class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
@@ -457,7 +454,7 @@
           </label>
           <span class="text-[10px] text-slate-400 font-mono">上限なし</span>
         </div>
-        <p class="text-[10px] text-slate-400 mb-2">敵の基礎HP・出現速度・時間激化率を調整（例: 5=初心者, 10=標準, 30=熟練, 100+=超狂気）</p>
+        <p class="text-[10px] text-slate-400 mb-2">敵の基礎HP・出現速度・時間激化率を調整（例: 5=易, 10=標準, 25=難, 60+=狂気）</p>
         <div class="flex items-center gap-2">
           <input id="difficulty-input" type="number" min="1" step="1" value="10" class="w-24 bg-slate-900 border border-purple-500/50 rounded-xl py-1.5 px-3 text-center text-sm font-mono font-black text-purple-300 focus:outline-none focus:border-purple-400">
           <div class="flex gap-1.5 flex-1">
@@ -511,6 +508,7 @@
     </div>
   </div>
 
+  <!-- Role Reveal Modal -->
   <div id="role-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
     <div class="w-full max-w-sm bg-slate-900 border-2 rounded-3xl p-6 text-center transform scale-95 transition-transform" id="role-card">
       <div id="role-icon-box" class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-3">
@@ -540,6 +538,7 @@
     </div>
   </div>
 
+  <!-- Voting & Deliberation Modal -->
   <div id="voting-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 overflow-y-auto">
     <div class="max-w-xl w-full mx-auto my-auto bg-slate-900/90 border border-slate-700/80 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
@@ -582,12 +581,13 @@
         <div id="vote-candidate-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1"></div>
       </div>
 
-      <button id="submit-vote-btn" disabled class="touch-btn w-full py-3 rounded-xl bg-cyan-600 disabled:opacity-50 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2">
-        <i class="fa-solid fa-check"></i> 投票を確定する
+      <button id="submit-vote-btn" disabled class="touch-btn w-full py-3 rounded-xl bg-slate-800 text-slate-500 disabled:opacity-50 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+        <i class="fa-solid fa-check"></i> 投票先を選択してください
       </button>
     </div>
   </div>
 
+  <!-- Result Modal -->
   <div id="result-modal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto">
     <div class="max-w-md w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 text-center shadow-2xl">
       <div id="result-badge-container" class="inline-block p-4 rounded-full bg-slate-800/80 mb-3">
@@ -634,7 +634,7 @@
           }
         }
         if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume();
+          this.ctx.resume().catch(() => {});
         }
       },
       laser() {
@@ -789,18 +789,8 @@
       runTransaction
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-sabotage-v5';
-    let firebaseConfig = null;
-    if (typeof __firebase_config !== 'undefined') {
-      try {
-        firebaseConfig = JSON.parse(__firebase_config);
-      } catch (e) {
-        console.warn("Firebase config error:", e);
-      }
-    }
-    
-    if (!firebaseConfig) {
-      firebaseConfig = {
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-sabotage-v6';
+    let firebaseConfig = {
   apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
   authDomain: "onlinegame-341cf.firebaseapp.com",
   databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
@@ -810,6 +800,12 @@
   appId: "1:995082102439:web:49e57d48312e25f7879d82",
   measurementId: "G-LBFXFHP9MF"
 };
+    if (typeof __firebase_config !== 'undefined') {
+      try {
+        firebaseConfig = JSON.parse(__firebase_config);
+      } catch (e) {
+        console.warn("Firebase config error:", e);
+      }
     }
 
     let auth = null;
@@ -817,22 +813,25 @@
     let currentUser = null;
     let isFirebaseReady = false;
 
-    try {
-      const fbApp = initializeApp(firebaseConfig);
-      auth = getAuth(fbApp);
-      db = getFirestore(fbApp);
-      
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        signInWithCustomToken(auth, __initial_auth_token)
-          .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
-          .catch(() => signInAnonymously(auth).then(c => { currentUser = c.user; isFirebaseReady = true; }));
-      } else {
-        signInAnonymously(auth)
-          .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
-          .catch(err => console.log("Standalone local mode ready:", err));
+    if (firebaseConfig && firebaseConfig.apiKey) {
+      try {
+        const fbApp = initializeApp(firebaseConfig);
+        auth = getAuth(fbApp);
+        db = getFirestore(fbApp);
+        
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          signInWithCustomToken(auth, __initial_auth_token)
+            .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
+            .catch(() => signInAnonymously(auth).then(c => { currentUser = c.user; isFirebaseReady = true; }).catch(() => { isFirebaseReady = false; }));
+        } else {
+          signInAnonymously(auth)
+            .then(cred => { currentUser = cred.user; isFirebaseReady = true; })
+            .catch(() => { isFirebaseReady = false; });
+        }
+      } catch (e) {
+        console.warn("Firebase initialization skipped, fallback to local simulator mode:", e);
+        isFirebaseReady = false;
       }
-    } catch (e) {
-      console.warn("Running in local session mode:", e);
     }
 
     const ARENA_WIDTH = 2400;
@@ -840,7 +839,6 @@
     const GAME_DURATION = 300; // 5 Minutes
     const WEREWOLF_PROBABILITY = 0.35; // 35% independent probability per player
 
-    // 8 Expanded Combat Classes with Smart Soft-Lock & Tactical Ultimates
     const BATTLE_CLASSES = {
       slasher: {
         id: 'slasher',
@@ -952,12 +950,16 @@
     const ctx = canvas.getContext('2d');
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     function resizeCanvas() {
       screenWidth = window.innerWidth;
       screenHeight = window.innerHeight;
-      canvas.width = screenWidth;
-      canvas.height = screenHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = screenWidth * dpr;
+      canvas.height = screenHeight * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -974,11 +976,10 @@
     let hasVoted = false;
     let cachedRoomMembers = [];
     let currentRoomVotes = {};
+    let voteTimerInterval = null;
 
-    // Difficulty Setting (Current standard is 10, no upper limit)
     let configuredDifficulty = 10;
-
-    let myRole = 'citizen'; // 'citizen' or 'werewolf'
+    let myRole = 'citizen';
     let myBattleType = 'slasher';
     let myMoney = 0;
     let skillCooldown = 0;
@@ -988,7 +989,6 @@
     let droneAngle = 0;
     let droneAttackTimer = 0;
 
-    // Sabotage Active Timers
     const activeSabotages = {
       blackoutTimer: 0,
       empTimer: 0,
@@ -997,7 +997,6 @@
       decoyBeacon: null
     };
 
-    // Upgrades Levels
     const upgrades = {
       dmgLvl: 1,
       aimLvl: 1,
@@ -1006,7 +1005,6 @@
       hpLvl: 1
     };
 
-    // Central Core
     const core = {
       x: ARENA_WIDTH / 2,
       y: ARENA_HEIGHT / 2,
@@ -1015,7 +1013,6 @@
       maxHp: 100
     };
 
-    // Local Player Entity
     let localPlayer = {
       id: myId,
       name: myName,
@@ -1091,9 +1088,9 @@
       joystickKnob.style.transform = 'translate(0px, 0px)';
     }
 
-    joystickZone.addEventListener('touchstart', handleJoystickStart, { passive: false });
-    window.addEventListener('touchmove', handleJoystickMove, { passive: false });
-    window.addEventListener('touchend', handleJoystickEnd);
+    joystickZone.addEventListener('touchstart', handleJoystickStart, { passive: true });
+    window.addEventListener('touchmove', handleJoystickMove, { passive: true });
+    window.addEventListener('touchend', handleJoystickEnd, { passive: true });
     joystickZone.addEventListener('mousedown', handleJoystickStart);
     window.addEventListener('mousemove', handleJoystickMove);
     window.addEventListener('mouseup', handleJoystickEnd);
@@ -1112,7 +1109,6 @@
       keys[e.key.toLowerCase()] = false;
     });
 
-    // Helper: Find smart target with Decoy Beacon interference
     function findSmartTarget(range = 520) {
       if (activeSabotages.decoyBeacon) {
         const d = Math.hypot(activeSabotages.decoyBeacon.x - localPlayer.x, activeSabotages.decoyBeacon.y - localPlayer.y);
@@ -1166,16 +1162,13 @@
       }
     }
 
-    attackBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startAutoAttack(); });
-    attackBtn.addEventListener('touchend', stopAutoAttack);
+    attackBtn.addEventListener('touchstart', (e) => { startAutoAttack(); }, { passive: true });
+    attackBtn.addEventListener('touchend', stopAutoAttack, { passive: true });
     attackBtn.addEventListener('mousedown', startAutoAttack);
     attackBtn.addEventListener('mouseup', stopAutoAttack);
     attackBtn.addEventListener('mouseleave', stopAutoAttack);
 
-    skillBtn.addEventListener('touchstart', (e) => { e.preventDefault(); openSkillOrSabotage(); });
     skillBtn.addEventListener('click', openSkillOrSabotage);
-
-    tacticalBtn.addEventListener('touchstart', (e) => { e.preventDefault(); useTacticalSkill(); });
     tacticalBtn.addEventListener('click', useTacticalSkill);
 
     function executeAttack() {
@@ -1444,7 +1437,6 @@
         if (skillCooldown > 0) return;
         sabotageModal.classList.remove('hidden');
       } else {
-        // Citizen Repair & Speed Pulse
         if (skillCooldown > 0) return;
         skillCooldown = 15;
         
@@ -1744,10 +1736,14 @@
       waitingRoom.classList.remove('hidden');
 
       if (!isFirebaseReady || !db) {
+        // Instant graceful offline multiplayer simulation
         isSoloBotMode = true;
         isHost = true;
         setupSoloBots();
-        startGameMatch();
+        matchStatusLabel.textContent = "即時マッチング成功 (シミュレータ起動)";
+        setTimeout(() => {
+          startGameMatch();
+        }, 600);
         return;
       }
 
@@ -1755,7 +1751,6 @@
         const publicRoomsRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
 
         if (specificCode) {
-          // Direct room code path
           const targetRoomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', 'ROOM_' + specificCode);
           await runTransaction(db, async (transaction) => {
             const snap = await transaction.get(targetRoomRef);
@@ -1827,13 +1822,10 @@
               listenToRoom(roomRef);
               break;
             }
-          } catch (e) {
-            // Concurrency retry next room
-          }
+          } catch (e) {}
         }
 
         if (!joined) {
-          // No open rooms: atomize creation of a new room
           const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
           const newRoomId = 'room_' + newRoomCode;
           const newRoomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
@@ -1859,8 +1851,8 @@
           listenToRoom(newRoomRef);
         }
       } catch (err) {
-        console.error("Matchmaking fallback:", err);
-        matchStatusLabel.textContent = "接続エラー：ソロモードへ移行";
+        console.warn("Matchmaking fallback to simulator:", err);
+        matchStatusLabel.textContent = "即時マッチング成功 (シミュレータ起動)";
         isSoloBotMode = true;
         isHost = true;
         setupSoloBots();
@@ -1880,14 +1872,13 @@
 
         if (data.members) {
           cachedRoomMembers = data.members;
-          // Re-evaluate host in case room ownership changed
           if (data.hostId) isHost = (data.hostId === myId);
           renderLobbyList(data.members);
           launchGameBtn.classList.toggle('hidden', !isHost);
         }
 
         if (data.state === 'waiting') {
-          // Stay in lobby
+          // In lobby
         } else if (data.state === 'playing') {
           if (gameState === 'lobby') {
             syncRolesAndStart(data);
@@ -1901,11 +1892,9 @@
           if (gameState === 'playing') {
             triggerVotingPhase("防衛時間終了またはコア破壊により会議招集");
           } else if (gameState === 'voting') {
-            // If already in voting, refresh options to ensure all candidates are displayed
             renderVoteCandidates();
           }
 
-          // Instant vote check: if all members have voted, finalize immediately!
           if (data.members && data.members.length > 0) {
             const memberCount = data.members.length;
             const voteCount = Object.keys(currentRoomVotes).length;
@@ -1916,7 +1905,6 @@
           }
         }
 
-        // Sabotage sync for non-host
         if (data.latestSabotage && (!data.latestSabotage.readBy || !data.latestSabotage.readBy[myId])) {
           handleIncomingSabotage(data.latestSabotage);
         }
@@ -1924,7 +1912,7 @@
         if (data.chatMessages && Array.isArray(data.chatMessages)) {
           syncChatBox(data.chatMessages);
         }
-      }, (err) => console.log("Room listener error:", err));
+      }, (err) => console.warn("Room listener warning:", err));
     }
 
     function handleIncomingSabotage(sab) {
@@ -2171,11 +2159,8 @@
         y = Math.random() < 0.5 ? 50 : ARENA_HEIGHT - 50;
       }
 
-      // Continuous time progression (0.0 to 1.0)
       const timeFactor = Math.min(1.0, (GAME_DURATION - matchTimeRemaining) / GAME_DURATION);
-      // Host configured base difficulty multiplier (10 is 1.0x standard)
       const diffScale = configuredDifficulty / 10;
-      // Exponential wave escalation over 5 minutes
       const waveMult = 1.0 + timeFactor * 1.5;
 
       const roll = Math.random();
@@ -2239,7 +2224,6 @@
     function updateGame(dt) {
       if (attackCooldown > 0) attackCooldown -= dt;
 
-      // Sabotage Timers & Effects
       if (activeSabotages.blackoutTimer > 0) {
         activeSabotages.blackoutTimer -= dt;
         if (activeSabotages.blackoutTimer <= 0) {
@@ -2342,11 +2326,9 @@
         updateSoloBots(dt);
       }
 
-      // Host manages enemy AI and dynamic scaling rate
       if (isHost) {
         const timeFactor = Math.min(1.0, (GAME_DURATION - matchTimeRemaining) / GAME_DURATION);
         const diffScale = configuredDifficulty / 10;
-        // Spawns speed up with difficulty & time
         const baseInterval = Math.max(0.4, (1.8 / Math.sqrt(diffScale)) - timeFactor * 0.9);
 
         enemySpawnCounter += dt;
@@ -2357,7 +2339,6 @@
           if (diffScale > 4.0 && Math.random() < 0.5) spawnScaledEnemy();
         }
 
-        // Move Enemies toward Core
         for (let i = enemies.length - 1; i >= 0; i--) {
           const e = enemies[i];
 
@@ -2389,7 +2370,6 @@
           }
         }
 
-        // Host pushes state updates
         if (isFirebaseReady && db && currentRoomId && !isSoloBotMode) {
           if (performance.now() - lastNetworkSyncTime > 380) {
             lastNetworkSyncTime = performance.now();
@@ -2402,7 +2382,7 @@
         }
       }
 
-      // Update Slashes & Area Effects
+      // Update Slashes
       for (let sIdx = slashes.length - 1; sIdx >= 0; sIdx--) {
         const s = slashes[sIdx];
         s.life -= dt;
@@ -2450,7 +2430,7 @@
         if (t.life <= 0) toxicPools.splice(tIdx, 1);
       }
 
-      // Update Bullets & Soft Tracking
+      // Update Bullets
       for (let bIdx = bullets.length - 1; bIdx >= 0; bIdx--) {
         const b = bullets[bIdx];
 
@@ -2473,7 +2453,6 @@
           continue;
         }
 
-        // Homing & Smart Curve
         if (b.type === 'homing' || b.type === 'smart_tracer') {
           let target = findSmartTarget(440);
           if (target) {
@@ -2492,7 +2471,6 @@
         b.y += b.vy;
         b.life--;
 
-        // Collision with enlarged hitboxes
         let hit = false;
         for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
           const e = enemies[eIdx];
@@ -2522,7 +2500,7 @@
         if (hit || b.life <= 0) bullets.splice(bIdx, 1);
       }
 
-      // Update Dropped Coins & Magnet
+      // Update Dropped Coins
       for (let cIdx = droppedCoins.length - 1; cIdx >= 0; cIdx--) {
         const coin = droppedCoins[cIdx];
         const distToPlayer = Math.hypot(localPlayer.x - coin.x, localPlayer.y - coin.y);
@@ -2632,7 +2610,6 @@
     function renderGame() {
       ctx.clearRect(0, 0, screenWidth, screenHeight);
 
-      // Independent Smooth Camera Centered on Local Player
       const camX = screenWidth / 2 - localPlayer.x;
       const camY = screenHeight / 2 - localPlayer.y;
 
@@ -2711,7 +2688,7 @@
         ctx.restore();
       });
 
-      // Bullets & Railgun Laser Beams
+      // Bullets
       bullets.forEach(b => {
         ctx.save();
         if (b.type === 'railgun_beam') {
@@ -2894,7 +2871,15 @@
     const chatInputForm = document.getElementById('chat-input-form');
     const chatTextInput = document.getElementById('chat-text-input');
     const voteStatusCounter = document.getElementById('vote-status-counter');
-    let voteTimerInterval = null;
+
+    const resultModal = document.getElementById('result-modal');
+    const resultTitle = document.getElementById('result-title');
+    const resultSubtitle = document.getElementById('result-subtitle');
+    const resultIcon = document.getElementById('result-icon');
+    const personalResultBox = document.getElementById('personal-result-box');
+    const summaryMissionStatus = document.getElementById('summary-mission-status');
+    const summaryVotedTarget = document.getElementById('summary-voted-target');
+    const summaryRolesList = document.getElementById('summary-roles-list');
 
     function appendChatMessage(msg, senderName = null) {
       if (!voteChatBox) return;
@@ -2927,7 +2912,6 @@
         .replace(/'/g, "&#039;");
     }
 
-    // Chat form submit
     if (chatInputForm) {
       chatInputForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2937,20 +2921,19 @@
 
         if (isSoloBotMode || !db || !currentRoomId) {
           appendChatMessage(text, localPlayer.name);
-          // Simple simulated bot response
           setTimeout(() => {
             const bots = Object.values(players).filter(p => p.isBot);
             if (bots.length > 0) {
               const randBot = bots[Math.floor(Math.random() * bots.length)];
               const remarks = [
-                "自分はコア近くで迎撃してました！",
-                "さっきコアから離れていた人怪しくない？",
-                "平和村の可能性も全然あると思います！",
-                "私じゃないです、信じてください！"
+                "自分はずっとコア近くで迎撃してました！",
+                "さっきコアから離れてた人、怪しくないですか？",
+                "平和村の可能性も十分あると思います！",
+                "私は市民です、信じてください！"
               ];
               appendChatMessage(remarks[Math.floor(Math.random() * remarks.length)], randBot.name);
             }
-          }, 1200);
+          }, 1000);
           return;
         }
 
@@ -2964,7 +2947,7 @@
             })
           });
         } catch (err) {
-          console.error("Chat send error:", err);
+          console.warn("Chat send error:", err);
         }
       });
     }
@@ -3012,7 +2995,7 @@
       if (!voteCandidateList) return;
       voteCandidateList.innerHTML = '';
 
-      // 1. Always Render "Peace Village" Option
+      // 1. Peace Village Button
       const peaceBtn = document.createElement('button');
       peaceBtn.type = 'button';
       const isPeaceSelected = (selectedVoteCandidate === 'PEACE_VILLAGE');
@@ -3034,9 +3017,8 @@
       peaceBtn.addEventListener('click', () => selectCandidate('PEACE_VILLAGE', peaceBtn));
       voteCandidateList.appendChild(peaceBtn);
 
-      // 2. Gather candidates with fallback (players map or cachedRoomMembers or localPlayer)
+      // 2. Player Candidates
       let candidatePool = [];
-
       if (Object.keys(players).length > 0) {
         candidatePool = Object.values(players);
       } else if (cachedRoomMembers && cachedRoomMembers.length > 0) {
@@ -3048,7 +3030,6 @@
         }));
       }
 
-      // Ensure local player is always included
       if (!candidatePool.some(p => p.id === myId)) {
         candidatePool.unshift(localPlayer);
       }
@@ -3106,9 +3087,9 @@
 
       submitVoteBtn.disabled = false;
       submitVoteBtn.className = "touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer";
+      submitVoteBtn.innerHTML = '<i class="fa-solid fa-check"></i> 投票を確定する';
     }
 
-    // Free Input Chat submission
     submitVoteBtn.addEventListener('click', async () => {
       if (hasVoted || !selectedVoteCandidate) return;
       SoundFX.init();
@@ -3128,7 +3109,6 @@
       updateVoteStatusCounter();
 
       if (isSoloBotMode || !db || !currentRoomId) {
-        // In bot mode, simulate bots voting immediately
         Object.values(players).forEach(p => {
           if (p.isBot) {
             const candKeys = ['PEACE_VILLAGE', ...Object.keys(players)];
@@ -3144,7 +3124,6 @@
         return;
       }
 
-      // Record vote in Firestore
       try {
         const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
         await runTransaction(db, async (transaction) => {
@@ -3156,108 +3135,12 @@
           transaction.update(roomRef, { votes: votes });
         });
       } catch (err) {
-        console.error("Error submitting vote:", err);
+        console.warn("Error submitting vote:", err);
       }
     });
 
     function finalizeGameOutcome() {
       finalizeGameOutcomeWithVotes(currentRoomVotes);
-    }
-      }, 1000);
-    }
-
-    function renderVoteCandidates() {
-      voteCandidateList.innerHTML = '';
-
-      const peaceBtn = document.createElement('button');
-      peaceBtn.className = "candidate-btn p-3 rounded-2xl bg-slate-800 border-2 border-emerald-500/40 hover:border-emerald-400 flex items-center justify-between text-left transition-all";
-      peaceBtn.innerHTML = `
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-950 flex items-center justify-center text-emerald-400">
-            <i class="fa-solid fa-dove"></i>
-          </div>
-          <div>
-            <div class="text-xs font-bold text-emerald-300">平和村 (人狼なし)</div>
-            <div class="text-[9px] text-slate-400">今回は人狼が0人だったと判定</div>
-          </div>
-        </div>
-        <i class="check-icon fa-solid fa-circle-check text-slate-600 text-base"></i>
-      `;
-      peaceBtn.onclick = () => selectCandidate('PEACE_VILLAGE', peaceBtn);
-      voteCandidateList.appendChild(peaceBtn);
-
-      Object.values(players).forEach(p => {
-        const btn = document.createElement('button');
-        btn.className = "candidate-btn p-3 rounded-2xl bg-slate-800 border-2 border-slate-700 hover:border-cyan-400 flex items-center justify-between text-left transition-all";
-        btn.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <span class="w-7 h-7 rounded-full border border-slate-600 flex items-center justify-center text-xs font-bold" style="background:${p.color}">
-              ${p.name.charAt(0)}
-            </span>
-            <div>
-              <div class="text-xs font-bold text-slate-200">${p.name} ${p.id === myId ? '(自分)' : ''}</div>
-              <div class="text-[9px] text-slate-400 font-mono">${BATTLE_CLASSES[p.battleType]?.name.split(' ')[0] || ''}</div>
-            </div>
-          </div>
-          <i class="check-icon fa-solid fa-circle-check text-slate-600 text-base"></i>
-        `;
-        btn.onclick = () => selectCandidate(p.id, btn);
-        voteCandidateList.appendChild(btn);
-      });
-    }
-
-    function selectCandidate(candidateId, element) {
-      SoundFX.init();
-      selectedVoteCandidate = candidateId;
-      document.querySelectorAll('.candidate-btn').forEach(btn => {
-        btn.classList.remove('border-cyan-400', 'bg-cyan-950/40');
-        const icon = btn.querySelector('.check-icon');
-        if (icon) icon.className = "check-icon fa-solid fa-circle-check text-slate-600 text-base";
-      });
-
-      element.classList.add('border-cyan-400', 'bg-cyan-950/40');
-      const activeIcon = element.querySelector('.check-icon');
-      if (activeIcon) activeIcon.className = "check-icon fa-solid fa-circle-check text-cyan-400 text-base";
-      
-      submitVoteBtn.disabled = false;
-    }
-
-    // Free Input Chat submission
-    submitVoteBtn.addEventListener('click', async () => {
-      if (hasVoted || !selectedVoteCandidate) return;
-      SoundFX.init();
-      hasVoted = true;
-      submitVoteBtn.disabled = true;
-      submitVoteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 投票送信完了 (集計待機中...)';
-      appendChatMessage(`🗳️ あなたは投票を完了しました。`);
-
-      if (isSoloBotMode || !db || !currentRoomId) {
-        // In bot mode, bots vote instantly and we immediately finalize
-        setTimeout(() => {
-          if (voteTimerInterval) clearInterval(voteTimerInterval);
-          finalizeGameOutcome();
-        }, 800);
-        return;
-      }
-
-      // Record vote in Firestore
-      try {
-        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
-        await runTransaction(db, async (transaction) => {
-          const snap = await transaction.get(roomRef);
-          if (!snap.exists()) return;
-          const data = snap.data();
-          const votes = data.votes || {};
-          votes[myId] = selectedVoteCandidate;
-          transaction.update(roomRef, { votes: votes });
-        });
-      } catch (err) {
-        console.error("Error submitting vote:", err);
-      }
-    });
-
-    function finalizeGameOutcome() {
-      finalizeGameOutcomeWithVotes(null);
     }
 
     function finalizeGameOutcomeWithVotes(votesMap) {
@@ -3270,7 +3153,6 @@
       let executedId = 'PEACE_VILLAGE';
 
       if (votesMap && Object.keys(votesMap).length > 0) {
-        // Tally up most voted candidate
         const counts = {};
         Object.values(votesMap).forEach(target => {
           counts[target] = (counts[target] || 0) + 1;
@@ -3307,9 +3189,9 @@
       }
 
       // Rules:
-      // 1. Mission Clear + Traitor Exiled => Citizen Win!
-      // 2. Mission Fail + Traitor Exiled OR Mission Clear + Innocent Citizen Exiled => Draw!
-      // 3. Mission Fail + Traitor NOT Exiled => Werewolf Win!
+      // 1. Mission Clear + Impostor hung (or Peace Village with 0 impostors) = Citizens Win.
+      // 2. Mission Fail + Impostor hung OR Mission Clear + Innocent hung = Draw.
+      // 3. Mission Fail + No impostor hung = Impostor Win.
       let teamOutcome = 'draw';
       if (missionSuccess && isExecutedWerewolf) {
         teamOutcome = 'citizen_win';
@@ -3360,7 +3242,7 @@
 
       summaryRolesList.innerHTML = allPlayersList.map(p => `
         <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
-          <span>${p.name} ${p.id === myId ? '(あなた)' : ''} [${BATTLE_CLASSES[p.battleType]?.name.split(' ')[0]}]:</span>
+          <span>${p.name} ${p.id === myId ? '(あなた)' : ''} [${BATTLE_CLASSES[p.battleType]?.name.split(' ')[0] || ''}]:</span>
           <span class="font-bold ${p.role === 'werewolf' ? 'text-rose-400' : 'text-cyan-400'}">
             ${p.role === 'werewolf' ? '【人狼】' : '【市民】'}
           </span>
@@ -3377,9 +3259,7 @@
       return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    window.onload = function () {
+    window.addEventListener('load', () => {
       requestAnimationFrame(gameLoop);
-    };
+    });
   </script>
-</body>
-</html>
