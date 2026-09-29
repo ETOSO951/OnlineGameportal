@@ -123,7 +123,7 @@
         <span id="mutatorIcon">🌀</span>
         <span id="mutatorName">特殊ルール: スタンダード</span>
       </div>
-      <div id="coreStatusBar" class="grid grid-cols-6 gap-1 text-center font-mono"></div>
+      <div id="coreStatusBar" class="flex gap-2 text-center font-mono"></div>
     </div>
   </header>
 
@@ -202,23 +202,20 @@
       </button>
     </div>
 
-    <!-- 右側: アクションボタン（射撃、ダッシュ、シールド、ULT） -->
+    <!-- 右側: アクションボタン -->
     <div class="pointer-events-auto flex flex-col items-end gap-1.5 mb-1">
       <div class="flex items-center gap-1.5">
-        <!-- 必殺技ボタン -->
         <button id="btnUltimate" class="btn-action w-12 h-12 rounded-full border border-slate-700 text-slate-500 flex flex-col items-center justify-center relative shadow-lg active:scale-90 transition-all opacity-60">
           <span class="text-sm">💥</span>
           <span class="text-[7px] font-cyber font-black tracking-tight">必殺技</span>
         </button>
 
-        <!-- シールドオーバーチャージ -->
         <button id="btnOvercharge" class="btn-action w-11 h-11 rounded-full border border-emerald-400/80 text-emerald-300 flex flex-col items-center justify-center relative shadow-lg active:scale-90">
           <span class="text-xs">🛡️</span>
           <span class="text-[7px] font-cyber font-black tracking-tight">防御</span>
           <div id="overchargeCdCover" class="absolute inset-0 rounded-full bg-black/75 hidden pointer-events-none"></div>
         </button>
 
-        <!-- 回避ダッシュ -->
         <button id="btnDash" class="btn-action w-11 h-11 rounded-full border border-amber-400/80 text-amber-300 flex flex-col items-center justify-center relative shadow-lg active:scale-90">
           <span class="text-xs">⚡</span>
           <span class="text-[7px] font-cyber font-black tracking-tight">回避</span>
@@ -226,7 +223,6 @@
         </button>
       </div>
 
-      <!-- 射撃ボタン -->
       <button id="btnFire" class="btn-action w-20 h-20 rounded-full border-2 border-rose-500 text-rose-300 flex flex-col items-center justify-center shadow-[0_0_24px_rgba(244,63,94,0.65)] active:scale-95 relative">
         <span class="text-2xl">🎯</span>
         <span class="text-[9px] font-cyber font-black tracking-wider text-white">射撃</span>
@@ -234,13 +230,12 @@
     </div>
   </footer>
 
-  <!-- モーダル: 強化ショップ (全10種) -->
+  <!-- モーダル: 強化ショップ -->
   <div id="modalUpgradeShop" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-3">
     <div id="shopBackdropTap" class="absolute inset-0 -z-10"></div>
 
     <div class="relative w-full max-w-sm bg-slate-900/98 border border-amber-500/70 rounded-3xl p-4 shadow-2xl space-y-2.5 my-auto max-h-[88vh] overflow-y-auto custom-scroll">
       
-      <!-- ショップヘッダー -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center gap-1.5">
           <span class="text-base">⚡</span>
@@ -261,7 +256,6 @@
       </div>
 
       <div class="space-y-1.5 text-xs">
-        <!-- 1. タレット -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🗼 1. 防衛タレット強化 (Lv.<span id="lvlTurret">0</span>)</div>
@@ -270,7 +264,6 @@
           <button id="btnBuyTurret" class="btn-action px-3 py-1.5 rounded-lg bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-[10px]">50 💎</button>
         </div>
 
-        <!-- 2. HP -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">❤️ 2. ナノ装甲ブースト (Lv.<span id="lvlHp">0</span>)</div>
@@ -279,16 +272,14 @@
           <button id="btnBuyHp" class="btn-action px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold text-[10px]">40 💎</button>
         </div>
 
-        <!-- 3. スピード -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🚀 3. スラスター加速 (Lv.<span id="lvlSpeed">0</span>)</div>
-            <div class="text-[9px] text-slate-400">移動速度+20% ＆ ダッシュクールダウン短縮</div>
+            <div class="text-[9px] text-slate-400">移動速度+20% ＆ ダッシュCD短縮</div>
           </div>
           <button id="btnBuySpeed" class="btn-action px-3 py-1.5 rounded-lg bg-amber-950 border border-amber-500 text-amber-300 font-bold text-[10px]">35 💎</button>
         </div>
 
-        <!-- 4. ダメージ -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">💥 4. 兵装高出力化 (Lv.<span id="lvlDmg">0</span>)</div>
@@ -297,7 +288,6 @@
           <button id="btnBuyDmg" class="btn-action px-3 py-1.5 rounded-lg bg-rose-950 border border-rose-500 text-rose-300 font-bold text-[10px]">60 💎</button>
         </div>
 
-        <!-- 5. ナノシールド -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🛡️ 5. ナノシールド防壁 (Lv.<span id="lvlShield">0</span>)</div>
@@ -306,7 +296,6 @@
           <button id="btnBuyShieldGen" class="btn-action px-3 py-1.5 rounded-lg bg-indigo-950 border border-indigo-500 text-indigo-300 font-bold text-[10px]">55 💎</button>
         </div>
 
-        <!-- 6. 連射機構 -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">⚡ 6. プラズマ連射機構 (Lv.<span id="lvlRapid">0</span>)</div>
@@ -315,7 +304,6 @@
           <button id="btnBuyRapid" class="btn-action px-3 py-1.5 rounded-lg bg-teal-950 border border-teal-500 text-teal-300 font-bold text-[10px]">50 💎</button>
         </div>
 
-        <!-- 7. マグネットドローン -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🧲 7. マグネットドローン (Lv.<span id="lvlMagnet">0</span>)</div>
@@ -324,7 +312,6 @@
           <button id="btnBuyMagnet" class="btn-action px-3 py-1.5 rounded-lg bg-yellow-950 border border-yellow-500 text-yellow-300 font-bold text-[10px]">45 💎</button>
         </div>
 
-        <!-- 8. ナノ吸血 -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🩸 8. ナノ吸血システム (Lv.<span id="lvlLifesteal">0</span>)</div>
@@ -333,7 +320,6 @@
           <button id="btnBuyLifesteal" class="btn-action px-3 py-1.5 rounded-lg bg-red-950 border border-red-500 text-red-300 font-bold text-[10px]">65 💎</button>
         </div>
 
-        <!-- 9. 護衛攻撃ドローン -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🛸 9. 護衛攻撃ドローン (Lv.<span id="lvlDrone">0</span>)</div>
@@ -342,7 +328,6 @@
           <button id="btnBuyDrone" class="btn-action px-3 py-1.5 rounded-lg bg-sky-950 border border-sky-400 text-sky-300 font-bold text-[10px]">70 💎</button>
         </div>
 
-        <!-- 10. コア遠隔修復スウォーム -->
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
           <div>
             <div class="font-cyber font-bold text-slate-200">🔧 10. コア遠隔修復スウォーム (Lv.<span id="lvlCoreRepair">0</span>)</div>
@@ -391,9 +376,10 @@
         </div>
         
         <div class="flex items-center justify-between text-xs text-slate-300">
-          <span>陣営形式:</span>
+          <span>対戦形式:</span>
           <div class="flex gap-1" id="botCountSelector">
             <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-xs font-bold" data-count="1">1対1</button>
+            <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-xs font-bold" data-count="2">3陣営乱戦</button>
             <button class="bot-count-btn px-2.5 py-1 rounded-lg border border-indigo-400 bg-indigo-950 text-indigo-200 text-xs font-bold" data-count="3">4陣営乱戦</button>
           </div>
         </div>
@@ -489,7 +475,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- サウンドエンジン (Web Audio API) ---
+    // --- サウンドエンジン ---
     let audioCtx = null;
     let isSoundMuted = false;
 
@@ -574,7 +560,6 @@
       }
     };
 
-    // Firebase設定
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-nexus-titan-odyssey';
     const firebaseConfig = {
       apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
@@ -599,7 +584,7 @@
     let roomListenerUnsub = null;
     let isMatchLive = false;
 
-    // 強化レベル (全10種)
+    // 強化レベル
     let upgradeTurretLevel = 0;
     let upgradeHpLevel = 0;
     let upgradeSpeedLevel = 0;
@@ -611,14 +596,11 @@
     let upgradeDroneLevel = 0;
     let upgradeCoreRepairLevel = 0;
 
-    // 観戦モード状態
     let isSpectating = false;
     let spectateTargetIndex = 0;
 
-    // 10,000 x 10,000 px の広大マップ
     const WORLD_SIZE = 10000;
 
-    // Canvas準備
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const minimapCanvas = document.getElementById('minimapCanvas');
@@ -908,7 +890,7 @@
               this.controllingTeam = occupyingTeam;
               this.captureProgress = 20;
               SFX.empCapture();
-              showToast(`📡 [${this.name}] を 第${occupyingTeam + 1}陣営が制圧！敵タレットを一時停止！`);
+              showToast(`📡 [${this.name}] を ${TEAM_COLORS[occupyingTeam].name} が制圧！敵タレットを一時停止！`);
               
               teamCores.forEach(c => {
                 if (c.index !== occupyingTeam) c.empDisabledTimer = 600;
@@ -1189,28 +1171,32 @@
       }
     }
 
+    // 【数倍強化されたワールドボス】
     class WorldBoss {
-      constructor(name, x, y, icon, maxHp, color) {
+      constructor(name, x, y, icon, maxHp, color, bulletCount = 8, bulletSpeed = 13, fireRate = 40) {
         this.name = name;
         this.x = x;
         this.y = y;
         this.icon = icon;
-        this.radius = 54;
+        this.radius = 65;
         this.hp = maxHp;
         this.maxHp = maxHp;
         this.color = color;
         this.isAlive = true;
         this.attackCd = 0;
         this.angle = 0;
+        this.bulletCount = bulletCount;
+        this.bulletSpeed = bulletSpeed;
+        this.fireRate = fireRate;
       }
       update() {
         if (!this.isAlive) return;
-        this.angle += 0.02;
+        this.angle += 0.03;
         if (this.attackCd > 0) this.attackCd--;
 
         if (this.attackCd <= 0) {
           let nearest = null;
-          let minDist = 620;
+          let minDist = 850;
           players.forEach(p => {
             if (p.isAlive && !p.isRespawning && !p.stealth) {
               const d = Math.hypot(p.x - this.x, p.y - this.y);
@@ -1222,13 +1208,17 @@
           });
 
           if (nearest) {
-            this.attackCd = 50;
-            const ang = Math.atan2(nearest.y - this.y, nearest.x - this.x);
-            for (let off of [-0.3, -0.15, 0, 0.15, 0.3]) {
+            this.attackCd = this.fireRate;
+            const baseAng = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+
+            // 弾幕パターン：全周囲または扇状高密度弾幕
+            for (let i = 0; i < this.bulletCount; i++) {
+              const angOffset = (i - (this.bulletCount - 1) / 2) * 0.18;
+              const finalAng = baseAng + angOffset;
               projectiles.push(new Projectile(
                 this.x, this.y,
-                Math.cos(ang + off) * 11, Math.sin(ang + off) * 11,
-                'boss', this.color, 30, false, true
+                Math.cos(finalAng) * this.bulletSpeed, Math.sin(finalAng) * this.bulletSpeed,
+                'boss', this.color, 45, true, true
               ));
             }
             SFX.turretFire();
@@ -1237,21 +1227,23 @@
       }
       takeDamage(amount, attackerId) {
         if (!this.isAlive) return;
-        this.hp -= amount;
+        // ボス特有のダメージ軽減（耐久性強化）
+        this.hp -= (amount * 0.75);
         if (this.hp <= 0) {
           this.isAlive = false;
-          spawnExplosion(this.x, this.y, this.color, 110);
-          showToast(`👑 ${this.name} 撃破！伝説兵装投下！`);
+          spawnExplosion(this.x, this.y, this.color, 160);
+          showToast(`👑 ${this.name} 撃破！レジェンド級ドロップ獲得！`);
           
-          spawnWeaponDrop(this.x - 50, this.y, 'singularity');
-          spawnWeaponDrop(this.x + 50, this.y, 'flamer');
-          for (let i = 0; i < 12; i++) {
-            shardDrops.push(new ShardDrop(this.x + (Math.random() - 0.5) * 150, this.y + (Math.random() - 0.5) * 150, 50));
+          spawnWeaponDrop(this.x - 70, this.y, 'singularity');
+          spawnWeaponDrop(this.x + 70, this.y, 'flamer');
+          spawnWeaponDrop(this.x, this.y - 70, 'rocket');
+          for (let i = 0; i < 20; i++) {
+            shardDrops.push(new ShardDrop(this.x + (Math.random() - 0.5) * 220, this.y + (Math.random() - 0.5) * 220, 60));
           }
 
           const killer = players.find(p => p.id === attackerId);
           if (killer) {
-            killer.shards += 250;
+            killer.shards += 450;
             killer.hp = killer.maxHp;
             killer.addUltMeter(100);
             if (killer.isSelf) updateShopHUD();
@@ -1262,7 +1254,7 @@
         if (!this.isAlive) return;
         const scrX = this.x - camX;
         const scrY = this.y - camY;
-        if (scrX < -120 || scrX > viewW + 120 || scrY < -120 || scrY > viewH + 120) return;
+        if (scrX < -150 || scrX > viewW + 150 || scrY < -150 || scrY > viewH + 150) return;
 
         c.save();
         c.translate(scrX, scrY);
@@ -1273,27 +1265,33 @@
         c.fillStyle = '#1e1035';
         c.fill();
         c.strokeStyle = this.color;
-        c.lineWidth = 4;
+        c.lineWidth = 5;
+        c.shadowColor = this.color;
+        c.shadowBlur = 20;
         c.stroke();
-        c.strokeRect(-this.radius * 0.65, -this.radius * 0.65, this.radius * 1.3, this.radius * 1.3);
+        c.strokeRect(-this.radius * 0.7, -this.radius * 0.7, this.radius * 1.4, this.radius * 1.4);
 
         c.rotate(-this.angle);
-        c.font = '32px sans-serif';
+        c.font = '36px sans-serif';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
         c.fillText(this.icon, 0, 0);
         c.restore();
 
-        const barW = 96;
+        const barW = 120;
         const hpPct = Math.max(0, this.hp / this.maxHp);
-        c.fillStyle = 'rgba(0,0,0,0.7)';
-        c.fillRect(scrX - barW / 2, scrY - this.radius - 24, barW, 8);
+        c.fillStyle = 'rgba(0,0,0,0.8)';
+        c.fillRect(scrX - barW / 2, scrY - this.radius - 28, barW, 9);
         c.fillStyle = this.color;
-        c.fillRect(scrX - barW / 2, scrY - this.radius - 24, barW * hpPct, 8);
+        c.fillRect(scrX - barW / 2, scrY - this.radius - 28, barW * hpPct, 9);
+        c.strokeStyle = '#fff';
+        c.lineWidth = 1;
+        c.strokeRect(scrX - barW / 2, scrY - this.radius - 28, barW, 9);
+        
         c.font = '10px Orbitron, sans-serif';
         c.fillStyle = '#f3e8ff';
         c.textAlign = 'center';
-        c.fillText(this.name, scrX, scrY - this.radius - 28);
+        c.fillText(`${this.name} [BOSS] (${Math.ceil(this.hp)}/${this.maxHp})`, scrX, scrY - this.radius - 32);
       }
     }
 
@@ -1625,6 +1623,7 @@
       }
 
       spawnAtBase(core) {
+        if (!core) return;
         this.x = core.x + 65;
         this.y = core.y + 65;
         this.vx = 0;
@@ -1644,7 +1643,7 @@
         spawnExplosion(this.x, this.y, this.color.main, 45);
         SFX.shotgun();
 
-        const homeCore = teamCores[this.teamIndex];
+        const homeCore = teamCores.find(c => c.index === this.teamIndex);
         if (homeCore && homeCore.isAlive) {
           this.isRespawning = true;
           this.respawnTimer = 5;
@@ -1937,15 +1936,18 @@
       teamCores = [];
       matchTimeFrames = 0;
 
-      for (let i = 0; i < 4; i++) {
-        const pos = CORE_SPAWNS[i];
-        teamCores.push(new BaseCore(i, pos.x, pos.y, TEAM_COLORS[i]));
-      }
+      // 【修正1】参加しているプレイヤーのチームのみコアを生成
+      const participatingTeams = new Set(players.map(p => p.teamIndex));
+      participatingTeams.forEach(teamIdx => {
+        const pos = CORE_SPAWNS[teamIdx];
+        teamCores.push(new BaseCore(teamIdx, pos.x, pos.y, TEAM_COLORS[teamIdx]));
+      });
 
+      // 【修正2】ボス大幅強化 (HP4倍、高威力・高速弾幕)
       const cx = WORLD_SIZE / 2;
       const cy = WORLD_SIZE / 2;
-      worldBosses.push(new WorldBoss('タイタンプライム', cx, cy, '👾', 3200, '#c084fc'));
-      worldBosses.push(new WorldBoss('サイバードレイク', cx - 2200, cy + 2200, '🐉', 2600, '#f43f5e'));
+      worldBosses.push(new WorldBoss('タイタンプライム', cx, cy, '👾', 12000, '#c084fc', 12, 14, 35));
+      worldBosses.push(new WorldBoss('サイバードレイク', cx - 2200, cy + 2200, '🐉', 9500, '#f43f5e', 8, 16, 42));
 
       empTowers.push(new EmpTower('emp_north', cx, 2400, 'アルファ中継局'));
       empTowers.push(new EmpTower('emp_south', cx, WORLD_SIZE - 2400, 'オメガ中継局'));
@@ -2132,7 +2134,7 @@
       }
     });
 
-    // タッチジョイスティック制御
+    // ジョイスティック
     let joyActive = false;
     let joyTouchId = null;
     let joyOriginX = 0;
@@ -2198,7 +2200,6 @@
       joyVecY = my / maxR;
     }
 
-    // キーボード操作
     const keyMap = {};
     window.addEventListener('keydown', (e) => {
       keyMap[e.key.toLowerCase()] = true;
@@ -2389,7 +2390,7 @@
       self.overchargeCooldown = self.overchargeMaxCooldown;
       SFX.overcharge();
 
-      const myCore = teamCores[self.teamIndex];
+      const myCore = teamCores.find(c => c.index === self.teamIndex);
       if (myCore && myCore.isAlive) {
         myCore.shieldOvercharge += 500;
       }
@@ -2596,7 +2597,7 @@
 
         players.forEach(p => {
           if (p.isRespawning) {
-            const homeCore = teamCores[p.teamIndex];
+            const homeCore = teamCores.find(c => c.index === p.teamIndex);
             
             if (!homeCore || !homeCore.isAlive) {
               p.isRespawning = false;
@@ -2814,17 +2815,21 @@
       checkNearbyPickupPrompt();
     }
 
+    // 【修正3】参加者のみに基づく正確な勝敗終了判定
     function checkMatchEndCondition() {
-      const activeTeams = new Set();
-      teamCores.forEach(c => {
-        if (c.isAlive) activeTeams.add(c.index);
-      });
+      if (!isMatchLive) return;
+
+      const survivingTeams = new Set();
       players.forEach(p => {
-        if (p.isAlive || p.isRespawning) activeTeams.add(p.teamIndex);
+        const homeCore = teamCores.find(c => c.index === p.teamIndex);
+        // プレイヤー生存中、またはリスポーン可能（コア生存中）
+        if (p.isAlive || (homeCore && homeCore.isAlive)) {
+          survivingTeams.add(p.teamIndex);
+        }
       });
 
-      if (activeTeams.size <= 1) {
-        const winningTeamIndex = activeTeams.values().next().value;
+      if (survivingTeams.size <= 1) {
+        const winningTeamIndex = survivingTeams.values().next().value;
         setTimeout(() => {
           endMatch(winningTeamIndex !== undefined ? winningTeamIndex : null);
         }, 900);
@@ -2844,7 +2849,7 @@
       document.getElementById('resEmoji').textContent = isWinner ? '🏆' : (isSpectating ? '👁️' : '💀');
       document.getElementById('resSubtitle').textContent = isWinner 
         ? '全敵陣営および残党を完全掃討しアリーナの覇者となった！' 
-        : (isSpectating ? `観戦終了！ 第${winningTeamIndex !== undefined ? winningTeamIndex + 1 : '---'}陣営が勝利しました！` : '全戦力が壊滅した... 拠点を強化して再戦しよう！');
+        : (isSpectating ? `観戦終了！ ${winningTeamIndex !== null && winningTeamIndex !== undefined ? TEAM_COLORS[winningTeamIndex].name : '---'}が勝利しました！` : '全戦力が壊滅した... 拠点を強化して再戦しよう！');
       document.getElementById('resKills').textContent = self ? self.kills : 0;
       document.getElementById('resCoresDestroyed').textContent = self ? self.coresDestroyed : 0;
 
@@ -2898,7 +2903,7 @@
       worldBosses.forEach(b => {
         if (b.isAlive) {
           miniCtx.beginPath();
-          miniCtx.arc(b.x * scale, b.y * scale, 3.5, 0, Math.PI * 2);
+          miniCtx.arc(b.x * scale, b.y * scale, 4.5, 0, Math.PI * 2);
           miniCtx.fillStyle = b.color;
           miniCtx.fill();
         }
@@ -2918,7 +2923,7 @@
       const self = getSelfPlayer();
       if (!self || (!self.isAlive && !isSpectating)) return;
 
-      const myCore = teamCores[self.teamIndex];
+      const myCore = teamCores.find(c => c.index === self.teamIndex);
       const targets = [];
 
       if (myCore && myCore.isAlive) {
@@ -2978,7 +2983,7 @@
         }
       } else if (self) {
         if (self.isRespawning) {
-          const homeCore = teamCores[self.teamIndex];
+          const homeCore = teamCores.find(c => c.index === self.teamIndex);
           if (homeCore) {
             camFocusX = homeCore.x;
             camFocusY = homeCore.y;
@@ -3050,7 +3055,7 @@
       if (!self) return;
 
       document.getElementById('hudShards').textContent = self.shards;
-      const homeCore = teamCores[self.teamIndex];
+      const homeCore = teamCores.find(c => c.index === self.teamIndex);
       if (homeCore) {
         document.getElementById('hudMyCoreHp').textContent = `${Math.ceil(homeCore.hp)} / ${homeCore.maxHp}`;
         document.getElementById('hudMyCoreHp').style.color = homeCore.isAlive ? '#10b981' : '#f43f5e';
@@ -3060,7 +3065,7 @@
       statusBar.innerHTML = '';
       teamCores.forEach((c) => {
         const item = document.createElement('div');
-        item.className = `flex flex-col items-center p-1 rounded-lg ${c.isAlive ? 'bg-slate-900/60' : 'bg-rose-950/40 border border-rose-800'}`;
+        item.className = `flex flex-col items-center px-2 py-1 rounded-lg ${c.isAlive ? 'bg-slate-900/60' : 'bg-rose-950/40 border border-rose-800'}`;
         const pct = Math.ceil((c.hp / c.maxHp) * 100);
         item.innerHTML = `
           <div class="font-cyber font-bold text-[8px]" style="color:${c.color.main}">${c.color.name}</div>
@@ -3071,7 +3076,7 @@
 
       worldBosses.forEach(b => {
         const bItem = document.createElement('div');
-        bItem.className = `flex flex-col items-center p-1 rounded-lg ${b.isAlive ? 'bg-purple-950/60 border border-purple-600' : 'bg-slate-900 opacity-40'}`;
+        bItem.className = `flex flex-col items-center px-2 py-1 rounded-lg ${b.isAlive ? 'bg-purple-950/60 border border-purple-600' : 'bg-slate-900 opacity-40'}`;
         const bPct = Math.ceil((b.hp / b.maxHp) * 100);
         bItem.innerHTML = `
           <div class="font-cyber font-bold text-[8px] text-purple-300">${b.name.split(' ')[0]}</div>
@@ -3122,7 +3127,6 @@
     document.getElementById('btnCloseShopBottom').addEventListener('click', closeUpgradeShop);
     document.getElementById('shopBackdropTap').addEventListener('click', closeUpgradeShop);
 
-    // 10種の強化購入処理
     document.getElementById('btnBuyTurret').addEventListener('click', () => {
       const self = getSelfPlayer();
       if (!self || self.shards < 50) { showToast("💎 シャード不足！"); return; }
@@ -3213,7 +3217,7 @@
       updateData[`${key}.isLastStand`] = self.isLastStand;
       updateData[`${key}.kills`] = self.kills;
 
-      const myCore = teamCores[self.teamIndex];
+      const myCore = teamCores.find(c => c.index === self.teamIndex);
       if (myCore) {
         updateData[`cores.${self.teamIndex}.hp`] = myCore.hp;
         updateData[`cores.${self.teamIndex}.isAlive`] = myCore.isAlive;
@@ -3260,7 +3264,7 @@
             slotEl.className = 'flex flex-col items-center justify-center p-2 rounded-2xl border ' + (s ? 'border-cyan-500/60 bg-cyan-950/40' : 'border-dashed border-slate-700 bg-slate-950/40');
             slotEl.innerHTML = s ? `
               <div class="text-xs font-cyber font-bold text-cyan-300 truncate max-w-[55px]">${s.name}</div>
-              <span class="text-[8px] font-mono" style="color:${TEAM_COLORS[idx].main}">第${idx+1}陣営</span>
+              <span class="text-[8px] font-mono" style="color:${TEAM_COLORS[idx].main}">${TEAM_COLORS[idx].name}</span>
             ` : `
               <div class="text-lg text-slate-600">👤</div>
               <span class="text-[8px] text-slate-500 font-mono">待機中</span>
@@ -3301,9 +3305,10 @@
 
           if (room.cores) {
             room.cores.forEach((rc, cIdx) => {
-              if (teamCores[cIdx] && cIdx !== mySlotIndex) {
-                teamCores[cIdx].hp = rc.hp;
-                teamCores[cIdx].isAlive = rc.isAlive;
+              const targetCore = teamCores.find(c => c.index === cIdx);
+              if (targetCore && cIdx !== mySlotIndex) {
+                targetCore.hp = rc.hp;
+                targetCore.isAlive = rc.isAlive;
               }
             });
           }
@@ -3360,7 +3365,7 @@
 
       players.forEach((p) => {
         p.resetPlayerState();
-        const core = teamCores[p.teamIndex];
+        const core = teamCores.find(c => c.index === p.teamIndex);
         p.spawnAtBase(core);
       });
 
