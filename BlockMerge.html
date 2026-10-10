@@ -422,6 +422,21 @@
     </div>
   </div>
 
+  <!-- Firebase 設定 -->
+  <script>
+    window.__firebaseConfig = {
+  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+  authDomain: "onlinegame-341cf.firebaseapp.com",
+  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
+  projectId: "onlinegame-341cf",
+  storageBucket: "onlinegame-341cf.firebasestorage.app",
+  messagingSenderId: "995082102439",
+  appId: "1:995082102439:web:49e57d48312e25f7879d82",
+  measurementId: "G-LBFXFHP9MF"
+};
+    window.__app_id = "blockmerge-live";
+  </script>
+
   <script type="module">
     class SoundFX {
       constructor() {
@@ -1080,7 +1095,7 @@
       async initFirebase() {
         let isConfigPresent = false;
         try {
-          if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+          if (typeof __firebase_config !== 'undefined' && __firebase_config && __firebase_config.apiKey !== "YOUR_API_KEY") {
             const config = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
             const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
             const { getAuth, signInAnonymously, signInWithCustomToken } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
