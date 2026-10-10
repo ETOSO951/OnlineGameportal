@@ -384,24 +384,24 @@
     <div class="modal-content">
       <div class="game-logo">BLOCKMERGE.IO</div>
       <p class="modal-subtitle">
-        ãã¤ãã¬ã¼ãç´ã®<strong>è¶è¡æã¯ã©ãã·ã¥ï¼è·³ã­è¿ã</strong>ï¼<br>
-        åã£ããã­ãã¯ã¯ç´3/4ãæ£ä¹±ã<strong>æµã®ã³ã¢ãæç ´ã§100%å¨ãã­ãã¯çæ£å¼·å¥ª</strong>ï¼
+        ベイブレード級の<strong>超衝撃クラッシュ＆跳ね返り</strong>！<br>
+        削ったブロックは約3/4が散乱、<strong>敵のコアを撃破で100%全ブロック爆散強奪</strong>！
       </p>
 
-      <input type="text" id="input-username" class="name-input" maxlength="12" placeholder="ãã¤ã­ããåãå¥å" value="PILOT_">
+      <input type="text" id="input-username" class="name-input" maxlength="12" placeholder="パイロット名を入力" value="PILOT_">
 
       <div class="special-grid">
-        <div class="special-item"><div class="color-chip" style="background:#38bdf8"></div>éå¸¸ (Normal)</div>
-        <div class="special-item"><div class="color-chip" style="background:#94a3b8"></div>ã¢ã¼ãã¼: è¶èä¹</div>
-        <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>ã¹ãã¤ã¯: 4åç ´å£å</div>
-        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ãã¼ã¹ã¿ã¼: éåº¦+35%</div>
-        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>ãªã¸ã§ã: èªå·±ä¿®å¾©</div>
-        <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>ãã°ããã: é éå¸å¼</div>
-        <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ãã : è¡æç ´è£</div>
-        <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ã´ã¼ã¹ã: ããã¯ããã¯èæ§</div>
-        <div class="special-item"><div class="color-chip" style="background:#06b6d4"></div>ã¯ã©ã¤ãª: æµæ¸éåçµ</div>
-        <div class="special-item"><div class="color-chip" style="background:#facc15"></div>ãµã³ãã¼: é£éæ¾é»</div>
-        <div class="special-item"><div class="color-chip" style="background:#1e1e24"></div>ã¢ã³ãã«: è¶è³ªéæ¿çª</div>
+        <div class="special-item"><div class="color-chip" style="background:#38bdf8"></div>通常 (Normal)</div>
+        <div class="special-item"><div class="color-chip" style="background:#94a3b8"></div>アーマー: 超耐久</div>
+        <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>スパイク: 4倍破壊刃</div>
+        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ブースター: 速度+35%</div>
+        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>リジェネ: 自己修復</div>
+        <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>マグネット: 遠隔吸引</div>
+        <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ボム: 衝撃破裂</div>
+        <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ゴースト: ノックバック耐性</div>
+        <div class="special-item"><div class="color-chip" style="background:#06b6d4"></div>クライオ: 敵減速凍結</div>
+        <div class="special-item"><div class="color-chip" style="background:#facc15"></div>サンダー: 連鎖放電</div>
+        <div class="special-item"><div class="color-chip" style="background:#1e1e24"></div>アンビル: 超質量激突</div>
       </div>
 
       <button id="btn-play" class="btn-action">JOIN ARENA</button>
@@ -412,7 +412,7 @@
   <div id="modal-over" class="modal-overlay" style="display:none;">
     <div class="modal-content">
       <h2 style="font-size:26px; color:#ef4444; font-weight:900; margin-bottom:6px;">CORE SHATTERED</h2>
-      <p id="over-reason" class="modal-subtitle" style="margin-bottom:12px;">æµãã­ãã¯ã«ã³ã¢ãç²ç ããã¾ããã</p>
+      <p id="over-reason" class="modal-subtitle" style="margin-bottom:12px;">敵ブロックにコアを粉砕されました。</p>
       <div style="background:rgba(255,255,255,0.06); padding:10px; border-radius:12px; margin-bottom:16px;">
         <div style="font-size:12px; color:#94a3b8">FINAL MASS</div>
         <div id="over-mass" style="font-family:'Teko'; font-size:42px; color:#38bdf8; line-height:1">1</div>
@@ -423,7 +423,6 @@
   </div>
 
   <script type="module">
-    // Web Audio Synthesizer (Zero External Dependencies)
     class SoundFX {
       constructor() {
         this.ctx = null;
@@ -456,7 +455,6 @@
         if (!this.ctx) return;
         const t = this.ctx.currentTime;
         
-        // Beyblade metal clang component
         const oscClang = this.ctx.createOscillator();
         const gainClang = this.ctx.createGain();
         oscClang.type = 'triangle';
@@ -469,7 +467,6 @@
         oscClang.start(t);
         oscClang.stop(t + 0.12);
 
-        // Heavy bass kinetic thump
         const oscBass = this.ctx.createOscillator();
         const gainBass = this.ctx.createGain();
         oscBass.type = 'sawtooth';
@@ -549,122 +546,17 @@
     const GRID_SIZE = 28;
 
     const BLOCK_TYPES = {
-      NORMAL: {
-        id: 'NORMAL',
-        name: 'Normal',
-        hp: 100,
-        damage: 40,
-        color: '#38bdf8',
-        borderColor: '#0284c7',
-        mass: 1.0,
-        dropWeight: 84
-      },
-      ARMOR: {
-        id: 'ARMOR',
-        name: 'Iron Armor',
-        hp: 550,
-        damage: 45,
-        color: '#94a3b8',
-        borderColor: '#475569',
-        mass: 2.2,
-        dropWeight: 2.8
-      },
-      SPIKE: {
-        id: 'SPIKE',
-        name: 'Spike Blade',
-        hp: 130,
-        damage: 170,
-        color: '#ef4444',
-        borderColor: '#991b1b',
-        mass: 1.0,
-        dropWeight: 2.5
-      },
-      BOOSTER: {
-        id: 'BOOSTER',
-        name: 'Booster',
-        hp: 90,
-        damage: 32,
-        color: '#f59e0b',
-        borderColor: '#d97706',
-        speedBoost: 0.35,
-        mass: 0.8,
-        dropWeight: 2.3
-      },
-      REGEN: {
-        id: 'REGEN',
-        name: 'Regen',
-        hp: 150,
-        damage: 32,
-        color: '#10b981',
-        borderColor: '#047857',
-        regenRate: 20,
-        mass: 1.0,
-        dropWeight: 2.0
-      },
-      MAGNET: {
-        id: 'MAGNET',
-        name: 'Magnet',
-        hp: 120,
-        damage: 32,
-        color: '#a855f7',
-        borderColor: '#7e22ce',
-        magnetRange: 210,
-        mass: 1.1,
-        dropWeight: 1.8
-      },
-      BOMB: {
-        id: 'BOMB',
-        name: 'Bomb',
-        hp: 80,
-        damage: 240,
-        color: '#fbbf24',
-        borderColor: '#b45309',
-        mass: 1.2,
-        dropWeight: 1.4
-      },
-      GHOST: {
-        id: 'GHOST',
-        name: 'Ghost',
-        hp: 180,
-        damage: 38,
-        color: '#e0f2fe',
-        borderColor: '#7dd3fc',
-        knockbackResist: 0.8,
-        mass: 0.4,
-        dropWeight: 1.3
-      },
-      CRYO: {
-        id: 'CRYO',
-        name: 'Cryo',
-        hp: 160,
-        damage: 48,
-        color: '#06b6d4',
-        borderColor: '#0891b2',
-        slowFactor: 0.55,
-        mass: 1.3,
-        dropWeight: 1.3
-      },
-      THUNDER: {
-        id: 'THUNDER',
-        name: 'Thunder',
-        hp: 110,
-        damage: 90,
-        color: '#facc15',
-        borderColor: '#ca8a04',
-        chainTargets: 3,
-        mass: 1.0,
-        dropWeight: 1.3
-      },
-      ANVIL: {
-        id: 'ANVIL',
-        name: 'Anvil',
-        hp: 600,
-        damage: 100,
-        color: '#1e1e24',
-        borderColor: '#3f3f46',
-        mass: 3.5,
-        dropWeight: 1.3
-      }
+      NORMAL: { id: 'NORMAL', name: 'Normal', hp: 100, damage: 40, color: '#38bdf8', borderColor: '#0284c7', mass: 1.0, dropWeight: 84 },
+      ARMOR: { id: 'ARMOR', name: 'Iron Armor', hp: 550, damage: 45, color: '#94a3b8', borderColor: '#475569', mass: 2.2, dropWeight: 2.8 },
+      SPIKE: { id: 'SPIKE', name: 'Spike Blade', hp: 130, damage: 170, color: '#ef4444', borderColor: '#991b1b', mass: 1.0, dropWeight: 2.5 },
+      BOOSTER: { id: 'BOOSTER', name: 'Booster', hp: 90, damage: 32, color: '#f59e0b', borderColor: '#d97706', speedBoost: 0.35, mass: 0.8, dropWeight: 2.3 },
+      REGEN: { id: 'REGEN', name: 'Regen', hp: 150, damage: 32, color: '#10b981', borderColor: '#047857', regenRate: 20, mass: 1.0, dropWeight: 2.0 },
+      MAGNET: { id: 'MAGNET', name: 'Magnet', hp: 120, damage: 32, color: '#a855f7', borderColor: '#7e22ce', magnetRange: 210, mass: 1.1, dropWeight: 1.8 },
+      BOMB: { id: 'BOMB', name: 'Bomb', hp: 80, damage: 240, color: '#fbbf24', borderColor: '#b45309', mass: 1.2, dropWeight: 1.4 },
+      GHOST: { id: 'GHOST', name: 'Ghost', hp: 180, damage: 38, color: '#e0f2fe', borderColor: '#7dd3fc', knockbackResist: 0.8, mass: 0.4, dropWeight: 1.3 },
+      CRYO: { id: 'CRYO', name: 'Cryo', hp: 160, damage: 48, color: '#06b6d4', borderColor: '#0891b2', slowFactor: 0.55, mass: 1.3, dropWeight: 1.3 },
+      THUNDER: { id: 'THUNDER', name: 'Thunder', hp: 110, damage: 90, color: '#facc15', borderColor: '#ca8a04', chainTargets: 3, mass: 1.0, dropWeight: 1.3 },
+      ANVIL: { id: 'ANVIL', name: 'Anvil', hp: 600, damage: 100, color: '#1e1e24', borderColor: '#3f3f46', mass: 3.5, dropWeight: 1.3 }
     };
 
     function getRandomBlockType() {
@@ -892,11 +784,9 @@
         this.alive = true;
         this.killCount = 0;
 
-        // Bot autonomous state
         this.botTarget = null;
         this.botThinkTimer = Math.random() * 0.5;
 
-        // Debuffs & physics recoil
         this.slowTimer = 0;
         this.recoilSquash = 1.0;
         this.recoilAngle = 0;
@@ -920,7 +810,6 @@
           if (b.type === 'BOOSTER') boosterBuff += 0.35;
         }
 
-        // Agile starting speed tapering smoothly with mass
         let spd = 490 / (1 + Math.pow(this.size - 1, 0.45) * 0.43);
         spd *= (1 + boosterBuff);
         if (this.slowTimer > 0) spd *= 0.55;
@@ -990,7 +879,6 @@
         return detached;
       }
 
-      // Autonomous Bot AI (Patrol, Vacuum Blocks, Attack/Flee, Dash)
       updateBotAI(dt, game) {
         this.botThinkTimer -= dt;
         if (this.botThinkTimer <= 0) {
@@ -1021,28 +909,23 @@
           }
 
           if (nearestThreat && nearestThreat.size > this.size + 4) {
-            // Flee from massive predators
             const fleeAngle = Math.atan2(this.y - nearestThreat.y, this.x - nearestThreat.x);
             this.moveAngle = fleeAngle;
             if (this.boostEnergy > 40 && minThreatDist < 340) {
               this.isDashing = true;
             }
           } else if (nearestThreat && nearestThreat.size <= this.size + 2 && minThreatDist < 480) {
-            // Aggressive hunt / flank with Beyblade charge
             const attackAngle = Math.atan2(nearestThreat.y - this.y, nearestThreat.x - this.x);
             this.moveAngle = attackAngle;
             if (this.boostEnergy > 30 && minThreatDist < 300) {
               this.isDashing = true;
             }
           } else if (nearestWild) {
-            // Seek wild blocks to mass up
             this.moveAngle = Math.atan2(nearestWild.y - this.y, nearestWild.x - this.x);
           } else {
-            // Wander arena smoothly
             this.moveAngle += (Math.random() - 0.5) * 1.2;
           }
 
-          // Arena boundary steering avoidance
           const borderMargin = 250;
           if (this.x < borderMargin) this.moveAngle = 0;
           else if (this.x > WORLD_SIZE - borderMargin) this.moveAngle = Math.PI;
@@ -1087,12 +970,10 @@
           this.x = Math.max(margin, Math.min(WORLD_SIZE - margin, this.x));
           this.y = Math.max(margin, Math.min(WORLD_SIZE - margin, this.y));
         } else {
-          // Client interpolation for online players
           this.x += (this.targetX - this.x) * 0.25;
           this.y += (this.targetY - this.y) * 0.25;
         }
 
-        // Squash recoil decay
         this.recoilSquash += (1.0 - this.recoilSquash) * 12 * dt;
 
         if (this.slowTimer > 0) this.slowTimer -= dt;
@@ -1146,7 +1027,6 @@
         this.bots = [];
         this.localPlayer = null;
 
-        // Arena parameters: 6500x6500, reduced ambient blocks (65)
         this.maxWildBlocks = 65;
         this.botCount = 12;
 
@@ -1158,20 +1038,17 @@
         this.touchStartPos = null;
         this.isDashHeld = false;
 
-        // Desktop keyboard controls
         this.keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, KeyW: false, KeyS: false, KeyA: false, KeyD: false };
 
         this.kills = 0;
         this.lastTime = 0;
 
-        // Firebase state
         this.db = null;
         this.auth = null;
         this.userId = null;
         this.appId = typeof __app_id !== 'undefined' ? __app_id : 'blockmerge-live';
         this.syncInterval = null;
 
-        // HUD elements
         this.hudBlocks = document.getElementById('hud-block-count');
         this.hudBoostBar = document.getElementById('hud-boost-bar');
         this.hudBoostPct = document.getElementById('hud-boost-pct');
@@ -1200,7 +1077,6 @@
         this.shakeTimer = duration;
       }
 
-      // Safe Firebase initialization with immediate fallback
       async initFirebase() {
         let isConfigPresent = false;
         try {
@@ -1226,7 +1102,7 @@
             this.startMultiplayerListener(collection, doc, setDoc, deleteDoc, onSnapshot);
           }
         } catch (err) {
-          console.warn("Online synchronization offline or sandbox fallback:", err);
+          console.warn("Online synchronization fallback:", err);
         }
 
         if (!isConfigPresent) {
@@ -1246,7 +1122,7 @@
           snapshot.forEach((d) => {
             const data = d.data();
             if (!data || data.id === this.userId) return;
-            if (now - (data.updatedAt || 0) > 8000) return;
+            if (now - (data.updatedAt || 0) > 12000) return;
 
             presentIds.add(data.id);
             let remote = this.remotePlayers.get(data.id);
@@ -1286,7 +1162,7 @@
 
         this.syncInterval = setInterval(() => {
           this.publishPlayerState(doc, setDoc);
-        }, 180);
+        }, 120);
 
         window.addEventListener('beforeunload', () => {
           this.cleanupPlayer(doc, deleteDoc);
@@ -1336,7 +1212,6 @@
         dashBtn.addEventListener('mousedown', triggerDash);
         window.addEventListener('mouseup', stopDash);
 
-        // Desktop keyboard controls
         window.addEventListener('keydown', (e) => {
           if (e.code === 'Space') {
             if (!this.isDashHeld) triggerDash(null);
@@ -1357,7 +1232,6 @@
           }
         });
 
-        // Touch Joystick with ID isolation
         window.addEventListener('touchstart', (e) => {
           audio.init();
           for (let i = 0; i < e.changedTouches.length; i++) {
@@ -1419,7 +1293,6 @@
         window.addEventListener('touchend', endTouch);
         window.addEventListener('touchcancel', endTouch);
 
-        // Desktop mouse steering fallback
         let isMouseDown = false;
         window.addEventListener('mousedown', (e) => {
           if (e.target.closest('#dash-btn') || e.target.closest('.modal-content')) return;
@@ -1566,7 +1439,6 @@
         for (const b of this.bots) if (b.alive) allClusters.push(b);
         for (const r of this.remotePlayers.values()) if (r.alive) allClusters.push(r);
 
-        // 1. Magnet attraction (only on blocks whose pickup cooldown is zero)
         for (const cluster of allClusters) {
           const magnets = cluster.magnetCount;
           if (magnets > 0) {
@@ -1583,7 +1455,6 @@
           }
         }
 
-        // 2. Loose blocks attachment (respects pickup delay)
         for (const cluster of allClusters) {
           for (let i = this.wildBlocks.length - 1; i >= 0; i--) {
             const wild = this.wildBlocks[i];
@@ -1624,7 +1495,6 @@
           }
         }
 
-        // 3. Beyblade-style High-Energy Clashing & Violent Repulsion
         for (let i = 0; i < allClusters.length; i++) {
           for (let j = i + 1; j < allClusters.length; j++) {
             const cA = allClusters[i];
@@ -1661,7 +1531,6 @@
               clashMidX = (ax + bx) / 2;
               clashMidY = (ay + by) / 2;
 
-              // DIRECT CORE SHATTER -> 100% of body explodes into loot
               if (blkB.isCore) {
                 this.executeCoreShatter(cA, cB);
                 return;
@@ -1691,7 +1560,6 @@
               blkA.flashTimer = 0.15;
               blkB.flashTimer = 0.15;
 
-              // Beyblade spark showers on impact point
               this.createBeybladeSparks(clashMidX, clashMidY, defA.color, defB.color, 9);
 
               if (blkA.type === 'BOMB' && (blkA.hp <= 0 || Math.random() < 0.35)) {
@@ -1703,7 +1571,6 @@
                 cB.blocks.delete(keyB);
               }
 
-              // 3/4 drop rule for blocks broken in combat
               if (blkA.hp <= 0 && cA.blocks.has(keyA)) {
                 cA.blocks.delete(keyA);
                 this.handleCombatBlockBreak(ax, ay, blkA.type, cB, cA);
@@ -1717,11 +1584,7 @@
         }
 
         if (clashDetected) {
-          // BEYBLADE-STYLE HIGH-ENERGY CLASH DYNAMICS
-          // 1. Direct repulsive normal vector
           const normalAngle = Math.atan2(cB.y - cA.y, cB.x - cA.x);
-          
-          // 2. Tangential rotational deflection vector (like spinning Beyblades colliding)
           const tangentAngle = normalAngle + (Math.PI / 2);
           const spinSign = (cA.vx * cB.vy - cA.vy * cB.vx) >= 0 ? 1 : -1;
 
@@ -1737,11 +1600,9 @@
           const ghostA = cA.hasGhost ? 0.3 : 1.0;
           const ghostB = cB.hasGhost ? 0.3 : 1.0;
 
-          // Normal repulsion
           const impulseA = baseImpulse * ratioA * 2.6 * ghostA;
           const impulseB = baseImpulse * ratioB * 2.6 * ghostB;
 
-          // Tangential deflection
           const tangA = baseImpulse * 0.45 * ratioA * spinSign;
           const tangB = -baseImpulse * 0.45 * ratioB * spinSign;
 
@@ -1761,7 +1622,6 @@
             if (navigator.vibrate) navigator.vibrate(hardSpike ? [40, 20, 40] : 30);
           }
 
-          // Handle disconnected branch chunks (also subject to 3/4 drop rule with scatter)
           const detachedA = cA.validateConnectivity();
           for (const d of detachedA) this.handleCombatBlockBreak(d.x, d.y, d.type, cB, cA);
           const detachedB = cB.validateConnectivity();
@@ -1769,10 +1629,8 @@
         }
       }
 
-      // 3/4 (75%) drops with outward fling and pickup cooldown, 1/4 (25%) pulverized
       handleCombatBlockBreak(x, y, type, attacker, victim) {
         if (Math.random() < 0.75) {
-          // 75% Drop: scatter with outward velocity and a 0.65s pickup cooldown
           const blastAngle = Math.atan2(y - attacker.y, x - attacker.x) + (Math.random() - 0.5) * 1.2;
           const blastSpeed = Math.random() * 220 + 130;
           const vx = Math.cos(blastAngle) * blastSpeed;
@@ -1780,7 +1638,6 @@
 
           this.spawnWildBlock(x, y, type, vx, vy, 0.65);
         } else {
-          // 25% Vaporized into dust & debris
           this.createSparks(x, y, '#94a3b8', 12);
         }
       }
@@ -1833,7 +1690,6 @@
         }
       }
 
-      // Direct core shatter: 100% of attached blocks drop as collectible loot!
       executeCoreShatter(killer, victim) {
         victim.alive = false;
         killer.killCount++;
@@ -1841,7 +1697,6 @@
         this.shake(22, 0.52);
         this.shockwaves.push(new Shockwave(victim.x, victim.y, 20, 210, '#ef4444'));
 
-        // 100% drop rate for Core Kills in an explosive radial fireworks pattern
         let count = 0;
         for (const blk of victim.blocks.values()) {
           const angle = (count / Math.max(1, victim.blocks.size)) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
@@ -1856,7 +1711,7 @@
 
         if (victim.isLocal) {
           if (navigator.vibrate) navigator.vibrate([100, 60, 160]);
-          document.getElementById('over-reason').textContent = `${killer.name} ã«ã³ã¢ãç²ç ããã¾ããï¼`;
+          document.getElementById('over-reason').textContent = `${killer.name} にコアを粉砕されました！`;
           document.getElementById('over-mass').textContent = victim.size;
           document.getElementById('over-kills').textContent = this.kills;
           this.modalOver.style.display = 'flex';
@@ -1902,7 +1757,6 @@
         }
         ctx.stroke();
 
-        // Arena Boundaries
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 8;
         ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
@@ -1974,7 +1828,6 @@
 
         ctx.restore();
 
-        // Cluster name & mass HUD text
         ctx.save();
         ctx.font = 'bold 12px Outfit, sans-serif';
         ctx.textAlign = 'center';
