@@ -219,11 +219,20 @@
       z-index: 6;
     }
 
-    .banner {
+    /* イベント & 通知バナー */
+    .banner-container {
       position: absolute;
-      top: 68px;
+      top: 65px;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      z-index: 30;
+    }
+    .banner {
       background: linear-gradient(90deg, #ef4444, #8b5cf6);
       padding: 7px 20px;
       border-radius: 20px;
@@ -231,14 +240,17 @@
       font-weight: 900;
       box-shadow: 0 6px 25px rgba(239, 68, 68, 0.6);
       opacity: 0;
+      transform: translateY(-8px);
       transition: opacity 0.25s, transform 0.25s;
-      pointer-events: none;
       white-space: nowrap;
-      z-index: 20;
     }
     .banner.active {
       opacity: 1;
-      transform: translateX(-50%) translateY(4px);
+      transform: translateY(0);
+    }
+    .event-banner {
+      background: linear-gradient(90deg, #f59e0b, #ec4899);
+      box-shadow: 0 6px 25px rgba(245, 158, 11, 0.7);
     }
 
     .modal-overlay {
@@ -368,7 +380,10 @@
       </div>
     </div>
 
-    <div id="kill-banner" class="banner">CORE SHATTERED!</div>
+    <div class="banner-container">
+      <div id="event-banner" class="banner event-banner"></div>
+      <div id="kill-banner" class="banner">CORE SHATTERED!</div>
+    </div>
 
     <div class="bottom-bar">
       <canvas id="minimap" width="95" height="95"></canvas>
@@ -383,8 +398,8 @@
     <div class="modal-content">
       <div class="game-logo">BLOCKMERGE.IO</div>
       <p class="modal-subtitle">
-        ベイブレード級の<strong>超衝撃クラッシュ＆跳ね返り</strong>！<br>
-        削ったブロックは約3/4が散乱、<strong>敵のコア撃破で全ブロック爆散強奪</strong>！
+        広大アリーナ（10000×10000）で激突バトル！<br>
+        突発イベントを生き延び、<strong>敵のコアを粉砕してブロックを奪え</strong>！
       </p>
 
       <input type="text" id="input-username" class="name-input" maxlength="12" placeholder="パイロット名を入力" value="PILOT_">
@@ -392,15 +407,15 @@
       <div class="special-grid">
         <div class="special-item"><div class="color-chip" style="background:#38bdf8"></div>通常: バランス型</div>
         <div class="special-item"><div class="color-chip" style="background:#94a3b8"></div>アーマー: 超耐久HP</div>
-        <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>スパイク: 高威力の刃</div>
-        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ブースター: 移動速度UP</div>
-        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>リジェネ: 常時HP回復</div>
-        <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>マグネット: 遠隔ブロック吸引</div>
-        <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ボム: 衝突・破壊で爆発</div>
-        <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ゴースト: 反動ノックバック激減</div>
-        <div class="special-item"><div class="color-chip" style="background:#06b6d4"></div>クライオ: 接触相手を減速</div>
-        <div class="special-item"><div class="color-chip" style="background:#facc15"></div>サンダー: 連鎖放電ダメージ</div>
-        <div class="special-item"><div class="color-chip" style="background:#1e1e24"></div>アンビル: 重量級プッシュ</div>
+        <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>スパイク: 破壊刃</div>
+        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ブースター: 速度+25%</div>
+        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>リジェネ: 常時自己修復</div>
+        <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>マグネット: 遠隔吸引</div>
+        <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ボム: 衝撃破裂</div>
+        <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ゴースト: 反動激減</div>
+        <div class="special-item"><div class="color-chip" style="background:#06b6d4"></div>クライオ: 接触減速</div>
+        <div class="special-item"><div class="color-chip" style="background:#facc15"></div>サンダー: 連鎖放電</div>
+        <div class="special-item"><div class="color-chip" style="background:#1e1e24"></div>アンビル: 超質量</div>
       </div>
 
       <button id="btn-play" class="btn-action">JOIN ARENA</button>
@@ -539,10 +554,27 @@
         osc.start(t);
         osc.stop(t + 0.15);
       }
+      playEventAlarm() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(440, t);
+        osc.frequency.setValueAtTime(660, t + 0.1);
+        osc.frequency.setValueAtTime(880, t + 0.2);
+        g.gain.setValueAtTime(0.2, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.4);
+      }
     }
     const audio = new SoundFX();
 
-    const WORLD_SIZE = 6500;
+    // ワールドサイズを 10000 に拡大
+    const WORLD_SIZE = 10000;
     const GRID_SIZE = 28;
 
     const BLOCK_TYPES = {
@@ -782,7 +814,7 @@
         this.alive = true;
         this.killCount = 0;
 
-        this.botThinkTimer = Math.random() * 0.4;
+        this.botThinkTimer = Math.random() * 0.5;
         this.slowTimer = 0;
         this.recoilSquash = 1.0;
       }
@@ -805,9 +837,10 @@
           if (b.type === 'BOOSTER') boosterBuff += 0.25;
         }
 
-        const botPenalty = this.isBot ? 0.85 : 1.0;
+        const botPenalty = this.isBot ? 0.82 : 1.0;
         let spd = (450 / (1 + Math.pow(this.size - 1, 0.45) * 0.4)) * (1 + boosterBuff) * botPenalty;
         if (this.slowTimer > 0) spd *= 0.5;
+        if (window.__current_event === 'SPEED_SURGE') spd *= 1.45;
         return Math.max(120, spd);
       }
 
@@ -824,6 +857,7 @@
         for (const b of this.blocks.values()) {
           if (b.type === 'MAGNET') range = Math.max(range, BLOCK_TYPES.MAGNET.magnetRange);
         }
+        if (window.__current_event === 'MAGNETIC_STORM') range = Math.max(range, 550);
         return range;
       }
 
@@ -881,7 +915,7 @@
           this.botThinkTimer = 0.4 + Math.random() * 0.4;
 
           let nearestWild = null;
-          let minWildDist = 650;
+          let minWildDist = 700;
           for (const w of game.wildBlocks) {
             if (w.pickupCooldown > 0) continue;
             const d = Math.hypot(w.x - this.x, w.y - this.y);
@@ -892,7 +926,7 @@
           }
 
           let nearestThreat = null;
-          let minThreatDist = 550;
+          let minThreatDist = 600;
           const candidates = [game.localPlayer, ...Array.from(game.remotePlayers.values())];
           for (const c of candidates) {
             if (!c || !c.alive) continue;
@@ -905,10 +939,10 @@
 
           if (nearestThreat && nearestThreat.size > this.size + 1) {
             this.moveAngle = Math.atan2(this.y - nearestThreat.y, this.x - nearestThreat.x);
-            this.isDashing = (this.boostEnergy > 60 && minThreatDist < 280);
-          } else if (nearestThreat && nearestThreat.size <= this.size && minThreatDist < 380) {
+            this.isDashing = (this.boostEnergy > 60 && minThreatDist < 300);
+          } else if (nearestThreat && nearestThreat.size <= this.size && minThreatDist < 420) {
             this.moveAngle = Math.atan2(nearestThreat.y - this.y, nearestThreat.x - this.x);
-            this.isDashing = (this.boostEnergy > 70 && Math.random() < 0.25);
+            this.isDashing = (this.boostEnergy > 70 && Math.random() < 0.3);
           } else if (nearestWild) {
             this.moveAngle = Math.atan2(nearestWild.y - this.y, nearestWild.x - this.x);
             this.isDashing = false;
@@ -917,7 +951,7 @@
             this.isDashing = false;
           }
 
-          const margin = 280;
+          const margin = 400;
           if (this.x < margin) this.moveAngle = 0;
           else if (this.x > WORLD_SIZE - margin) this.moveAngle = Math.PI;
           else if (this.y < margin) this.moveAngle = Math.PI / 2;
@@ -930,7 +964,8 @@
       update(dt) {
         if (!this.alive) return;
 
-        if (this.isLocal || this.isBot) {
+        // ローカルプレイヤー、またはホスト端末が管理するBotの場合に自走物理シミュレーションを行う
+        if (this.isLocal || (this.isBot && window.__is_host)) {
           if (this.isDashing) {
             this.boostEnergy -= 50 * dt;
             if (this.boostEnergy <= 0) {
@@ -961,6 +996,7 @@
           this.x = Math.max(margin, Math.min(WORLD_SIZE - margin, this.x));
           this.y = Math.max(margin, Math.min(WORLD_SIZE - margin, this.y));
         } else {
+          // 非ホスト端末では、受信したBotやオンラインプレイヤーの座標へスムーズに補間同期
           this.x += (this.targetX - this.x) * 0.25;
           this.y += (this.targetY - this.y) * 0.25;
         }
@@ -1017,8 +1053,9 @@
         this.bots = [];
         this.localPlayer = null;
 
-        this.maxWildBlocks = 65;
-        this.botCount = 8;
+        // マップ拡大に伴い野良ブロック数を増量
+        this.maxWildBlocks = 160;
+        this.botCount = 10;
 
         this.camera = { x: 0, y: 0, zoom: 1.0 };
         this.shakeTimer = 0;
@@ -1033,6 +1070,12 @@
         this.kills = 0;
         this.lastTime = 0;
 
+        // ランダムイベント管理
+        this.eventTimer = 25.0; // 25秒ごとにイベント抽選
+        this.eventDuration = 0;
+        this.currentEvent = null;
+        window.__current_event = null;
+
         this.db = null;
         this.auth = null;
         this.userId = null;
@@ -1044,6 +1087,7 @@
         this.hudBoostPct = document.getElementById('hud-boost-pct');
         this.lbContent = document.getElementById('lb-content');
         this.killBanner = document.getElementById('kill-banner');
+        this.eventBanner = document.getElementById('event-banner');
         this.joyBase = document.getElementById('joystick-base');
         this.joyStick = document.getElementById('joystick-stick');
         this.modalStart = document.getElementById('modal-start');
@@ -1094,6 +1138,7 @@
         if (!isConfigPresent) {
           this.userId = 'local_' + Math.random().toString(36).slice(2, 9);
           document.getElementById('hud-online-status').textContent = 'LIVE ARENA (BOTS ACTIVE)';
+          window.__is_host = true;
         }
       }
 
@@ -1103,49 +1148,68 @@
 
         onSnapshot(playersCol, (snapshot) => {
           const now = Date.now();
-          const presentIds = new Set();
+          const presentPlayerIds = new Set();
+          const presentBotIds = new Set();
+          const realPlayers = [];
 
           snapshot.forEach((d) => {
             const data = d.data();
-            if (!data || data.id === this.userId) return;
+            if (!data) return;
             if (now - (data.updatedAt || 0) > 8000) return;
 
-            presentIds.add(data.id);
-            let remote = this.remotePlayers.get(data.id);
-            if (!remote) {
-              remote = new Cluster(data.id, data.name || 'PILOT', false, data.x, data.y, data.color || '#ec4899');
-              this.remotePlayers.set(data.id, remote);
-            }
+            // 実プレイヤーの判定
+            if (!data.id.startsWith('bot_')) {
+              realPlayers.push(data.id);
+              if (data.id === this.userId) return;
 
-            remote.targetX = data.x;
-            remote.targetY = data.y;
-            remote.isDashing = !!data.dashing;
-
-            if (Array.isArray(data.blocks)) {
-              remote.blocks.clear();
-              for (const b of data.blocks) {
-                remote.blocks.set(`${b.gx},${b.gy}`, {
-                  gx: b.gx,
-                  gy: b.gy,
-                  type: b.t || 'NORMAL',
-                  hp: b.hp || 100,
-                  maxHp: BLOCK_TYPES[b.t]?.hp || 100,
-                  isCore: (b.gx === 0 && b.gy === 0),
-                  flashTimer: 0
-                });
+              presentPlayerIds.add(data.id);
+              let remote = this.remotePlayers.get(data.id);
+              if (!remote) {
+                remote = new Cluster(data.id, data.name || 'PILOT', false, data.x, data.y, data.color || '#ec4899');
+                this.remotePlayers.set(data.id, remote);
+              }
+              remote.targetX = data.x;
+              remote.targetY = data.y;
+              remote.isDashing = !!data.dashing;
+              this.syncClusterBlocks(remote, data.blocks);
+            } else {
+              // 共有Botの同期
+              presentBotIds.add(data.id);
+              // 非ホスト端末の場合のみ受信Botを反映（ホスト自身はローカルでAI計算）
+              if (!window.__is_host) {
+                let bot = this.bots.find(b => b.id === data.id);
+                if (!bot) {
+                  bot = new Cluster(data.id, data.name || 'BOT', false, data.x, data.y, data.color || '#f43f5e');
+                  this.bots.push(bot);
+                }
+                bot.targetX = data.x;
+                bot.targetY = data.y;
+                bot.isDashing = !!data.dashing;
+                this.syncClusterBlocks(bot, data.blocks);
               }
             }
           });
 
+          // 最古参ホストの選定 (IDソート順で最小のオンラインプレイヤー)
+          realPlayers.sort();
+          window.__is_host = (realPlayers.length > 0 && realPlayers[0] === this.userId);
+
+          // 切断された他プレイヤーの破棄
           for (const [id] of this.remotePlayers) {
-            if (!presentIds.has(id)) {
+            if (!presentPlayerIds.has(id)) {
               this.remotePlayers.delete(id);
             }
+          }
+
+          // 非ホスト時、ホスト側で撃破・消去されたBotを破棄
+          if (!window.__is_host) {
+            this.bots = this.bots.filter(b => presentBotIds.has(b.id));
           }
         }, (err) => {
           console.warn("Firestore sync warning:", err);
         });
 
+        // 状態送信ループ (150ms)
         this.syncInterval = setInterval(() => {
           this.publishPlayerState(doc, setDoc);
         }, 150);
@@ -1155,11 +1219,39 @@
         });
       }
 
+      syncClusterBlocks(cluster, blocksData) {
+        if (!Array.isArray(blocksData)) return;
+        cluster.blocks.clear();
+        for (const b of blocksData) {
+          cluster.blocks.set(`${b.gx},${b.gy}`, {
+            gx: b.gx,
+            gy: b.gy,
+            type: b.t || 'NORMAL',
+            hp: b.hp || 100,
+            maxHp: BLOCK_TYPES[b.t]?.hp || 100,
+            isCore: (b.gx === 0 && b.gy === 0),
+            flashTimer: 0
+          });
+        }
+      }
+
       async publishPlayerState(doc, setDoc) {
-        if (!this.db || !this.localPlayer || !this.localPlayer.alive || !this.userId) return;
+        if (!this.db || !this.userId) return;
         try {
-          const userDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', this.userId);
-          await setDoc(userDoc, this.localPlayer.serialize());
+          if (this.localPlayer && this.localPlayer.alive) {
+            const userDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', this.userId);
+            await setDoc(userDoc, this.localPlayer.serialize());
+          }
+
+          // ホストの場合のみBot群の座標と名前をFirestoreに一括同期
+          if (window.__is_host) {
+            for (const b of this.bots) {
+              if (b.alive) {
+                const botDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', b.id);
+                await setDoc(botDoc, b.serialize());
+              }
+            }
+          }
         } catch (e) {}
       }
 
@@ -1168,6 +1260,12 @@
         try {
           const userDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', this.userId);
           await deleteDoc(userDoc);
+          if (window.__is_host) {
+            for (const b of this.bots) {
+              const bDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', b.id);
+              await deleteDoc(bDoc);
+            }
+          }
         } catch (e) {}
       }
 
@@ -1376,8 +1474,8 @@
           this.userId || 'local_p',
           name,
           true,
-          WORLD_SIZE / 2 + (Math.random() - 0.5) * 400,
-          WORLD_SIZE / 2 + (Math.random() - 0.5) * 400,
+          WORLD_SIZE / 2 + (Math.random() - 0.5) * 600,
+          WORLD_SIZE / 2 + (Math.random() - 0.5) * 600,
           '#38bdf8'
         );
 
@@ -1385,22 +1483,22 @@
           this.spawnWildBlock();
         }
 
-        // スタート時に即座にBotを生成
-        const botNames = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber', 'Striker', 'Blitz'];
+        // 初期Bot生成（ホスト判定またはローカル実行時にアクティブ化）
+        const botNames = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber', 'Striker', 'Blitz', 'Vortex', 'Phantom'];
         for (let i = 0; i < this.botCount; i++) {
           this.spawnBot(botNames[i % botNames.length]);
         }
       }
 
       spawnWildBlock(x = null, y = null, type = null, vx = 0, vy = 0, pickupDelay = 0) {
-        const bx = x !== null ? x : Math.random() * (WORLD_SIZE - 200) + 100;
-        const by = y !== null ? y : Math.random() * (WORLD_SIZE - 200) + 100;
+        const bx = x !== null ? x : Math.random() * (WORLD_SIZE - 400) + 200;
+        const by = y !== null ? y : Math.random() * (WORLD_SIZE - 400) + 200;
         this.wildBlocks.push(new WildBlock(bx, by, type || getRandomBlockType(), vx, vy, pickupDelay));
       }
 
       spawnBot(name) {
-        const x = Math.random() * (WORLD_SIZE - 800) + 400;
-        const y = Math.random() * (WORLD_SIZE - 800) + 400;
+        const x = Math.random() * (WORLD_SIZE - 1200) + 600;
+        const y = Math.random() * (WORLD_SIZE - 1200) + 600;
         const colors = ['#f43f5e', '#a855f7', '#ec4899', '#eab308', '#10b981', '#06b6d4'];
         const color = colors[Math.floor(Math.random() * colors.length)];
         const bot = new Cluster('bot_' + Math.random().toString(36).slice(2, 7), name, false, x, y, color);
@@ -1420,6 +1518,58 @@
         setTimeout(() => this.killBanner.classList.remove('active'), 2200);
       }
 
+      showEventBanner(title, duration = 3000) {
+        audio.playEventAlarm();
+        this.eventBanner.textContent = title;
+        this.eventBanner.classList.add('active');
+        setTimeout(() => this.eventBanner.classList.remove('active'), duration);
+      }
+
+      // ランダムアリーナイベント処理
+      triggerRandomEvent() {
+        const events = ['METEOR_SHOWER', 'MAGNETIC_STORM', 'SPEED_SURGE', 'GOLD_RUSH'];
+        const chosen = events[Math.floor(Math.random() * events.length)];
+        this.currentEvent = chosen;
+        window.__current_event = chosen;
+
+        if (chosen === 'METEOR_SHOWER') {
+          this.eventDuration = 9.0;
+          this.showEventBanner('⚠️ EVENT: 隕石群接近！ 直撃に注意！');
+          // 隕石投下ループ
+          let count = 0;
+          const interval = setInterval(() => {
+            if (count++ > 15 || !this.currentEvent) { clearInterval(interval); return; }
+            if (this.localPlayer) {
+              const mx = this.localPlayer.x + (Math.random() - 0.5) * 1600;
+              const my = this.localPlayer.y + (Math.random() - 0.5) * 1600;
+              this.shockwaves.push(new Shockwave(mx, my, 20, 180, '#ef4444'));
+              this.createSparks(mx, my, '#f59e0b', 20);
+              audio.playDetonate();
+              // 落下地点にレアブロック生成
+              this.spawnWildBlock(mx, my, getRandomBlockType(), 0, 0, 0.4);
+            }
+          }, 500);
+
+        } else if (chosen === 'MAGNETIC_STORM') {
+          this.eventDuration = 12.0;
+          this.showEventBanner('⚡ EVENT: 磁気嵐発生！ ブロック超吸引！');
+        } else if (chosen === 'SPEED_SURGE') {
+          this.eventDuration = 10.0;
+          this.showEventBanner('🚀 EVENT: ハイパースピード！ 全員加速！');
+        } else if (chosen === 'GOLD_RUSH') {
+          this.eventDuration = 8.0;
+          this.showEventBanner('💎 EVENT: レアブロック大量投下！');
+          const rares = ['SPIKE', 'BOMB', 'ARMOR', 'ANVIL', 'THUNDER'];
+          for (let i = 0; i < 25; i++) {
+            if (this.localPlayer) {
+              const rx = this.localPlayer.x + (Math.random() - 0.5) * 2000;
+              const ry = this.localPlayer.y + (Math.random() - 0.5) * 2000;
+              this.spawnWildBlock(rx, ry, rares[Math.floor(Math.random() * rares.length)], 0, 0, 0);
+            }
+          }
+        }
+      }
+
       handleCollisions() {
         const allClusters = [];
         if (this.localPlayer && this.localPlayer.alive) allClusters.push(this.localPlayer);
@@ -1435,8 +1585,8 @@
               const d = Math.hypot(wild.x - cluster.x, wild.y - cluster.y);
               if (d < mRange) {
                 const angle = Math.atan2(cluster.y - wild.y, cluster.x - wild.x);
-                wild.vx += Math.cos(angle) * 450 * (1 - d / mRange);
-                wild.vy += Math.sin(angle) * 450 * (1 - d / mRange);
+                wild.vx += Math.cos(angle) * 480 * (1 - d / mRange);
+                wild.vy += Math.sin(angle) * 480 * (1 - d / mRange);
               }
             }
           }
@@ -1673,7 +1823,7 @@
             this.showBanner(`CORE DESTROYED! ALL ${victim.size} BLOCKS DROPPED!`);
           }
 
-          if (victim.id.startsWith('bot_')) {
+          if (victim.id.startsWith('bot_') && window.__is_host) {
             setTimeout(() => {
               const names = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber'];
               this.spawnBot(names[Math.floor(Math.random() * names.length)]);
@@ -1709,7 +1859,7 @@
         ctx.stroke();
 
         ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 10;
         ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
       }
 
@@ -1839,6 +1989,21 @@
       }
 
       update(dt) {
+        // イベントタイマー更新
+        this.eventTimer -= dt;
+        if (this.eventTimer <= 0) {
+          this.eventTimer = 35.0; // 次回イベントまで35秒
+          this.triggerRandomEvent();
+        }
+
+        if (this.eventDuration > 0) {
+          this.eventDuration -= dt;
+          if (this.eventDuration <= 0) {
+            this.currentEvent = null;
+            window.__current_event = null;
+          }
+        }
+
         if (this.wildBlocks.length < this.maxWildBlocks) {
           this.spawnWildBlock();
         }
@@ -1848,7 +2013,7 @@
           this.camera.x += (this.localPlayer.x - this.camera.x) * 0.18;
           this.camera.y += (this.localPlayer.y - this.camera.y) * 0.18;
 
-          const targetZoom = Math.max(0.55, 1.05 - (Math.sqrt(this.localPlayer.size) * 0.048));
+          const targetZoom = Math.max(0.45, 1.05 - (Math.sqrt(this.localPlayer.size) * 0.04));
           this.camera.zoom += (targetZoom - this.camera.zoom) * 0.06;
 
           this.hudBlocks.textContent = this.localPlayer.size;
@@ -1859,7 +2024,9 @@
 
         for (const b of this.bots) {
           if (!b.alive) continue;
-          b.updateBotAI(dt, this);
+          if (window.__is_host) {
+            b.updateBotAI(dt, this);
+          }
           b.update(dt);
         }
 
