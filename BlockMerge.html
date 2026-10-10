@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BlockMerge.io Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      margin: 0;
+      padding: 0;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Outfit', sans-serif;
+      color: #fff;
+    }
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    }
+
+    .hud-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 10px) 14px env(safe-area-inset-bottom, 12px) 14px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .player-stats {
+      min-width: 135px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .stat-val {
+      font-family: 'Teko', sans-serif;
+      font-size: 24px;
+      line-height: 1;
+      color: #38bdf8;
+    }
+
+    .bar-bg {
+      width: 100%;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+      transition: width 0.08s ease-out;
+    }
+
+    .online-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #10b981;
+      margin-bottom: 2px;
+    }
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.6s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    .leaderboard-card {
+      min-width: 150px;
+    }
+    .lb-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .lb-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      padding: 1.5px 0;
+    }
+    .lb-row.me {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: auto;
+      padding-bottom: 4px;
+    }
+
+    #minimap {
+      display: block;
+      width: 84px;
+      height: 84px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(15, 23, 42, 0.85);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .dash-btn {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #38bdf8, #0284c7);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.08s ease, filter 0.08s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dash-btn:active, .dash-btn.active {
+      transform: scale(0.92);
+      filter: brightness(1.25);
+      box-shadow: 0 0 32px rgba(56, 189, 248, 0.9);
+    }
+    .dash-btn span {
+      font-size: 9px;
+      opacity: 0.85;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .joystick-base {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px dashed rgba(56, 189, 248, 0.45);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 5;
+    }
+    .joystick-stick {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #38bdf8, #0284c7);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.95);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      display: none;
+      z-index: 6;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.88);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal-content {
+      background: #0d1424;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.2);
+    }
+    .game-logo {
+      font-size: 32px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #38bdf8, #ec4899, #eab308);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+    .name-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      outline: none;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .name-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .special-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    .special-item {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-chip {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .btn-action {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: none;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+      cursor: pointer;
+    }
+    .btn-action:active {
+      transform: scale(0.97);
+    }
+
+    .banner {
+      position: absolute;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #ef4444, #8b5cf6);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 20;
+    }
+    .banner.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(4px);
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="game-canvas"></canvas>
+
+  <div id="joystick-base" class="joystick-base"></div>
+  <div id="joystick-stick" class="joystick-stick"></div>
+
+  <div class="hud-layer">
+    <div class="top-bar">
+      <div class="glass-card player-stats">
+        <div class="online-badge">
+          <div class="online-dot"></div>
+          <span id="hud-online-status">ONLINE ARENA</span>
+        </div>
+        <div class="stat-row">
+          <span>MASS:</span>
+          <span class="stat-val" id="hud-block-count">1</span>
+        </div>
+        <div class="stat-row">
+          <span>BOOST</span>
+          <span id="hud-boost-pct">100%</span>
+        </div>
+        <div class="bar-bg">
+          <div class="bar-fill" id="hud-boost-bar"></div>
+        </div>
+      </div>
+
+      <div class="glass-card leaderboard-card">
+        <div class="lb-title">GLOBAL LEADERBOARD</div>
+        <div id="lb-content"></div>
+      </div>
+    </div>
+
+    <div id="kill-banner" class="banner">CORE SHATTERED!</div>
+
+    <div class="bottom-bar">
+      <canvas id="minimap" width="84" height="84"></canvas>
+      <button id="dash-btn" class="dash-btn">
+        DASH
+        <span>HOLD / TAP</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Start / Connect Modal -->
+  <div id="modal-start" class="modal-overlay">
+    <div class="modal-content">
+      <div class="game-logo">BLOCKMERGE.IO</div>
+      <p class="modal-subtitle">
+        ãªã³ã©ã¤ã³ãªã¢ã«ã¿ã¤ã åæããã«ï¼<br>
+        è¡çªæã®<strong>å¼·çãªå¼¾æ§ãã¦ã³ã¹ï¼åçº</strong>ã§å¼¾ãé£ã°ããéãè¦ã¦<strong>æµã³ã¢</strong>ãçªãã¦å¨ãã­ãã¯ãå¼·å¥ªããï¼
+      </p>
+
+      <input type="text" id="input-username" class="name-input" maxlength="12" placeholder="ãã¬ã¤ã¤ã¼åãå¥å" value="PILOT_">
+
+      <div class="special-grid">
+        <div class="special-item"><div class="color-chip" style="background:#38bdf8"></div>éå¸¸ (Normal)</div>
+        <div class="special-item"><div class="color-chip" style="background:#94a3b8"></div>ã¢ã¼ãã¼: è¶èä¹</div>
+        <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>ã¹ãã¤ã¯: 4åç ´å£å</div>
+        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ãã¼ã¹ã¿ã¼: éåº¦+35%</div>
+        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>ãªã¸ã§ã: èªå·±ä¿®å¾©</div>
+        <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>ãã°ããã: é éåå</div>
+        <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ãã : è¡æç ´è£</div>
+        <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ã´ã¼ã¹ã: ããã¯ããã¯èæ§</div>
+        <div class="special-item"><div class="color-chip" style="background:#06b6d4"></div>ã¯ã©ã¤ãª: æµæ¸éåçµ</div>
+        <div class="special-item"><div class="color-chip" style="background:#facc15"></div>ãµã³ãã¼: é£éæ¾é»</div>
+        <div class="special-item"><div class="color-chip" style="background:#1e1e24"></div>ã¢ã³ãã«: è¶è³ªéæ¿çª</div>
+      </div>
+
+      <button id="btn-play" class="btn-action">JOIN ARENA</button>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="modal-over" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <h2 style="font-size:26px; color:#ef4444; font-weight:900; margin-bottom:6px;">CORE SHATTERED</h2>
+      <p id="over-reason" class="modal-subtitle" style="margin-bottom:12px;">æµã®ãã­ãã¯ã«ã³ã¢ãç²ç ããã¾ããã</p>
+      <div style="background:rgba(255,255,255,0.06); padding:10px; border-radius:12px; margin-bottom:16px;">
+        <div style="font-size:12px; color:#94a3b8">FINAL MASS</div>
+        <div id="over-mass" style="font-family:'Teko'; font-size:40px; color:#38bdf8; line-height:1">1</div>
+        <div style="font-size:12px; color:#94a3b8; margin-top:4px;">KILLS: <span id="over-kills" style="color:#fff; font-weight:800">0</span></div>
+      </div>
+      <button id="btn-respawn" class="btn-action">REJOIN BATTLE</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Sound Synthesizer via Web Audio API
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playAttach() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, t);
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.08);
+        g.gain.setValueAtTime(0.2, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.08);
+      }
+      playRebound(intensity = 1.0) {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = intensity > 1.2 ? 'sawtooth' : 'triangle';
+        osc.frequency.setValueAtTime(300 * intensity, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.16);
+        g.gain.setValueAtTime(Math.min(0.5, 0.25 * intensity), t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.16);
+      }
+      playThunder() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, t);
+        osc.frequency.exponentialRampToValueAtTime(140, t + 0.14);
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.14);
+      }
+      playDetonate() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(160, t);
+        osc.frequency.exponentialRampToValueAtTime(25, t + 0.35);
+        g.gain.setValueAtTime(0.45, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.35);
+      }
+      playCoreKill() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(650, t);
+        osc.frequency.exponentialRampToValueAtTime(45, t + 0.5);
+        g.gain.setValueAtTime(0.5, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      }
+      playDash() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, t);
+        osc.frequency.exponentialRampToValueAtTime(480, t + 0.15);
+        g.gain.setValueAtTime(0.25, t);
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      }
+    }
+    const audio = new SoundFX();
+
+    const WORLD_SIZE = 3800;
+    const GRID_SIZE = 28;
+
+    const BLOCK_TYPES = {
+      NORMAL: {
+        id: 'NORMAL',
+        name: 'Normal',
+        hp: 100,
+        damage: 35,
+        color: '#38bdf8',
+        borderColor: '#0284c7',
+        mass: 1.0,
+        dropWeight: 82
+      },
+      ARMOR: {
+        id: 'ARMOR',
+        name: 'Iron Armor',
+        hp: 550,
+        damage: 40,
+        color: '#94a3b8',
+        borderColor: '#475569',
+        mass: 2.2,
+        dropWeight: 3.0
+      },
+      SPIKE: {
+        id: 'SPIKE',
+        name: 'Spike Blade',
+        hp: 130,
+        damage: 150,
+        color: '#ef4444',
+        borderColor: '#991b1b',
+        mass: 1.0,
+        dropWeight: 2.8
+      },
+      BOOSTER: {
+        id: 'BOOSTER',
+        name: 'Booster',
+        hp: 90,
+        damage: 30,
+        color: '#f59e0b',
+        borderColor: '#d97706',
+        speedBoost: 0.35,
+        mass: 0.8,
+        dropWeight: 2.5
+      },
+      REGEN: {
+        id: 'REGEN',
+        name: 'Regen',
+        hp: 150,
+        damage: 30,
+        color: '#10b981',
+        borderColor: '#047857',
+        regenRate: 20,
+        mass: 1.0,
+        dropWeight: 2.2
+      },
+      MAGNET: {
+        id: 'MAGNET',
+        name: 'Magnet',
+        hp: 120,
+        damage: 30,
+        color: '#a855f7',
+        borderColor: '#7e22ce',
+        magnetRange: 190,
+        mass: 1.1,
+        dropWeight: 2.0
+      },
+      BOMB: {
+        id: 'BOMB',
+        name: 'Bomb',
+        hp: 80,
+        damage: 220,
+        color: '#fbbf24',
+        borderColor: '#b45309',
+        mass: 1.2,
+        dropWeight: 1.5
+      },
+      GHOST: {
+        id: 'GHOST',
+        name: 'Ghost',
+        hp: 180,
+        damage: 35,
+        color: '#e0f2fe',
+        borderColor: '#7dd3fc',
+        knockbackResist: 0.8,
+        mass: 0.4,
+        dropWeight: 1.4
+      },
+      CRYO: {
+        id: 'CRYO',
+        name: 'Cryo',
+        hp: 160,
+        damage: 45,
+        color: '#06b6d4',
+        borderColor: '#0891b2',
+        slowFactor: 0.55,
+        mass: 1.3,
+        dropWeight: 1.3
+      },
+      THUNDER: {
+        id: 'THUNDER',
+        name: 'Thunder',
+        hp: 110,
+        damage: 85,
+        color: '#facc15',
+        borderColor: '#ca8a04',
+        chainTargets: 3,
+        mass: 1.0,
+        dropWeight: 1.2
+      },
+      ANVIL: {
+        id: 'ANVIL',
+        name: 'Anvil',
+        hp: 600,
+        damage: 90,
+        color: '#1e1e24',
+        borderColor: '#3f3f46',
+        mass: 3.5,
+        dropWeight: 1.1
+      }
+    };
+
+    function getRandomBlockType() {
+      const rand = Math.random() * 100;
+      let cum = 0;
+      for (const key in BLOCK_TYPES) {
+        cum += BLOCK_TYPES[key].dropWeight;
+        if (rand <= cum) return key;
+      }
+      return 'NORMAL';
+    }
+
+    class Shockwave {
+      constructor(x, y, radius, maxRadius, color = '#ffffff') {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.maxRadius = maxRadius;
+        this.color = color;
+        this.alpha = 1.0;
+      }
+      update(dt) {
+        this.radius += (this.maxRadius - this.radius) * 12 * dt;
+        this.alpha = Math.max(0, 1 - (this.radius / this.maxRadius));
+      }
+      draw(ctx) {
+        if (this.alpha <= 0.01) return;
+        ctx.save();
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 4 * this.alpha;
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color, vx, vy, life = 0.35, size = 5) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+        this.maxLife = life;
+        this.size = size;
+      }
+      update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+        this.vx *= 0.92;
+        this.vy *= 0.92;
+      }
+      draw(ctx) {
+        const alpha = Math.max(0, this.life / this.maxLife);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    class WildBlock {
+      constructor(x, y, type = 'NORMAL') {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.vx = (Math.random() - 0.5) * 20;
+        this.vy = (Math.random() - 0.5) * 20;
+        this.bob = Math.random() * Math.PI * 2;
+      }
+      update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.vx *= 0.94;
+        this.vy *= 0.94;
+        this.bob += dt * 2.5;
+
+        this.x = Math.max(30, Math.min(WORLD_SIZE - 30, this.x));
+        this.y = Math.max(30, Math.min(WORLD_SIZE - 30, this.y));
+      }
+      draw(ctx) {
+        const bDef = BLOCK_TYPES[this.type];
+        const pulse = Math.sin(this.bob) * 1.5;
+        const size = GRID_SIZE - 4 + pulse;
+        const h = size / 2;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = bDef.color;
+        ctx.shadowColor = bDef.color;
+        ctx.shadowBlur = this.type === 'NORMAL' ? 6 : 14;
+        ctx.strokeStyle = bDef.borderColor;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.roundRect(-h, -h, size, size, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        drawBlockIcon(ctx, this.type, 0, 0, size);
+        ctx.restore();
+      }
+    }
+
+    function drawBlockIcon(ctx, type, cx, cy, size) {
+      ctx.fillStyle = '#ffffff';
+      const r = size * 0.28;
+
+      if (type === 'ARMOR') {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else if (type === 'SPIKE') {
+        ctx.fillStyle = '#fee2e2';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r);
+        ctx.lineTo(cx + r * 0.7, cy);
+        ctx.lineTo(cx, cy + r);
+        ctx.lineTo(cx - r * 0.7, cy);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'BOOSTER') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - r, cy - r * 0.5);
+        ctx.lineTo(cx, cy + r * 0.5);
+        ctx.lineTo(cx + r, cy - r * 0.5);
+        ctx.stroke();
+      } else if (type === 'REGEN') {
+        const w = size * 0.16;
+        const h = size * 0.55;
+        ctx.fillRect(cx - w / 2, cy - h / 2, w, h);
+        ctx.fillRect(cx - h / 2, cy - w / 2, h, w);
+      } else if (type === 'MAGNET') {
+        ctx.strokeStyle = '#f3e8ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.8, -Math.PI * 0.8, Math.PI * 0.8);
+        ctx.stroke();
+      } else if (type === 'BOMB') {
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.75, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cx - 2, cy - r, 4, 3);
+      } else if (type === 'GHOST') {
+        ctx.fillStyle = '#bae6fd';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r * 0.7);
+        ctx.lineTo(cx + r * 0.7, cy);
+        ctx.lineTo(cx, cy + r * 0.7);
+        ctx.lineTo(cx - r * 0.7, cy);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'CRYO') {
+        // Ice crystal / snowflake
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy);
+        ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r);
+        ctx.moveTo(cx - r * 0.6, cy - r * 0.6); ctx.lineTo(cx + r * 0.6, cy + r * 0.6);
+        ctx.moveTo(cx - r * 0.6, cy + r * 0.6); ctx.lineTo(cx + r * 0.6, cy - r * 0.6);
+        ctx.stroke();
+      } else if (type === 'THUNDER') {
+        // Lightning bolt
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(cx + 2, cy - r);
+        ctx.lineTo(cx - 4, cy);
+        ctx.lineTo(cx + 1, cy);
+        ctx.lineTo(cx - 2, cy + r);
+        ctx.lineTo(cx + 5, cy - 2);
+        ctx.lineTo(cx, cy - 2);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'ANVIL') {
+        // Heavy iron anvil
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(cx - r, cy - r * 0.5, r * 2, r * 0.4);
+        ctx.fillRect(cx - r * 0.5, cy - r * 0.1, r, r * 0.8);
+      }
+    }
+
+    class Cluster {
+      constructor(id, name, isLocal = false, x = 0, y = 0, color = '#38bdf8') {
+        this.id = id;
+        this.name = name;
+        this.isLocal = isLocal;
+        this.x = x;
+        this.y = y;
+        this.targetX = x;
+        this.targetY = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.coreColor = color;
+
+        this.blocks = new Map();
+        this.blocks.set('0,0', {
+          gx: 0,
+          gy: 0,
+          type: 'NORMAL',
+          hp: 200,
+          maxHp: 200,
+          isCore: true,
+          flashTimer: 0
+        });
+
+        this.boostEnergy = 100;
+        this.isDashing = false;
+        this.moveAngle = 0;
+        this.isMoving = false;
+        this.alive = true;
+        this.killCount = 0;
+
+        // Debuffs
+        this.slowTimer = 0;
+        this.recoilSquash = 1.0;
+      }
+
+      get size() {
+        return this.blocks.size;
+      }
+
+      get totalMass() {
+        let m = 0;
+        for (const b of this.blocks.values()) {
+          m += BLOCK_TYPES[b.type]?.mass || 1.0;
+        }
+        return Math.max(1, m);
+      }
+
+      get baseSpeed() {
+        let boosterBuff = 0;
+        for (const b of this.blocks.values()) {
+          if (b.type === 'BOOSTER') boosterBuff += 0.35;
+        }
+
+        // Fast early maneuverability with gradual mass reduction
+        let spd = 490 / (1 + Math.pow(this.size - 1, 0.45) * 0.43);
+        spd *= (1 + boosterBuff);
+        if (this.slowTimer > 0) spd *= 0.55;
+        return Math.max(130, spd);
+      }
+
+      get hasGhost() {
+        for (const b of this.blocks.values()) {
+          if (b.type === 'GHOST') return true;
+        }
+        return false;
+      }
+
+      get magnetCount() {
+        let c = 0;
+        for (const b of this.blocks.values()) {
+          if (b.type === 'MAGNET') c++;
+        }
+        return c;
+      }
+
+      attachBlock(gx, gy, typeKey) {
+        const key = `${gx},${gy}`;
+        if (this.blocks.has(key)) return false;
+        const bDef = BLOCK_TYPES[typeKey] || BLOCK_TYPES.NORMAL;
+        this.blocks.set(key, {
+          gx,
+          gy,
+          type: typeKey,
+          hp: bDef.hp,
+          maxHp: bDef.hp,
+          isCore: false,
+          flashTimer: 0.15
+        });
+        return true;
+      }
+
+      validateConnectivity() {
+        const visited = new Set();
+        const queue = ['0,0'];
+        visited.add('0,0');
+        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+        while (queue.length > 0) {
+          const currKey = queue.shift();
+          const [cx, cy] = currKey.split(',').map(Number);
+          for (const [dx, dy] of dirs) {
+            const nextKey = `${cx + dx},${cy + dy}`;
+            if (this.blocks.has(nextKey) && !visited.has(nextKey)) {
+              visited.add(nextKey);
+              queue.push(nextKey);
+            }
+          }
+        }
+
+        const detached = [];
+        for (const [key, blk] of this.blocks.entries()) {
+          if (!visited.has(key)) {
+            detached.push({
+              x: this.x + blk.gx * GRID_SIZE,
+              y: this.y + blk.gy * GRID_SIZE,
+              type: blk.type
+            });
+            this.blocks.delete(key);
+          }
+        }
+        return detached;
+      }
+
+      update(dt) {
+        if (!this.alive) return;
+
+        if (this.isLocal) {
+          if (this.isDashing) {
+            this.boostEnergy -= 60 * dt;
+            if (this.boostEnergy <= 0) {
+              this.boostEnergy = 0;
+              this.isDashing = false;
+            }
+          } else {
+            this.boostEnergy = Math.min(100, this.boostEnergy + 30 * dt);
+          }
+
+          const speedMultiplier = this.isDashing ? 2.15 : 1.0;
+          const currentSpeed = this.baseSpeed * speedMultiplier;
+
+          if (this.isMoving) {
+            const targetVx = Math.cos(this.moveAngle) * currentSpeed;
+            const targetVy = Math.sin(this.moveAngle) * currentSpeed;
+            this.vx += (targetVx - this.vx) * 0.28;
+            this.vy += (targetVy - this.vy) * 0.28;
+          } else {
+            this.vx *= 0.84;
+            this.vy *= 0.84;
+          }
+
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+
+          const margin = (Math.sqrt(this.size) * GRID_SIZE * 0.5) + 20;
+          this.x = Math.max(margin, Math.min(WORLD_SIZE - margin, this.x));
+          this.y = Math.max(margin, Math.min(WORLD_SIZE - margin, this.y));
+        } else {
+          // Client interpolation for online players
+          this.x += (this.targetX - this.x) * 0.25;
+          this.y += (this.targetY - this.y) * 0.25;
+        }
+
+        // Squash recoil decay
+        this.recoilSquash += (1.0 - this.recoilSquash) * 10 * dt;
+
+        if (this.slowTimer > 0) this.slowTimer -= dt;
+
+        let hasRegen = false;
+        for (const b of this.blocks.values()) {
+          if (b.flashTimer > 0) b.flashTimer -= dt;
+          if (b.type === 'REGEN') hasRegen = true;
+        }
+        if (hasRegen) {
+          for (const b of this.blocks.values()) {
+            if (b.hp < b.maxHp) {
+              b.hp = Math.min(b.maxHp, b.hp + BLOCK_TYPES.REGEN.regenRate * dt);
+            }
+          }
+        }
+      }
+
+      serialize() {
+        const blkArr = [];
+        for (const b of this.blocks.values()) {
+          blkArr.push({ gx: b.gx, gy: b.gy, t: b.type, hp: Math.round(b.hp) });
+        }
+        return {
+          id: this.id,
+          name: this.name,
+          x: Math.round(this.x),
+          y: Math.round(this.y),
+          vx: Math.round(this.vx),
+          vy: Math.round(this.vy),
+          color: this.coreColor,
+          size: this.size,
+          dashing: this.isDashing,
+          blocks: blkArr,
+          updatedAt: Date.now()
+        };
+      }
+    }
+
+    class GameApp {
+      constructor() {
+        this.canvas = document.getElementById('game-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.minimapCanvas = document.getElementById('minimap');
+        this.minimapCtx = this.minimapCanvas.getContext('2d');
+
+        this.particles = [];
+        this.shockwaves = [];
+        this.wildBlocks = [];
+        this.remotePlayers = new Map();
+        this.bots = [];
+        this.localPlayer = null;
+
+        this.maxWildBlocks = 85;
+        this.botCount = 8;
+
+        this.camera = { x: 0, y: 0, zoom: 1.0 };
+        this.shakeTimer = 0;
+        this.shakeIntensity = 0;
+
+        this.moveTouchId = null;
+        this.touchStartPos = null;
+        this.isDashHeld = false;
+
+        this.kills = 0;
+        this.lastTime = 0;
+
+        // Firebase Firestore setup
+        this.db = null;
+        this.auth = null;
+        this.userId = null;
+        this.appId = typeof __app_id !== 'undefined' ? __app_id : 'blockmerge-live';
+        this.syncInterval = null;
+
+        // DOM caching
+        this.hudBlocks = document.getElementById('hud-block-count');
+        this.hudBoostBar = document.getElementById('hud-boost-bar');
+        this.hudBoostPct = document.getElementById('hud-boost-pct');
+        this.lbContent = document.getElementById('lb-content');
+        this.killBanner = document.getElementById('kill-banner');
+        this.joyBase = document.getElementById('joystick-base');
+        this.joyStick = document.getElementById('joystick-stick');
+        this.modalStart = document.getElementById('modal-start');
+        this.modalOver = document.getElementById('modal-over');
+        this.inputUsername = document.getElementById('input-username');
+        this.inputUsername.value = 'PILOT_' + Math.floor(Math.random() * 900 + 100);
+
+        this.setupControls();
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.initFirebase();
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      shake(intensity = 8, duration = 0.22) {
+        this.shakeIntensity = intensity;
+        this.shakeTimer = duration;
+      }
+
+      async initFirebase() {
+        try {
+          if (typeof __firebase_config !== 'undefined') {
+            const config = JSON.parse(__firebase_config);
+            const app = initializeApp(config);
+            this.auth = getAuth(app);
+            this.db = getFirestore(app);
+
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(this.auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(this.auth);
+            }
+            this.userId = this.auth.currentUser?.uid || ('usr_' + Math.random().toString(36).slice(2, 9));
+            document.getElementById('hud-online-status').textContent = 'CONNECTED: ' + this.userId.slice(0, 6);
+            this.startMultiplayerListener();
+          } else {
+            this.userId = 'local_' + Math.random().toString(36).slice(2, 9);
+            document.getElementById('hud-online-status').textContent = 'OFFLINE ARENA (BOTS)';
+          }
+        } catch (err) {
+          console.error("Firebase init fallback:", err);
+          this.userId = 'guest_' + Math.random().toString(36).slice(2, 9);
+          document.getElementById('hud-online-status').textContent = 'OFFLINE ARENA (BOTS)';
+        }
+      }
+
+      startMultiplayerListener() {
+        if (!this.db || !this.userId) return;
+        const playersCol = collection(this.db, 'artifacts', this.appId, 'public', 'data', 'players');
+
+        onSnapshot(playersCol, (snapshot) => {
+          const now = Date.now();
+          const presentIds = new Set();
+
+          snapshot.forEach((d) => {
+            const data = d.data();
+            if (data.id === this.userId) return;
+            // Ignore stale documents older than 8s
+            if (now - (data.updatedAt || 0) > 8000) return;
+
+            presentIds.add(data.id);
+            let remote = this.remotePlayers.get(data.id);
+            if (!remote) {
+              remote = new Cluster(data.id, data.name, false, data.x, data.y, data.color || '#ec4899');
+              this.remotePlayers.set(data.id, remote);
+            }
+
+            remote.targetX = data.x;
+            remote.targetY = data.y;
+            remote.isDashing = !!data.dashing;
+
+            if (Array.isArray(data.blocks)) {
+              remote.blocks.clear();
+              for (const b of data.blocks) {
+                remote.blocks.set(`${b.gx},${b.gy}`, {
+                  gx: b.gx,
+                  gy: b.gy,
+                  type: b.t || 'NORMAL',
+                  hp: b.hp || 100,
+                  maxHp: BLOCK_TYPES[b.t]?.hp || 100,
+                  isCore: (b.gx === 0 && b.gy === 0),
+                  flashTimer: 0
+                });
+              }
+            }
+          });
+
+          for (const [id] of this.remotePlayers) {
+            if (!presentIds.has(id)) {
+              this.remotePlayers.delete(id);
+            }
+          }
+        }, (err) => {
+          console.warn("Firestore sync warning:", err);
+        });
+
+        // Periodic state publish to Firestore
+        this.syncInterval = setInterval(() => {
+          this.publishPlayerState();
+        }, 180);
+
+        window.addEventListener('beforeunload', () => {
+          this.cleanupPlayer();
+        });
+      }
+
+      async publishPlayerState() {
+        if (!this.db || !this.localPlayer || !this.localPlayer.alive || !this.userId) return;
+        try {
+          const userDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', this.userId);
+          await setDoc(userDoc, this.localPlayer.serialize());
+        } catch (e) {
+          // ignore transient push failures
+        }
+      }
+
+      async cleanupPlayer() {
+        if (!this.db || !this.userId) return;
+        try {
+          const userDoc = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'players', this.userId);
+          await deleteDoc(userDoc);
+        } catch (e) {}
+      }
+
+      setupControls() {
+        const dashBtn = document.getElementById('dash-btn');
+
+        const triggerDash = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          audio.init();
+          this.isDashHeld = true;
+          dashBtn.classList.add('active');
+          if (this.localPlayer && this.localPlayer.boostEnergy > 10) {
+            this.localPlayer.isDashing = true;
+            this.dashBurst();
+          }
+        };
+
+        const stopDash = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          this.isDashHeld = false;
+          dashBtn.classList.remove('active');
+          if (this.localPlayer) this.localPlayer.isDashing = false;
+        };
+
+        dashBtn.addEventListener('touchstart', triggerDash, { passive: false });
+        dashBtn.addEventListener('touchend', stopDash, { passive: false });
+        dashBtn.addEventListener('touchcancel', stopDash, { passive: false });
+        dashBtn.addEventListener('mousedown', triggerDash);
+        window.addEventListener('mouseup', stopDash);
+
+        // Spacebar keybind for dash
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space' && !this.isDashHeld) triggerDash(null);
+        });
+        window.addEventListener('keyup', (e) => {
+          if (e.code === 'Space') stopDash(null);
+        });
+
+        // Touch Joystick with ID isolation
+        window.addEventListener('touchstart', (e) => {
+          audio.init();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.closest('#dash-btn')) continue;
+            if (target && target.closest('.modal-content')) continue;
+
+            if (this.moveTouchId === null) {
+              this.moveTouchId = touch.identifier;
+              this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+              this.joyBase.style.display = 'block';
+              this.joyBase.style.left = touch.clientX + 'px';
+              this.joyBase.style.top = touch.clientY + 'px';
+
+              this.joyStick.style.display = 'block';
+              this.joyStick.style.left = touch.clientX + 'px';
+              this.joyStick.style.top = touch.clientY + 'px';
+              break;
+            }
+          }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier === this.moveTouchId) {
+              const dx = touch.clientX - this.touchStartPos.x;
+              const dy = touch.clientY - this.touchStartPos.y;
+              const dist = Math.hypot(dx, dy);
+
+              if (dist > 6 && this.localPlayer) {
+                this.localPlayer.isMoving = true;
+                this.localPlayer.moveAngle = Math.atan2(dy, dx);
+              }
+
+              const clampDist = Math.min(dist, 45);
+              const angle = Math.atan2(dy, dx);
+              this.joyStick.style.left = (this.touchStartPos.x + Math.cos(angle) * clampDist) + 'px';
+              this.joyStick.style.top = (this.touchStartPos.y + Math.sin(angle) * clampDist) + 'px';
+              break;
+            }
+          }
+        }, { passive: false });
+
+        const endTouch = (e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === this.moveTouchId) {
+              this.moveTouchId = null;
+              if (this.localPlayer) this.localPlayer.isMoving = false;
+              this.joyBase.style.display = 'none';
+              this.joyStick.style.display = 'none';
+              break;
+            }
+          }
+        };
+
+        window.addEventListener('touchend', endTouch);
+        window.addEventListener('touchcancel', endTouch);
+
+        // Desktop mouse fallback
+        let isMouseDown = false;
+        window.addEventListener('mousedown', (e) => {
+          if (e.target.closest('#dash-btn') || e.target.closest('.modal-content')) return;
+          isMouseDown = true;
+          this.touchStartPos = { x: e.clientX, y: e.clientY };
+          this.joyBase.style.display = 'block';
+          this.joyBase.style.left = e.clientX + 'px';
+          this.joyBase.style.top = e.clientY + 'px';
+          this.joyStick.style.display = 'block';
+          this.joyStick.style.left = e.clientX + 'px';
+          this.joyStick.style.top = e.clientY + 'px';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isMouseDown) return;
+          const dx = e.clientX - this.touchStartPos.x;
+          const dy = e.clientY - this.touchStartPos.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 6 && this.localPlayer) {
+            this.localPlayer.isMoving = true;
+            this.localPlayer.moveAngle = Math.atan2(dy, dx);
+          }
+          const clampDist = Math.min(dist, 45);
+          const angle = Math.atan2(dy, dx);
+          this.joyStick.style.left = (this.touchStartPos.x + Math.cos(angle) * clampDist) + 'px';
+          this.joyStick.style.top = (this.touchStartPos.y + Math.sin(angle) * clampDist) + 'px';
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isMouseDown) {
+            isMouseDown = false;
+            if (this.localPlayer) this.localPlayer.isMoving = false;
+            this.joyBase.style.display = 'none';
+            this.joyStick.style.display = 'none';
+          }
+        });
+
+        document.getElementById('btn-play').addEventListener('click', () => {
+          audio.init();
+          this.modalStart.style.display = 'none';
+          this.startGame();
+        });
+
+        document.getElementById('btn-respawn').addEventListener('click', () => {
+          this.modalOver.style.display = 'none';
+          this.startGame();
+        });
+      }
+
+      dashBurst() {
+        audio.playDash();
+        this.shake(5, 0.16);
+        if (navigator.vibrate) navigator.vibrate(25);
+
+        if (this.localPlayer) {
+          const revAngle = this.localPlayer.moveAngle + Math.PI;
+          for (let i = 0; i < 8; i++) {
+            const spread = revAngle + (Math.random() - 0.5) * 0.9;
+            const spd = Math.random() * 150 + 80;
+            this.particles.push(new Particle(
+              this.localPlayer.x, this.localPlayer.y, '#38bdf8',
+              Math.cos(spread) * spd, Math.sin(spread) * spd,
+              0.28, 5
+            ));
+          }
+        }
+      }
+
+      startGame() {
+        const name = this.inputUsername.value.trim() || 'PILOT';
+        this.kills = 0;
+        this.particles = [];
+        this.shockwaves = [];
+        this.wildBlocks = [];
+        this.bots = [];
+
+        this.localPlayer = new Cluster(
+          this.userId || 'local_p',
+          name,
+          true,
+          WORLD_SIZE / 2,
+          WORLD_SIZE / 2,
+          '#38bdf8'
+        );
+
+        for (let i = 0; i < this.maxWildBlocks; i++) {
+          this.spawnWildBlock();
+        }
+
+        const botNames = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber', 'Striker', 'Shadow'];
+        for (let i = 0; i < this.botCount; i++) {
+          this.spawnBot(botNames[i % botNames.length]);
+        }
+      }
+
+      spawnWildBlock(x = null, y = null, type = null) {
+        const bx = x !== null ? x : Math.random() * (WORLD_SIZE - 200) + 100;
+        const by = y !== null ? y : Math.random() * (WORLD_SIZE - 200) + 100;
+        this.wildBlocks.push(new WildBlock(bx, by, type || getRandomBlockType()));
+      }
+
+      spawnBot(name) {
+        const x = Math.random() * (WORLD_SIZE - 400) + 200;
+        const y = Math.random() * (WORLD_SIZE - 400) + 200;
+        const colors = ['#f43f5e', '#a855f7', '#ec4899', '#eab308', '#10b981'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const bot = new Cluster('bot_' + Math.random().toString(36).slice(2, 6), name, false, x, y, color);
+
+        const count = Math.floor(Math.random() * 4) + 1;
+        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (let j = 0; j < count; j++) {
+          const dir = dirs[Math.floor(Math.random() * dirs.length)];
+          bot.attachBlock(dir[0] * (j + 1), dir[1], getRandomBlockType());
+        }
+        this.bots.push(bot);
+      }
+
+      showBanner(msg) {
+        this.killBanner.textContent = msg;
+        this.killBanner.classList.add('active');
+        setTimeout(() => this.killBanner.classList.remove('active'), 2200);
+      }
+
+      handleCollisions() {
+        const allClusters = [];
+        if (this.localPlayer && this.localPlayer.alive) allClusters.push(this.localPlayer);
+        for (const b of this.bots) if (b.alive) allClusters.push(b);
+        for (const r of this.remotePlayers.values()) if (r.alive) allClusters.push(r);
+
+        // 1. Magnet attraction
+        for (const cluster of allClusters) {
+          const magnets = cluster.magnetCount;
+          if (magnets > 0) {
+            const pullRadius = magnets * 90 + 90;
+            for (const wild of this.wildBlocks) {
+              const d = Math.hypot(wild.x - cluster.x, wild.y - cluster.y);
+              if (d < pullRadius) {
+                const angle = Math.atan2(cluster.y - wild.y, cluster.x - wild.x);
+                wild.vx += Math.cos(angle) * 360 * (1 - d / pullRadius);
+                wild.vy += Math.sin(angle) * 360 * (1 - d / pullRadius);
+              }
+            }
+          }
+        }
+
+        // 2. Loose blocks attachment
+        for (const cluster of allClusters) {
+          for (let i = this.wildBlocks.length - 1; i >= 0; i--) {
+            const wild = this.wildBlocks[i];
+            const d = Math.hypot(wild.x - cluster.x, wild.y - cluster.y);
+            const clusterRadius = (Math.sqrt(cluster.size) + 2) * GRID_SIZE;
+            if (d > clusterRadius) continue;
+
+            for (const blk of cluster.blocks.values()) {
+              const bx = cluster.x + blk.gx * GRID_SIZE;
+              const by = cluster.y + blk.gy * GRID_SIZE;
+              const dist = Math.hypot(wild.x - bx, wild.y - by);
+
+              if (dist < GRID_SIZE * 0.95) {
+                const dx = wild.x - bx;
+                const dy = wild.y - by;
+                let targetGx = blk.gx;
+                let targetGy = blk.gy;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                  targetGx += dx > 0 ? 1 : -1;
+                } else {
+                  targetGy += dy > 0 ? 1 : -1;
+                }
+
+                if (cluster.attachBlock(targetGx, targetGy, wild.type)) {
+                  this.wildBlocks.splice(i, 1);
+                  this.shockwaves.push(new Shockwave(cluster.x + targetGx * GRID_SIZE, cluster.y + targetGy * GRID_SIZE, 5, 25, BLOCK_TYPES[wild.type].color));
+                  if (cluster.isLocal) {
+                    audio.playAttach();
+                    if (navigator.vibrate) navigator.vibrate(12);
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // 3. High-impact clashing and severe elastic recoil
+        for (let i = 0; i < allClusters.length; i++) {
+          for (let j = i + 1; j < allClusters.length; j++) {
+            const cA = allClusters[i];
+            const cB = allClusters[j];
+            if (!cA.alive || !cB.alive) continue;
+
+            const distCenters = Math.hypot(cA.x - cB.x, cA.y - cB.y);
+            const maxReach = (Math.sqrt(cA.size) + Math.sqrt(cB.size) + 4) * GRID_SIZE;
+            if (distCenters > maxReach) continue;
+
+            this.resolveElasticClash(cA, cB);
+          }
+        }
+      }
+
+      /* High-impact rebound with mass-proportional impulse */
+      resolveElasticClash(cA, cB) {
+        let clashDetected = false;
+        let hardSpike = false;
+        let hasAnvil = false;
+        let clashMidX = (cA.x + cB.x) / 2;
+        let clashMidY = (cA.y + cB.y) / 2;
+
+        for (const [keyA, blkA] of cA.blocks.entries()) {
+          const ax = cA.x + blkA.gx * GRID_SIZE;
+          const ay = cA.y + blkA.gy * GRID_SIZE;
+
+          for (const [keyB, blkB] of cB.blocks.entries()) {
+            const bx = cB.x + blkB.gx * GRID_SIZE;
+            const by = cB.y + blkB.gy * GRID_SIZE;
+
+            const dist = Math.hypot(ax - bx, ay - by);
+            if (dist < GRID_SIZE * 0.9) {
+              clashDetected = true;
+              clashMidX = (ax + bx) / 2;
+              clashMidY = (ay + by) / 2;
+
+              // DIRECT CORE SHATTER
+              if (blkB.isCore) {
+                this.executeCoreShatter(cA, cB);
+                return;
+              }
+              if (blkA.isCore) {
+                this.executeCoreShatter(cB, cA);
+                return;
+              }
+
+              const defA = BLOCK_TYPES[blkA.type];
+              const defB = BLOCK_TYPES[blkB.type];
+
+              if (blkA.type === 'SPIKE' || blkB.type === 'SPIKE') hardSpike = true;
+              if (blkA.type === 'ANVIL' || blkB.type === 'ANVIL') hasAnvil = true;
+
+              // Damage calculations
+              let dmgAtoB = defA.damage * (cA.isDashing ? 1.6 : 1.0);
+              let dmgBtoA = defB.damage * (cB.isDashing ? 1.6 : 1.0);
+
+              // Special effect triggers
+              if (blkA.type === 'CRYO') cB.slowTimer = 2.0;
+              if (blkB.type === 'CRYO') cA.slowTimer = 2.0;
+
+              if (blkA.type === 'THUNDER') this.triggerChainLightning(ax, ay, cB);
+              if (blkB.type === 'THUNDER') this.triggerChainLightning(bx, by, cA);
+
+              blkA.hp -= dmgBtoA;
+              blkB.hp -= dmgAtoB;
+              blkA.flashTimer = 0.15;
+              blkB.flashTimer = 0.15;
+
+              // Bomb detonation
+              if (blkA.type === 'BOMB' && (blkA.hp <= 0 || Math.random() < 0.35)) {
+                this.detonateBomb(ax, ay, cA, cB);
+                cA.blocks.delete(keyA);
+              }
+              if (blkB.type === 'BOMB' && (blkB.hp <= 0 || Math.random() < 0.35)) {
+                this.detonateBomb(bx, by, cB, cA);
+                cB.blocks.delete(keyB);
+              }
+
+              if (blkA.hp <= 0 && cA.blocks.has(keyA)) {
+                cA.blocks.delete(keyA);
+                this.spawnWildBlock(ax, ay, blkA.type);
+              }
+              if (blkB.hp <= 0 && cB.blocks.has(keyB)) {
+                cB.blocks.delete(keyB);
+                this.spawnWildBlock(bx, by, blkB.type);
+              }
+            }
+          }
+        }
+
+        if (clashDetected) {
+          // EXTREME ELASTIC REBOUND
+          const angle = Math.atan2(cB.y - cA.y, cB.x - cA.x);
+          let baseImpulse = hardSpike ? 240 : 190;
+          if (hasAnvil) baseImpulse += 100;
+
+          // Momentum mass scaling
+          const massA = cA.totalMass;
+          const massB = cB.totalMass;
+          const ratioA = massB / (massA + massB);
+          const ratioB = massA / (massA + massB);
+
+          const ghostA = cA.hasGhost ? 0.3 : 1.0;
+          const ghostB = cB.hasGhost ? 0.3 : 1.0;
+
+          cA.vx -= Math.cos(angle) * (baseImpulse * ratioA * 2.2) * ghostA;
+          cA.vy -= Math.sin(angle) * (baseImpulse * ratioA * 2.2) * ghostA;
+          cB.vx += Math.cos(angle) * (baseImpulse * ratioB * 2.2) * ghostB;
+          cB.vy += Math.sin(angle) * (baseImpulse * ratioB * 2.2) * ghostB;
+
+          cA.recoilSquash = 0.78;
+          cB.recoilSquash = 0.78;
+
+          this.shockwaves.push(new Shockwave(clashMidX, clashMidY, 10, 60, hardSpike ? '#ef4444' : '#38bdf8'));
+
+          if (cA.isLocal || cB.isLocal) {
+            audio.playRebound(hasAnvil ? 1.5 : (hardSpike ? 1.3 : 1.0));
+            this.shake(hardSpike || hasAnvil ? 12 : 7, 0.22);
+            if (navigator.vibrate) navigator.vibrate(hardSpike ? 50 : 25);
+          }
+
+          // Detach orphaned blocks
+          const detachedA = cA.validateConnectivity();
+          for (const d of detachedA) this.spawnWildBlock(d.x, d.y, d.type);
+          const detachedB = cB.validateConnectivity();
+          for (const d of detachedB) this.spawnWildBlock(d.x, d.y, d.type);
+        }
+      }
+
+      triggerChainLightning(srcX, srcY, targetCluster) {
+        audio.playThunder();
+        this.shockwaves.push(new Shockwave(srcX, srcY, 8, 45, '#facc15'));
+        let count = 0;
+        for (const [key, blk] of targetCluster.blocks.entries()) {
+          if (count >= 3) break;
+          blk.hp -= 45;
+          blk.flashTimer = 0.2;
+          const wx = targetCluster.x + blk.gx * GRID_SIZE;
+          const wy = targetCluster.y + blk.gy * GRID_SIZE;
+          this.createSparks(wx, wy, '#facc15', 4);
+          count++;
+        }
+      }
+
+      detonateBomb(x, y, owner, opponent) {
+        audio.playDetonate();
+        this.shake(15, 0.35);
+        this.shockwaves.push(new Shockwave(x, y, 15, 120, '#fbbf24'));
+        this.createSparks(x, y, '#fbbf24', 20);
+
+        for (const [key, b] of opponent.blocks.entries()) {
+          const wx = opponent.x + b.gx * GRID_SIZE;
+          const wy = opponent.y + b.gy * GRID_SIZE;
+          const d = Math.hypot(wx - x, wy - y);
+          if (d < 110) {
+            b.hp -= 160;
+            if (b.hp <= 0 && !b.isCore) {
+              opponent.blocks.delete(key);
+              this.spawnWildBlock(wx, wy, b.type);
+            }
+          }
+        }
+      }
+
+      executeCoreShatter(killer, victim) {
+        victim.alive = false;
+        killer.killCount++;
+        audio.playCoreKill();
+        this.shake(18, 0.45);
+        this.shockwaves.push(new Shockwave(victim.x, victim.y, 20, 160, '#ef4444'));
+
+        for (const blk of victim.blocks.values()) {
+          const dropX = victim.x + blk.gx * GRID_SIZE + (Math.random() - 0.5) * 20;
+          const dropY = victim.y + blk.gy * GRID_SIZE + (Math.random() - 0.5) * 20;
+          this.spawnWildBlock(dropX, dropY, blk.type);
+          this.createSparks(dropX, dropY, BLOCK_TYPES[blk.type].color, 6);
+        }
+
+        if (victim.isLocal) {
+          if (navigator.vibrate) navigator.vibrate([100, 60, 160]);
+          document.getElementById('over-reason').textContent = `${killer.name} ã«ã³ã¢ãç´æç²ç ããã¾ããï¼`;
+          document.getElementById('over-mass').textContent = victim.size;
+          document.getElementById('over-kills').textContent = this.kills;
+          this.modalOver.style.display = 'flex';
+          this.cleanupPlayer();
+        } else {
+          if (killer.isLocal) {
+            this.kills++;
+            this.showBanner(`CORE SHATTERED! +${victim.size} BLOCKS DROPPED!`);
+            if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+          }
+
+          // Respawn AI bots
+          if (victim.id.startsWith('bot_')) {
+            setTimeout(() => {
+              const names = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber', 'Striker', 'Shadow'];
+              this.spawnBot(names[Math.floor(Math.random() * names.length)]);
+            }, 2500);
+          }
+        }
+      }
+
+      createSparks(x, y, color, count = 6) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 120 + 50;
+          this.particles.push(new Particle(
+            x, y, color,
+            Math.cos(angle) * speed, Math.sin(angle) * speed,
+            0.35 + Math.random() * 0.2, 5
+          ));
+        }
+      }
+
+      drawGrid(ctx) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+        ctx.lineWidth = 1;
+        const step = 75;
+
+        ctx.beginPath();
+        for (let x = 0; x <= WORLD_SIZE; x += step) {
+          ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_SIZE);
+        }
+        for (let y = 0; y <= WORLD_SIZE; y += step) {
+          ctx.moveTo(0, y); ctx.lineTo(WORLD_SIZE, y);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
+      }
+
+      drawCluster(ctx, cluster) {
+        if (!cluster.alive) return;
+
+        ctx.save();
+        ctx.translate(cluster.x, cluster.y);
+        ctx.scale(cluster.recoilSquash, 1 / cluster.recoilSquash);
+        ctx.translate(-cluster.x, -cluster.y);
+
+        for (const blk of cluster.blocks.values()) {
+          const wx = cluster.x + blk.gx * GRID_SIZE;
+          const wy = cluster.y + blk.gy * GRID_SIZE;
+
+          ctx.save();
+          ctx.translate(wx, wy);
+
+          if (blk.isCore) {
+            const size = GRID_SIZE - 2;
+            const h = size / 2;
+            ctx.fillStyle = cluster.coreColor;
+            ctx.shadowColor = cluster.coreColor;
+            ctx.shadowBlur = 14;
+            ctx.fillRect(-h, -h, size, size);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(-h, -h, size, size);
+          } else {
+            const bDef = BLOCK_TYPES[blk.type];
+            const size = GRID_SIZE - 2;
+            const h = size / 2;
+
+            ctx.fillStyle = blk.flashTimer > 0 ? '#ffffff' : bDef.color;
+            ctx.shadowColor = bDef.color;
+            ctx.shadowBlur = 6;
+
+            ctx.beginPath();
+            ctx.roundRect(-h, -h, size, size, 4);
+            ctx.fill();
+
+            ctx.strokeStyle = bDef.borderColor;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            drawBlockIcon(ctx, blk.type, 0, 0, size);
+
+            if (blk.hp < blk.maxHp * 0.6) {
+              ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(-h * 0.5, -h * 0.5);
+              ctx.lineTo(0, 0);
+              ctx.lineTo(h * 0.5, h * 0.5);
+              ctx.stroke();
+            }
+          }
+          ctx.restore();
+        }
+
+        ctx.restore();
+
+        // Cluster name & mass
+        ctx.save();
+        ctx.font = 'bold 12px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 5;
+        ctx.fillText(`${cluster.name} [${cluster.size}]`, cluster.x, cluster.y - (Math.sqrt(cluster.size) * 16) - 18);
+        ctx.restore();
+      }
+
+      drawMinimap() {
+        const mCtx = this.minimapCtx;
+        mCtx.clearRect(0, 0, 84, 84);
+        const scale = 84 / WORLD_SIZE;
+
+        mCtx.fillStyle = '#ef4444';
+        for (const b of this.bots) {
+          if (b.alive) mCtx.fillRect(b.x * scale - 1, b.y * scale - 1, 3, 3);
+        }
+
+        mCtx.fillStyle = '#ec4899';
+        for (const r of this.remotePlayers.values()) {
+          if (r.alive) mCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 4, 4);
+        }
+
+        if (this.localPlayer && this.localPlayer.alive) {
+          mCtx.fillStyle = '#38bdf8';
+          mCtx.shadowColor = '#38bdf8';
+          mCtx.shadowBlur = 6;
+          mCtx.fillRect(this.localPlayer.x * scale - 2, this.localPlayer.y * scale - 2, 5, 5);
+          mCtx.shadowBlur = 0;
+        }
+      }
+
+      updateLeaderboard() {
+        const list = [];
+        if (this.localPlayer && this.localPlayer.alive) {
+          list.push({ name: this.localPlayer.name, size: this.localPlayer.size, isMe: true });
+        }
+        for (const r of this.remotePlayers.values()) {
+          if (r.alive) list.push({ name: r.name, size: r.size, isMe: false });
+        }
+        for (const b of this.bots) {
+          if (b.alive) list.push({ name: b.name, size: b.size, isMe: false });
+        }
+        list.sort((a, b) => b.size - a.size);
+
+        let html = '';
+        list.slice(0, 5).forEach((p, idx) => {
+          html += `
+            <div class="lb-row ${p.isMe ? 'me' : ''}">
+              <span>${idx + 1}. ${p.name}</span>
+              <span>${p.size}</span>
+            </div>
+          `;
+        });
+        this.lbContent.innerHTML = html;
+      }
+
+      update(dt) {
+        if (this.wildBlocks.length < this.maxWildBlocks) {
+          this.spawnWildBlock();
+        }
+
+        if (this.localPlayer && this.localPlayer.alive) {
+          this.localPlayer.update(dt);
+          this.camera.x += (this.localPlayer.x - this.camera.x) * 0.18;
+          this.camera.y += (this.localPlayer.y - this.camera.y) * 0.18;
+
+          const targetZoom = Math.max(0.6, 1.05 - (Math.sqrt(this.localPlayer.size) * 0.052));
+          this.camera.zoom += (targetZoom - this.camera.zoom) * 0.06;
+
+          this.hudBlocks.textContent = this.localPlayer.size;
+          const boostPct = Math.round(this.localPlayer.boostEnergy);
+          this.hudBoostBar.style.width = boostPct + '%';
+          this.hudBoostPct.textContent = boostPct + '%';
+        }
+
+        for (const b of this.bots) {
+          if (!b.alive) continue;
+          if (Math.random() < 0.05) {
+            b.moveAngle += (Math.random() - 0.5) * 1.5;
+            b.isMoving = true;
+          }
+          b.update(dt);
+        }
+
+        for (const r of this.remotePlayers.values()) {
+          r.update(dt);
+        }
+
+        for (const w of this.wildBlocks) {
+          w.update(dt);
+        }
+
+        this.handleCollisions();
+
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.update(dt);
+          if (p.life <= 0) this.particles.splice(i, 1);
+        }
+
+        for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+          const s = this.shockwaves[i];
+          s.update(dt);
+          if (s.alpha <= 0.01) this.shockwaves.splice(i, 1);
+        }
+
+        if (this.shakeTimer > 0) this.shakeTimer -= dt;
+        this.drawMinimap();
+      }
+
+      render() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+        ctx.scale(this.camera.zoom, this.camera.zoom);
+
+        if (this.shakeTimer > 0) {
+          const sx = (Math.random() - 0.5) * this.shakeIntensity;
+          const sy = (Math.random() - 0.5) * this.shakeIntensity;
+          ctx.translate(-this.camera.x + sx, -this.camera.y + sy);
+        } else {
+          ctx.translate(-this.camera.x, -this.camera.y);
+        }
+
+        this.drawGrid(ctx);
+
+        for (const w of this.wildBlocks) w.draw(ctx);
+        for (const b of this.bots) this.drawCluster(ctx, b);
+        for (const r of this.remotePlayers.values()) this.drawCluster(ctx, r);
+        if (this.localPlayer) this.drawCluster(ctx, this.localPlayer);
+
+        for (const p of this.particles) p.draw(ctx);
+        for (const s of this.shockwaves) s.draw(ctx);
+
+        ctx.restore();
+      }
+
+      loop(time) {
+        if (!this.lastTime) this.lastTime = time;
+        const dt = Math.min(0.08, (time - this.lastTime) / 1000);
+        this.lastTime = time;
+
+        this.update(dt);
+        this.render();
+
+        requestAnimationFrame((t) => this.loop(t));
+      }
+
+      start() {
+        setInterval(() => this.updateLeaderboard(), 500);
+        requestAnimationFrame((t) => this.loop(t));
+      }
+    }
+
+    window.onload = () => {
+      const app = new GameApp();
+      app.start();
+    };
+  </script>
+</body>
+</html>
