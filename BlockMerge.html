@@ -219,7 +219,6 @@
       z-index: 6;
     }
 
-    /* イベント & 通知バナー */
     .banner-container {
       position: absolute;
       top: 65px;
@@ -234,7 +233,7 @@
     }
     .banner {
       background: linear-gradient(90deg, #ef4444, #8b5cf6);
-      padding: 7px 20px;
+      padding: 8px 24px;
       border-radius: 20px;
       font-size: 14px;
       font-weight: 900;
@@ -399,7 +398,7 @@
       <div class="game-logo">BLOCKMERGE.IO</div>
       <p class="modal-subtitle">
         広大アリーナ（10000×10000）で激突バトル！<br>
-        突発イベントを生き延び、<strong>敵のコアを粉砕してブロックを奪え</strong>！
+        5〜15分ごとに訪れる予測不能イベントを生き延びろ！
       </p>
 
       <input type="text" id="input-username" class="name-input" maxlength="12" placeholder="パイロット名を入力" value="PILOT_">
@@ -408,8 +407,8 @@
         <div class="special-item"><div class="color-chip" style="background:#38bdf8"></div>通常: バランス型</div>
         <div class="special-item"><div class="color-chip" style="background:#94a3b8"></div>アーマー: 超耐久HP</div>
         <div class="special-item"><div class="color-chip" style="background:#ef4444"></div>スパイク: 破壊刃</div>
-        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ブースター: 速度+25%</div>
-        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>リジェネ: 常時自己修復</div>
+        <div class="special-item"><div class="color-chip" style="background:#f59e0b"></div>ブースター: 速度UP</div>
+        <div class="special-item"><div class="color-chip" style="background:#10b981"></div>リジェネ: 自己修復</div>
         <div class="special-item"><div class="color-chip" style="background:#a855f7"></div>マグネット: 遠隔吸引</div>
         <div class="special-item"><div class="color-chip" style="background:#fbbf24"></div>ボム: 衝撃破裂</div>
         <div class="special-item"><div class="color-chip" style="background:#e0f2fe"></div>ゴースト: 反動激減</div>
@@ -435,7 +434,6 @@
     </div>
   </div>
 
-  <!-- Firebase 設定 -->
   <script>
     window.__firebase_config = {
       apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
@@ -493,6 +491,18 @@
         gainClang.connect(this.ctx.destination);
         oscClang.start(t);
         oscClang.stop(t + 0.12);
+
+        const oscBass = this.ctx.createOscillator();
+        const gainBass = this.ctx.createGain();
+        oscBass.type = 'sawtooth';
+        oscBass.frequency.setValueAtTime(260 * intensity, t);
+        oscBass.frequency.exponentialRampToValueAtTime(30, t + 0.22);
+        gainBass.gain.setValueAtTime(Math.min(0.5, 0.35 * intensity), t);
+        gainBass.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        oscBass.connect(gainBass);
+        gainBass.connect(this.ctx.destination);
+        oscBass.start(t);
+        oscBass.stop(t + 0.22);
       }
       playThunder() {
         if (!this.ctx) return;
@@ -559,21 +569,21 @@
         const t = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const g = this.ctx.createGain();
-        osc.type = 'square';
+        osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(440, t);
-        osc.frequency.setValueAtTime(660, t + 0.1);
-        osc.frequency.setValueAtTime(880, t + 0.2);
-        g.gain.setValueAtTime(0.2, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.frequency.setValueAtTime(880, t + 0.15);
+        osc.frequency.setValueAtTime(550, t + 0.3);
+        osc.frequency.setValueAtTime(1100, t + 0.45);
+        g.gain.setValueAtTime(0.25, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
         osc.connect(g);
         g.connect(this.ctx.destination);
         osc.start(t);
-        osc.stop(t + 0.4);
+        osc.stop(t + 0.7);
       }
     }
     const audio = new SoundFX();
 
-    // ワールドサイズを 10000 に拡大
     const WORLD_SIZE = 10000;
     const GRID_SIZE = 28;
 
@@ -753,7 +763,7 @@
         ctx.beginPath();
         ctx.moveTo(cx, cy - r * 0.7);
         ctx.lineTo(cx + r * 0.7, cy);
-        ctx.lineTo(cx, cy + r * 0.7);
+        ctx.lineTo(cx, cy + r);
         ctx.lineTo(cx - r * 0.7, cy);
         ctx.closePath();
         ctx.fill();
@@ -840,8 +850,9 @@
         const botPenalty = this.isBot ? 0.82 : 1.0;
         let spd = (450 / (1 + Math.pow(this.size - 1, 0.45) * 0.4)) * (1 + boosterBuff) * botPenalty;
         if (this.slowTimer > 0) spd *= 0.5;
-        if (window.__current_event === 'SPEED_SURGE') spd *= 1.45;
-        return Math.max(120, spd);
+        if (window.__current_event === 'SPEED_SURGE') spd *= 1.5;
+        if (window.__current_event === 'EMP_BLAST') spd *= 0.65;
+        return Math.max(80, spd);
       }
 
       get knockbackModifier() {
@@ -857,7 +868,7 @@
         for (const b of this.blocks.values()) {
           if (b.type === 'MAGNET') range = Math.max(range, BLOCK_TYPES.MAGNET.magnetRange);
         }
-        if (window.__current_event === 'MAGNETIC_STORM') range = Math.max(range, 550);
+        if (window.__current_event === 'MAGNETIC_STORM') range = Math.max(range, 850);
         return range;
       }
 
@@ -964,19 +975,18 @@
       update(dt) {
         if (!this.alive) return;
 
-        // ローカルプレイヤー、またはホスト端末が管理するBotの場合に自走物理シミュレーションを行う
         if (this.isLocal || (this.isBot && window.__is_host)) {
-          if (this.isDashing) {
+          if (this.isDashing && window.__current_event !== 'EMP_BLAST') {
             this.boostEnergy -= 50 * dt;
             if (this.boostEnergy <= 0) {
               this.boostEnergy = 0;
               this.isDashing = false;
             }
           } else {
-            this.boostEnergy = Math.min(100, this.boostEnergy + 25 * dt);
+            this.boostEnergy = Math.min(100, this.boostEnergy + (window.__current_event === 'EMP_BLAST' ? 8 : 25) * dt);
           }
 
-          const speedMultiplier = this.isDashing ? 1.8 : 1.0;
+          const speedMultiplier = (this.isDashing && window.__current_event !== 'EMP_BLAST') ? 1.8 : 1.0;
           const currentSpeed = this.baseSpeed * speedMultiplier;
 
           if (this.isMoving) {
@@ -989,6 +999,17 @@
             this.vy *= 0.85;
           }
 
+          // ブラックホール吸い込み
+          if (window.__current_event === 'BLACK_HOLE') {
+            const cx = WORLD_SIZE / 2;
+            const cy = WORLD_SIZE / 2;
+            const dist = Math.hypot(cx - this.x, cy - this.y);
+            const pull = 380 * (1 - Math.min(dist / 4500, 1));
+            const angle = Math.atan2(cy - this.y, cx - this.x);
+            this.vx += Math.cos(angle) * pull;
+            this.vy += Math.sin(angle) * pull;
+          }
+
           this.x += this.vx * dt;
           this.y += this.vy * dt;
 
@@ -996,7 +1017,6 @@
           this.x = Math.max(margin, Math.min(WORLD_SIZE - margin, this.x));
           this.y = Math.max(margin, Math.min(WORLD_SIZE - margin, this.y));
         } else {
-          // 非ホスト端末では、受信したBotやオンラインプレイヤーの座標へスムーズに補間同期
           this.x += (this.targetX - this.x) * 0.25;
           this.y += (this.targetY - this.y) * 0.25;
         }
@@ -1009,10 +1029,12 @@
           if (b.flashTimer > 0) b.flashTimer -= dt;
           if (b.type === 'REGEN') hasRegen = true;
         }
-        if (hasRegen) {
+
+        const regenRate = window.__current_event === 'MEGA_REGEN' ? 90 : (hasRegen ? BLOCK_TYPES.REGEN.regenRate : 0);
+        if (regenRate > 0) {
           for (const b of this.blocks.values()) {
             if (b.hp < b.maxHp) {
-              b.hp = Math.min(b.maxHp, b.hp + BLOCK_TYPES.REGEN.regenRate * dt);
+              b.hp = Math.min(b.maxHp, b.hp + regenRate * dt);
             }
           }
         }
@@ -1053,7 +1075,6 @@
         this.bots = [];
         this.localPlayer = null;
 
-        // マップ拡大に伴い野良ブロック数を増量
         this.maxWildBlocks = 160;
         this.botCount = 10;
 
@@ -1070,8 +1091,8 @@
         this.kills = 0;
         this.lastTime = 0;
 
-        // ランダムイベント管理
-        this.eventTimer = 25.0; // 25秒ごとにイベント抽選
+        // イベント間隔: 5分〜15分 (300秒〜900秒) のランダム抽選
+        this.eventTimer = this.getNextEventInterval();
         this.eventDuration = 0;
         this.currentEvent = null;
         window.__current_event = null;
@@ -1099,6 +1120,11 @@
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this.initFirebase();
+      }
+
+      // 5分(300秒)〜15分(900秒)
+      getNextEventInterval() {
+        return Math.floor(300 + Math.random() * 600);
       }
 
       resize() {
@@ -1157,7 +1183,6 @@
             if (!data) return;
             if (now - (data.updatedAt || 0) > 8000) return;
 
-            // 実プレイヤーの判定
             if (!data.id.startsWith('bot_')) {
               realPlayers.push(data.id);
               if (data.id === this.userId) return;
@@ -1173,9 +1198,7 @@
               remote.isDashing = !!data.dashing;
               this.syncClusterBlocks(remote, data.blocks);
             } else {
-              // 共有Botの同期
               presentBotIds.add(data.id);
-              // 非ホスト端末の場合のみ受信Botを反映（ホスト自身はローカルでAI計算）
               if (!window.__is_host) {
                 let bot = this.bots.find(b => b.id === data.id);
                 if (!bot) {
@@ -1190,18 +1213,15 @@
             }
           });
 
-          // 最古参ホストの選定 (IDソート順で最小のオンラインプレイヤー)
           realPlayers.sort();
           window.__is_host = (realPlayers.length > 0 && realPlayers[0] === this.userId);
 
-          // 切断された他プレイヤーの破棄
           for (const [id] of this.remotePlayers) {
             if (!presentPlayerIds.has(id)) {
               this.remotePlayers.delete(id);
             }
           }
 
-          // 非ホスト時、ホスト側で撃破・消去されたBotを破棄
           if (!window.__is_host) {
             this.bots = this.bots.filter(b => presentBotIds.has(b.id));
           }
@@ -1209,7 +1229,6 @@
           console.warn("Firestore sync warning:", err);
         });
 
-        // 状態送信ループ (150ms)
         this.syncInterval = setInterval(() => {
           this.publishPlayerState(doc, setDoc);
         }, 150);
@@ -1243,7 +1262,6 @@
             await setDoc(userDoc, this.localPlayer.serialize());
           }
 
-          // ホストの場合のみBot群の座標と名前をFirestoreに一括同期
           if (window.__is_host) {
             for (const b of this.bots) {
               if (b.alive) {
@@ -1277,7 +1295,7 @@
           audio.init();
           this.isDashHeld = true;
           dashBtn.classList.add('active');
-          if (this.localPlayer && this.localPlayer.boostEnergy > 10) {
+          if (this.localPlayer && this.localPlayer.boostEnergy > 10 && window.__current_event !== 'EMP_BLAST') {
             this.localPlayer.isDashing = true;
             this.dashBurst();
           }
@@ -1483,7 +1501,6 @@
           this.spawnWildBlock();
         }
 
-        // 初期Bot生成（ホスト判定またはローカル実行時にアクティブ化）
         const botNames = ['Titan', 'Viper', 'Nova', 'Rex', 'Apex', 'Cyber', 'Striker', 'Blitz', 'Vortex', 'Phantom'];
         for (let i = 0; i < this.botCount; i++) {
           this.spawnBot(botNames[i % botNames.length]);
@@ -1518,55 +1535,75 @@
         setTimeout(() => this.killBanner.classList.remove('active'), 2200);
       }
 
-      showEventBanner(title, duration = 3000) {
+      showEventBanner(title, duration = 3500) {
         audio.playEventAlarm();
         this.eventBanner.textContent = title;
         this.eventBanner.classList.add('active');
         setTimeout(() => this.eventBanner.classList.remove('active'), duration);
       }
 
-      // ランダムアリーナイベント処理
       triggerRandomEvent() {
-        const events = ['METEOR_SHOWER', 'MAGNETIC_STORM', 'SPEED_SURGE', 'GOLD_RUSH'];
+        const events = [
+          'METEOR_SHOWER',
+          'MAGNETIC_STORM',
+          'SPEED_SURGE',
+          'GOLD_RUSH',
+          'BLACK_HOLE',
+          'EMP_BLAST',
+          'MEGA_REGEN',
+          'BERSERK_ARENA'
+        ];
         const chosen = events[Math.floor(Math.random() * events.length)];
         this.currentEvent = chosen;
         window.__current_event = chosen;
 
         if (chosen === 'METEOR_SHOWER') {
-          this.eventDuration = 9.0;
-          this.showEventBanner('⚠️ EVENT: 隕石群接近！ 直撃に注意！');
-          // 隕石投下ループ
+          this.eventDuration = 12.0;
+          this.showEventBanner('☄️ EVENT: 隕石群襲来！ 直撃警戒！');
           let count = 0;
           const interval = setInterval(() => {
-            if (count++ > 15 || !this.currentEvent) { clearInterval(interval); return; }
+            if (count++ > 20 || !this.currentEvent) { clearInterval(interval); return; }
             if (this.localPlayer) {
-              const mx = this.localPlayer.x + (Math.random() - 0.5) * 1600;
-              const my = this.localPlayer.y + (Math.random() - 0.5) * 1600;
-              this.shockwaves.push(new Shockwave(mx, my, 20, 180, '#ef4444'));
-              this.createSparks(mx, my, '#f59e0b', 20);
+              const mx = this.localPlayer.x + (Math.random() - 0.5) * 1800;
+              const my = this.localPlayer.y + (Math.random() - 0.5) * 1800;
+              this.shockwaves.push(new Shockwave(mx, my, 25, 200, '#ef4444'));
+              this.createSparks(mx, my, '#f59e0b', 24);
               audio.playDetonate();
-              // 落下地点にレアブロック生成
               this.spawnWildBlock(mx, my, getRandomBlockType(), 0, 0, 0.4);
             }
-          }, 500);
+          }, 450);
 
         } else if (chosen === 'MAGNETIC_STORM') {
-          this.eventDuration = 12.0;
-          this.showEventBanner('⚡ EVENT: 磁気嵐発生！ ブロック超吸引！');
+          this.eventDuration = 15.0;
+          this.showEventBanner('🧲 EVENT: 超磁気嵐発生！ ブロック極大吸引！');
         } else if (chosen === 'SPEED_SURGE') {
-          this.eventDuration = 10.0;
-          this.showEventBanner('🚀 EVENT: ハイパースピード！ 全員加速！');
+          this.eventDuration = 14.0;
+          this.showEventBanner('🚀 EVENT: オーバードライブ！ 移動速度+50%！');
         } else if (chosen === 'GOLD_RUSH') {
-          this.eventDuration = 8.0;
-          this.showEventBanner('💎 EVENT: レアブロック大量投下！');
-          const rares = ['SPIKE', 'BOMB', 'ARMOR', 'ANVIL', 'THUNDER'];
-          for (let i = 0; i < 25; i++) {
+          this.eventDuration = 10.0;
+          this.showEventBanner('💎 EVENT: ゴールドラッシュ！ レアブロック大量投下！');
+          const rares = ['SPIKE', 'BOMB', 'ARMOR', 'ANVIL', 'THUNDER', 'CRYO'];
+          for (let i = 0; i < 35; i++) {
             if (this.localPlayer) {
-              const rx = this.localPlayer.x + (Math.random() - 0.5) * 2000;
-              const ry = this.localPlayer.y + (Math.random() - 0.5) * 2000;
+              const rx = this.localPlayer.x + (Math.random() - 0.5) * 2200;
+              const ry = this.localPlayer.y + (Math.random() - 0.5) * 2200;
               this.spawnWildBlock(rx, ry, rares[Math.floor(Math.random() * rares.length)], 0, 0, 0);
             }
           }
+        } else if (chosen === 'BLACK_HOLE') {
+          this.eventDuration = 14.0;
+          this.showEventBanner('🌀 EVENT: 特異点発生！ マップ中央へ重力崩壊！');
+          this.shockwaves.push(new Shockwave(WORLD_SIZE / 2, WORLD_SIZE / 2, 80, 500, '#a855f7'));
+        } else if (chosen === 'EMP_BLAST') {
+          this.eventDuration = 10.0;
+          this.showEventBanner('⚡ EVENT: EMPブラスト！ ブースト回路ショート！');
+          if (this.localPlayer) this.localPlayer.boostEnergy = 0;
+        } else if (chosen === 'MEGA_REGEN') {
+          this.eventDuration = 14.0;
+          this.showEventBanner('🧪 EVENT: ナノマシン共鳴！ 超高速自己修復！');
+        } else if (chosen === 'BERSERK_ARENA') {
+          this.eventDuration = 14.0;
+          this.showEventBanner('⚔️ EVENT: バーサク状態！ 衝突ダメージ2.5倍！');
         }
       }
 
@@ -1576,7 +1613,7 @@
         for (const b of this.bots) if (b.alive) allClusters.push(b);
         for (const r of this.remotePlayers.values()) if (r.alive) allClusters.push(r);
 
-        // 1. MAGNET: 吸引
+        // 1. MAGNET
         for (const cluster of allClusters) {
           const mRange = cluster.magnetRange;
           if (mRange > 0) {
@@ -1585,8 +1622,8 @@
               const d = Math.hypot(wild.x - cluster.x, wild.y - cluster.y);
               if (d < mRange) {
                 const angle = Math.atan2(cluster.y - wild.y, cluster.x - wild.x);
-                wild.vx += Math.cos(angle) * 480 * (1 - d / mRange);
-                wild.vy += Math.sin(angle) * 480 * (1 - d / mRange);
+                wild.vx += Math.cos(angle) * 500 * (1 - d / mRange);
+                wild.vy += Math.sin(angle) * 500 * (1 - d / mRange);
               }
             }
           }
@@ -1656,6 +1693,8 @@
         let clashMidX = (cA.x + cB.x) / 2;
         let clashMidY = (cA.y + cB.y) / 2;
 
+        const berserkMultiplier = window.__current_event === 'BERSERK_ARENA' ? 2.5 : 1.0;
+
         for (const [keyA, blkA] of cA.blocks.entries()) {
           const ax = cA.x + blkA.gx * GRID_SIZE;
           const ay = cA.y + blkA.gy * GRID_SIZE;
@@ -1691,8 +1730,8 @@
               if (blkA.type === 'THUNDER') this.triggerChainLightning(ax, ay, cB);
               if (blkB.type === 'THUNDER') this.triggerChainLightning(bx, by, cA);
 
-              let dmgAtoB = defA.damage * (cA.isDashing ? 1.5 : 1.0);
-              let dmgBtoA = defB.damage * (cB.isDashing ? 1.5 : 1.0);
+              let dmgAtoB = defA.damage * (cA.isDashing ? 1.5 : 1.0) * berserkMultiplier;
+              let dmgBtoA = defB.damage * (cB.isDashing ? 1.5 : 1.0) * berserkMultiplier;
 
               blkA.hp -= dmgBtoA;
               blkB.hp -= dmgAtoB;
@@ -1989,10 +2028,9 @@
       }
 
       update(dt) {
-        // イベントタイマー更新
         this.eventTimer -= dt;
         if (this.eventTimer <= 0) {
-          this.eventTimer = 35.0; // 次回イベントまで35秒
+          this.eventTimer = this.getNextEventInterval();
           this.triggerRandomEvent();
         }
 
