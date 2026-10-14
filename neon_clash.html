@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>NEON CLASH - 超速陣取り＆お邪魔バトル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff007f;
+      --neon-yellow: #ffe600;
+      --neon-purple: #b537f2;
+      --bg-dark: #070814;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+    }
+
+    .font-cyber {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* Cyber Grid Background */
+    .cyber-bg {
+      background-color: #070814;
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 243, 255, 0.14) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(255, 0, 127, 0.14) 0%, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+    }
+
+    /* Neon Text & Box Glows */
+    .glow-cyan {
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+    .glow-pink {
+      text-shadow: 0 0 10px rgba(255, 0, 127, 0.8), 0 0 20px rgba(255, 0, 127, 0.4);
+    }
+    .glow-yellow {
+      text-shadow: 0 0 10px rgba(255, 230, 0, 0.9), 0 0 22px rgba(255, 165, 0, 0.6);
+    }
+
+    .box-glow-cyan {
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.35), inset 0 0 12px rgba(0, 243, 255, 0.2);
+    }
+    .box-glow-pink {
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.35), inset 0 0 12px rgba(255, 0, 127, 0.2);
+    }
+
+    /* 5x5 Neon Panel Styles */
+    .neon-tile {
+      position: relative;
+      border-radius: 0.75rem;
+      transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      background: rgba(20, 24, 48, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .neon-tile:active {
+      transform: scale(0.88);
+    }
+
+    .neon-tile.tile-p1 {
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.38), rgba(0, 140, 255, 0.75));
+      border-color: #00f3ff;
+      box-shadow: 0 0 14px rgba(0, 243, 255, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.45);
+    }
+
+    .neon-tile.tile-p2 {
+      background: linear-gradient(135deg, rgba(255, 0, 127, 0.38), rgba(210, 0, 255, 0.75));
+      border-color: #ff007f;
+      box-shadow: 0 0 14px rgba(255, 0, 127, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.45);
+    }
+
+    .neon-tile.tile-pop {
+      animation: tilePop 0.22s ease-out;
+    }
+
+    @keyframes tilePop {
+      0% { transform: scale(0.82); }
+      60% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* Fever Time Border Animation */
+    .fever-frame {
+      animation: feverPulse 0.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes feverPulse {
+      0% {
+        box-shadow: inset 0 0 18px rgba(255, 230, 0, 0.45), 0 0 18px rgba(255, 0, 127, 0.45);
+        border-color: #ffe600;
+      }
+      100% {
+        box-shadow: inset 0 0 32px rgba(0, 243, 255, 0.65), 0 0 32px rgba(255, 230, 0, 0.75);
+        border-color: #00f3ff;
+      }
+    }
+
+    /* Screen Shake Effect */
+    .shake-screen {
+      animation: screenShake 0.32s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes screenShake {
+      10%, 90% { transform: translate3d(-3px, 1px, 0); }
+      20%, 80% { transform: translate3d(4px, -2px, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 2px, 0); }
+      40%, 60% { transform: translate3d(6px, -1px, 0); }
+    }
+
+    /* Floating Emote & Score Text */
+    @keyframes floatUpFade {
+      0% { opacity: 1; transform: translateY(0) scale(0.8); }
+      30% { opacity: 1; transform: translateY(-14px) scale(1.1); }
+      100% { opacity: 0; transform: translateY(-42px) scale(0.95); }
+    }
+
+    .floating-pop {
+      animation: floatUpFade 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes emoteBounce {
+      0% { opacity: 0; transform: scale(0.3) translateY(20px); }
+      20% { opacity: 1; transform: scale(1.12) translateY(0); }
+      30% { transform: scale(0.95); }
+      40% { transform: scale(1.02); }
+      85% { opacity: 1; transform: scale(1) translateY(0); }
+      100% { opacity: 0; transform: scale(0.8) translateY(-15px); }
+    }
+
+    .emote-toast {
+      animation: emoteBounce 2.2s ease-out forwards;
+    }
+
+    /* Freeze Overlay Crystal Effect */
+    .ice-overlay {
+      background: radial-gradient(circle, rgba(165, 243, 252, 0.45) 0%, rgba(6, 182, 212, 0.82) 100%);
+      backdrop-filter: blur(4px);
+      border: 3px solid #cffafe;
+      box-shadow: inset 0 0 30px #22d3ee, 0 0 25px rgba(6, 182, 212, 0.8);
+    }
+
+    /* Custom Scrollbar for Modals */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.4);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+
+<body class="cyber-bg flex justify-center items-center w-full h-[100dvh] overflow-hidden select-none">
+
+  <!-- Particle Effects Canvas Overlay -->
+  <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-40 w-full h-full"></canvas>
+
+  <!-- Main Mobile Cabinet Container -->
+  <div id="appContainer" class="relative w-full max-w-[440px] h-[100dvh] flex flex-col justify-between px-3 py-2.5 overflow-hidden border-x border-slate-800/80 bg-slate-950/60 backdrop-blur-sm">
+
+    <!-- Top Status & Audio Header -->
+    <header class="flex items-center justify-between z-30 shrink-0 pb-1.5 border-b border-slate-800/80">
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" id="connectionDot"></div>
+        <span class="font-cyber text-sm font-black tracking-wider bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-yellow-300 bg-clip-text text-transparent">
+          NEON CLASH
+        </span>
+        <span id="modeBadge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-cyan-500/30">
+          ONLINE READY
+        </span>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button id="btnRanking" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:scale-95 border border-yellow-400/40 text-xs font-bold text-yellow-300 flex items-center gap-1 transition">
+          <span>🏆</span>
+          <span>ランキング</span>
+        </button>
+        <button id="btnSoundToggle" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:scale-95 border border-cyan-400/40 text-xs font-bold text-cyan-300 flex items-center gap-1 transition" aria-label="サウンド切替">
+          <span id="soundIcon">🔊</span>
+          <span id="soundLabel">ON</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Floating Emote Display Layer -->
+    <div id="emoteLayer" class="pointer-events-none fixed inset-x-0 top-14 z-50 flex flex-col items-center gap-1.5 px-4"></div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toastBanner" class="hidden fixed top-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-cyan-400 text-cyan-200 text-xs font-bold shadow-lg whitespace-nowrap">
+      通知メッセージ
+    </div>
+
+    <!-- ==================== SCREEN 1: LOBBY SCREEN ==================== -->
+    <section id="screenLobby" class="flex-1 flex flex-col justify-between py-2 overflow-y-auto z-20 space-y-2.5">
+      
+      <!-- Hero Title Banner -->
+      <div class="text-center py-2 px-3 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 relative overflow-hidden">
+        <div class="text-[10px] font-cyber tracking-widest text-cyan-400 uppercase">30 SEC REALTIME PANEL BATTLE</div>
+        <h1 class="font-cyber text-3xl font-black tracking-tight mt-0.5">
+          <span class="text-cyan-400 glow-cyan">NEON</span>
+          <span class="text-fuchsia-500 glow-pink">CLASH</span>
+        </h1>
+        <p class="text-xs text-slate-300 mt-0.5">超速タップ陣取り＆必殺お邪魔アタック！</p>
+      </div>
+
+      <!-- Player Profile Card (Nickname & Avatar) -->
+      <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-inner">
+        <div class="flex items-center justify-between">
+          <label for="inputNickname" class="text-xs font-bold text-cyan-300 flex items-center gap-1">
+            <span>👤 プレイヤー設定</span>
+          </label>
+          <span id="myStatsBadge" class="text-[11px] font-bold text-yellow-300 bg-yellow-500/10 border border-yellow-400/30 px-2 py-0.5 rounded-full">
+            🏅 0勝 / HIGH: 0pt
+          </span>
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <div id="selectedAvatarPreview" class="w-11 h-11 rounded-xl bg-slate-800 border-2 border-cyan-400 flex items-center justify-center text-2xl shrink-0 shadow-md">
+            🔥
+          </div>
+          <input
+            id="inputNickname"
+            type="text"
+            maxlength="10"
+            placeholder="ニックネーム (最大10文字)"
+            value="ネオンファイター"
+            class="w-full bg-slate-950/90 border border-slate-700 focus:border-cyan-400 rounded-xl px-3 py-2 text-sm font-bold text-white outline-none transition"
+            style="user-select: text; -webkit-user-select: text;"
+          />
+        </div>
+
+        <!-- Avatar Picker Grid -->
+        <div>
+          <div class="text-[11px] text-slate-400 mb-1">アバターアイコンを選択:</div>
+          <div id="avatarGrid" class="grid grid-cols-8 gap-1.5">
+            <!-- Populated by JS: 🔥, ⚡, 🐉, 👾, 🦊, 👑, 💎, 🚀 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Matchmaking Buttons -->
+      <div class="space-y-2">
+        <!-- Quick Match Button -->
+        <button id="btnQuickMatch" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:brightness-110 active:scale-[0.98] border border-cyan-300/60 box-glow-cyan flex items-center justify-between transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl group-hover:scale-110 transition">⚡</span>
+            <div class="text-left">
+              <div class="text-base font-black text-white tracking-wide">クイックマッチ</div>
+              <div class="text-[11px] text-cyan-100/90">全国のプレイヤーと即リアルタイム対戦！</div>
+            </div>
+          </div>
+          <span class="font-cyber text-xs font-bold bg-black/30 px-2.5 py-1 rounded-lg text-cyan-200 border border-cyan-300/30">JOIN ▶</span>
+        </button>
+
+        <!-- Friend Match (4-digit Room Code) Card -->
+        <div class="bg-slate-900/90 border border-fuchsia-500/40 rounded-2xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-fuchsia-300 flex items-center gap-1">
+              <span>🔑 フレンド対戦（4桁ルームコード）</span>
+            </span>
+            <span class="text-[10px] text-slate-400">友達と番号を共有してバトル</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnCreateRoom" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:brightness-110 active:scale-95 border border-pink-300/50 text-xs font-black text-white flex items-center justify-center gap-1.5 shadow-md">
+              <span>🏠</span>
+              <span>部屋を作る</span>
+            </button>
+
+            <div class="flex gap-1">
+              <input
+                id="inputRoomCode"
+                type="tel"
+                inputmode="numeric"
+                maxlength="4"
+                placeholder="4桁番号"
+                class="w-full bg-slate-950 border border-fuchsia-500/50 focus:border-fuchsia-400 rounded-xl px-2.5 py-2 text-center font-cyber text-sm font-bold text-fuchsia-200 tracking-widest outline-none"
+                style="user-select: text; -webkit-user-select: text;"
+              />
+              <button id="btnJoinRoomCode" class="px-3 rounded-xl bg-fuchsia-500/20 hover:bg-fuchsia-500/40 active:scale-95 border border-fuchsia-400 text-xs font-black text-fuchsia-200 shrink-0">
+                入室
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instant CPU Battle Button -->
+        <button id="btnCpuMatchLobby" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500/90 to-orange-600/90 hover:brightness-110 active:scale-[0.98] border border-yellow-300/60 flex items-center justify-between transition shadow-lg">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🤖</span>
+            <div class="text-left">
+              <div class="text-sm font-black text-white">CPUと今すぐバトル（ソロ練習＆体験）</div>
+              <div class="text-[11px] text-amber-100">待ち時間ゼロ！全ギミック＆必殺スキルを即体験</div>
+            </div>
+          </div>
+          <span class="font-cyber text-xs font-bold bg-black/30 px-2.5 py-1 rounded-lg text-yellow-200">START ▶</span>
+        </button>
+      </div>
+
+      <!-- How to Play Mini Guide & User ID Footer -->
+      <div class="bg-slate-900/60 border border-slate-800/90 rounded-xl p-2.5 text-[11px] text-slate-300 space-y-1">
+        <div class="font-bold text-cyan-300 flex items-center justify-between">
+          <span>💡 ルール（30秒間の超速パネル奪い合い！）</span>
+          <span class="text-[10px] text-yellow-300">ラスト10秒は得点2倍🔥</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 text-[10px] pt-0.5">
+          <div class="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+            <span class="text-cyan-300 font-bold">💥クロスボム</span><br/>十字を一気に塗る
+          </div>
+          <div class="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+            <span class="text-cyan-200 font-bold">❄️フリーズ</span><br/>相手画面を氷漬け
+          </div>
+          <div class="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+            <span class="text-yellow-300 font-bold">⚡ハイパー</span><br/>5秒間周囲も塗る
+          </div>
+        </div>
+        <div class="pt-1 text-[10px] text-slate-500 flex items-center justify-between gap-2 border-t border-slate-800/80">
+          <span class="shrink-0">Player ID:</span>
+          <code id="displayUserId" class="font-mono text-[9px] text-slate-400 truncate select-all">Connecting...</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: WAITING ROOM SCREEN ==================== -->
+    <section id="screenWaiting" class="hidden flex-1 flex flex-col justify-between py-3 z-20">
+      <div class="text-center space-y-1">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-xs font-bold">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span id="waitingStatusText">対戦相手を待っています...</span>
+        </div>
+        <h2 class="font-cyber text-xl font-black text-white pt-1">MATCHING LOBBY</h2>
+      </div>
+
+      <!-- 4-Digit Room Code Card -->
+      <div class="bg-slate-900/90 border-2 border-fuchsia-500/60 rounded-2xl p-4 text-center space-y-2 box-glow-pink">
+        <div class="text-xs font-bold text-fuchsia-300">ルームコード（友達にシェア！）</div>
+        <div id="waitingRoomCodeDisplay" class="font-cyber text-4xl font-black tracking-[0.25em] text-white glow-pink py-1">
+          ----
+        </div>
+        <div class="flex justify-center gap-2">
+          <button id="btnCopyRoomCode" class="px-4 py-1.5 rounded-xl bg-fuchsia-600/40 hover:bg-fuchsia-600/60 active:scale-95 border border-fuchsia-400 text-xs font-bold text-white flex items-center gap-1.5">
+            <span>📋</span>
+            <span>コードをコピー</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VS Player Slots -->
+      <div class="grid grid-cols-2 gap-3 items-center my-2">
+        <!-- Player 1 Slot -->
+        <div class="bg-slate-900/90 border-2 border-cyan-400 rounded-2xl p-3 text-center space-y-1.5 box-glow-cyan">
+          <div class="text-[10px] font-cyber font-bold text-cyan-300">1P (CYAN)</div>
+          <div id="waitP1Avatar" class="text-4xl my-1">🔥</div>
+          <div id="waitP1Name" class="text-sm font-black text-white truncate">プレイヤー1</div>
+          <div class="text-[10px] bg-cyan-500/20 text-cyan-300 py-0.5 rounded-full font-bold">READY!</div>
+        </div>
+
+        <!-- Player 2 Slot -->
+        <div id="waitP2Card" class="bg-slate-900/60 border-2 border-dashed border-slate-700 rounded-2xl p-3 text-center space-y-1.5 transition">
+          <div class="text-[10px] font-cyber font-bold text-pink-400">2P (PINK)</div>
+          <div id="waitP2Avatar" class="text-4xl my-1 animate-pulse">❓</div>
+          <div id="waitP2Name" class="text-sm font-black text-slate-400 truncate">待機中...</div>
+          <div id="waitP2Badge" class="text-[10px] bg-slate-800 text-slate-400 py-0.5 rounded-full font-bold">SEARCHING</div>
+        </div>
+      </div>
+
+      <!-- Lobby Emote Bar -->
+      <div class="space-y-1.5">
+        <div class="text-center text-[11px] text-slate-400">スタンプを送って盛り上がろう！</div>
+        <div class="grid grid-cols-4 gap-1.5" id="waitingEmoteBar">
+          <button data-emote="よろしく🔥" class="emote-btn py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-90 border border-slate-700 text-xs font-bold">よろしく🔥</button>
+          <button data-emote="カモン⚡" class="emote-btn py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-90 border border-slate-700 text-xs font-bold">カモン⚡</button>
+          <button data-emote="ドキドキ💦" class="emote-btn py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-90 border border-slate-700 text-xs font-bold">ドキドキ💦</button>
+          <button data-emote="絶対勝つ👑" class="emote-btn py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-90 border border-slate-700 text-xs font-bold">絶対勝つ👑</button>
+        </div>
+      </div>
+
+      <!-- Instant CPU Switch & Cancel Buttons -->
+      <div class="space-y-2 pt-1">
+        <button id="btnStartCpuFromWait" class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:brightness-110 active:scale-95 border border-yellow-300 font-black text-sm text-white shadow-lg flex items-center justify-center gap-2">
+          <span>🤖</span>
+          <span>待たずにCPUと今すぐバトル開始！</span>
+        </button>
+        <button id="btnLeaveWaiting" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-700 text-xs font-bold text-slate-300">
+          ロビーに戻る
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 3: BATTLE SCREEN ==================== -->
+    <section id="screenBattle" class="hidden flex-1 flex flex-col justify-between py-1 z-20 relative">
+
+      <!-- Top HUD: Players Score, Territory Bar, and Timer -->
+      <div class="space-y-1.5 shrink-0">
+        <div class="grid grid-cols-3 items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl p-2">
+          
+          <!-- 1P Score Box (Cyan) -->
+          <div id="hudP1Box" class="flex items-center gap-1.5 p-1.5 rounded-xl bg-cyan-950/50 border border-cyan-500/50">
+            <div id="battleP1Avatar" class="text-2xl shrink-0">🔥</div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <span class="text-[9px] font-cyber font-bold px-1 rounded bg-cyan-500 text-slate-950">1P</span>
+                <span id="battleP1Name" class="text-[11px] font-bold text-cyan-200 truncate">P1</span>
+              </div>
+              <div class="flex items-baseline gap-1">
+                <span id="battleP1Score" class="font-cyber text-lg font-black text-cyan-300 leading-none">0</span>
+                <span class="text-[9px] text-cyan-400">pt</span>
+                <span id="battleP1Tiles" class="ml-auto text-[10px] font-bold text-white bg-cyan-500/30 px-1 rounded">0枚</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center Countdown Timer -->
+          <div class="flex flex-col items-center justify-center">
+            <div id="feverBadge" class="hidden text-[9px] font-cyber font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 text-slate-950 animate-bounce">
+              2x FEVER!!
+            </div>
+            <div id="timerDisplay" class="font-cyber text-3xl font-black text-white tracking-tight leading-none">
+              30.0
+            </div>
+            <div id="comboBadge" class="text-[10px] font-cyber font-bold text-yellow-300 h-3.5">
+              READY
+            </div>
+          </div>
+
+          <!-- 2P Score Box (Pink) -->
+          <div id="hudP2Box" class="flex items-center gap-1.5 p-1.5 rounded-xl bg-pink-950/50 border border-pink-500/50 flex-row-reverse text-right">
+            <div id="battleP2Avatar" class="text-2xl shrink-0">👾</div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-end gap-1">
+                <span id="battleP2Name" class="text-[11px] font-bold text-pink-200 truncate">P2</span>
+                <span class="text-[9px] font-cyber font-bold px-1 rounded bg-pink-500 text-white">2P</span>
+              </div>
+              <div class="flex items-baseline justify-end gap-1">
+                <span id="battleP2Tiles" class="mr-auto text-[10px] font-bold text-white bg-pink-500/30 px-1 rounded">0枚</span>
+                <span id="battleP2Score" class="font-cyber text-lg font-black text-pink-300 leading-none">0</span>
+                <span class="text-[9px] text-pink-400">pt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Territory Tug-of-War Bar -->
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden flex border border-slate-700 p-0.5 gap-0.5">
+          <div id="barP1" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-l-full transition-all duration-150" style="width: 50%"></div>
+          <div id="barP2" class="h-full bg-gradient-to-l from-pink-500 to-fuchsia-600 rounded-r-full transition-all duration-150" style="width: 50%"></div>
+        </div>
+      </div>
+
+      <!-- Active Status Banner (Hyper Fever / Event Indicator) -->
+      <div class="flex items-center justify-between px-1 text-[11px] font-bold h-5 shrink-0">
+        <div id="myRoleIndicator" class="text-cyan-300 flex items-center gap-1">
+          <span>あなた: 1P (シアン)</span>
+        </div>
+        <div id="activeBuffIndicator" class="hidden text-yellow-300 animate-pulse font-cyber">
+          ⚡ HYPER FEVER ACTIVE!
+        </div>
+      </div>
+
+      <!-- 5x5 Neon Panel Board Container -->
+      <div id="boardFrame" class="relative w-full aspect-square max-h-[45dvh] mx-auto p-2.5 rounded-3xl bg-slate-900/90 border-2 border-slate-700/90 shadow-2xl flex items-center justify-center">
+        
+        <!-- 5x5 Grid -->
+        <div id="boardGrid" class="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full">
+          <!-- 25 Neon Tiles dynamically generated by JS -->
+        </div>
+
+        <!-- Ice Freeze Sabotage Overlay (Shown when hit by opponent's Freeze skill) -->
+        <div id="freezeOverlay" class="hidden absolute inset-1.5 z-30 rounded-2xl ice-overlay flex flex-col items-center justify-center p-4 text-center cursor-pointer">
+          <div class="text-5xl animate-bounce mb-1">❄️</div>
+          <div class="font-cyber text-lg font-black text-white drop-shadow">FROZEN!!</div>
+          <div class="text-xs font-bold text-cyan-950 bg-white/90 px-3 py-1 rounded-full mt-1 shadow">
+            連打して氷を割れ！ 残り <span id="freezeTapCount" class="text-base font-black text-rose-600">3</span> 回
+          </div>
+        </div>
+
+        <!-- Countdown Overlay (3, 2, 1, CLASH!!) -->
+        <div id="countdownOverlay" class="hidden absolute inset-0 z-30 rounded-3xl bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center">
+          <div class="text-xs font-cyber text-cyan-300 tracking-widest mb-1">GET READY TO TAP</div>
+          <div id="countdownNumber" class="font-cyber text-6xl font-black text-yellow-300 glow-yellow">3</div>
+        </div>
+      </div>
+
+      <!-- Special Sabotage Skills & Gauge Section -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-2 space-y-1.5 shrink-0">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="font-bold text-yellow-300 flex items-center gap-1">
+            <span>⚡ 必殺スキルゲージ</span>
+          </span>
+          <span id="skillGaugeText" class="font-cyber font-bold text-cyan-300">0%</span>
+        </div>
+
+        <!-- Gauge Bar -->
+        <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700">
+          <div id="skillGaugeFill" class="h-full bg-gradient-to-r from-cyan-400 via-yellow-400 to-fuchsia-500 transition-all duration-100" style="width: 0%"></div>
+        </div>
+
+        <!-- 3 Skill Buttons -->
+        <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+          <button id="btnSkillCross" disabled class="skill-btn py-2 px-1.5 rounded-xl bg-slate-800/90 border border-slate-700 opacity-50 flex flex-col items-center justify-center transition active:scale-95">
+            <div class="text-base leading-none">💥 クロスボム</div>
+            <div class="text-[10px] text-cyan-300 font-bold mt-0.5">十字塗り [40%]</div>
+          </button>
+
+          <button id="btnSkillFreeze" disabled class="skill-btn py-2 px-1.5 rounded-xl bg-slate-800/90 border border-slate-700 opacity-50 flex flex-col items-center justify-center transition active:scale-95">
+            <div class="text-base leading-none">❄️ フリーズ</div>
+            <div class="text-[10px] text-cyan-200 font-bold mt-0.5">氷漬け妨害 [60%]</div>
+          </button>
+
+          <button id="btnSkillHyper" disabled class="skill-btn py-2 px-1.5 rounded-xl bg-slate-800/90 border border-slate-700 opacity-50 flex flex-col items-center justify-center transition active:scale-95">
+            <div class="text-base leading-none">⚡ ハイパー</div>
+            <div class="text-[10px] text-yellow-300 font-bold mt-0.5">周囲塗り5秒 [80%]</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- In-Match Realtime Stamp Bar -->
+      <div class="grid grid-cols-4 gap-1.5 shrink-0">
+        <button data-emote="よろしく🔥" class="emote-btn py-1.5 rounded-xl bg-slate-900/90 active:scale-90 border border-slate-800 text-[11px] font-bold text-slate-200">よろしく🔥</button>
+        <button data-emote="やばい💦" class="emote-btn py-1.5 rounded-xl bg-slate-900/90 active:scale-90 border border-slate-800 text-[11px] font-bold text-slate-200">やばい💦</button>
+        <button data-emote="ドーン💥" class="emote-btn py-1.5 rounded-xl bg-slate-900/90 active:scale-90 border border-slate-800 text-[11px] font-bold text-slate-200">ドーン💥</button>
+        <button data-emote="GG👏" class="emote-btn py-1.5 rounded-xl bg-slate-900/90 active:scale-90 border border-slate-800 text-[11px] font-bold text-slate-200">GG👏</button>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 4: RESULT SCREEN ==================== -->
+    <section id="screenResult" class="hidden flex-1 flex flex-col justify-between py-2.5 z-20 overflow-y-auto">
+      <div class="text-center space-y-1">
+        <div class="text-xs font-cyber tracking-widest text-slate-400">BATTLE FINISHED</div>
+        <h2 id="resultHeadline" class="font-cyber text-4xl font-black text-yellow-300 glow-yellow">
+          YOU WIN!!
+        </h2>
+        <p id="resultSubtext" class="text-xs text-slate-300">華麗なネオン制圧！パネルボーナス加算完了！</p>
+      </div>
+
+      <!-- Final Score Comparison Cards -->
+      <div class="grid grid-cols-2 gap-2.5 my-2">
+        <!-- 1P Result Card -->
+        <div id="resultCardP1" class="bg-slate-900/90 border-2 border-cyan-400 rounded-2xl p-3 text-center space-y-1 relative">
+          <div id="resultCrownP1" class="hidden absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">👑</div>
+          <div class="text-[10px] font-cyber font-bold text-cyan-300">1P (CYAN)</div>
+          <div id="resP1Avatar" class="text-3xl">🔥</div>
+          <div id="resP1Name" class="text-xs font-black text-white truncate">P1</div>
+          <div id="resP1Total" class="font-cyber text-2xl font-black text-cyan-300">0</div>
+          <div id="resP1Breakdown" class="text-[10px] text-slate-400">パネル0枚 (+0pt)</div>
+        </div>
+
+        <!-- 2P Result Card -->
+        <div id="resultCardP2" class="bg-slate-900/90 border-2 border-pink-500 rounded-2xl p-3 text-center space-y-1 relative">
+          <div id="resultCrownP2" class="hidden absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">👑</div>
+          <div class="text-[10px] font-cyber font-bold text-pink-400">2P (PINK)</div>
+          <div id="resP2Avatar" class="text-3xl">👾</div>
+          <div id="resP2Name" class="text-xs font-black text-white truncate">P2</div>
+          <div id="resP2Total" class="font-cyber text-2xl font-black text-pink-300">0</div>
+          <div id="resP2Breakdown" class="text-[10px] text-slate-400">パネル0枚 (+0pt)</div>
+        </div>
+      </div>
+
+      <!-- Post-match Stamp Bar -->
+      <div class="space-y-1">
+        <div class="text-center text-[11px] text-slate-400">対戦相手にスタンプを送る</div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button data-emote="GG👏" class="emote-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold active:scale-90">GG👏</button>
+          <button data-emote="もう一回🙌" class="emote-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold active:scale-90">もう一回🙌</button>
+          <button data-emote="強い👑" class="emote-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold active:scale-90">強い👑</button>
+          <button data-emote="ありがとう✨" class="emote-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold active:scale-90">ありがとう✨</button>
+        </div>
+      </div>
+
+      <!-- Rematch & Navigation Actions -->
+      <div class="space-y-2 pt-2">
+        <div id="rematchStatusBanner" class="hidden text-center text-xs font-bold text-yellow-300 bg-yellow-500/15 border border-yellow-400/40 py-1.5 rounded-xl animate-pulse">
+          相手が「もう一回！」を希望しています！
+        </div>
+
+        <button id="btnRematch" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-600 hover:brightness-110 active:scale-95 border border-cyan-300 font-black text-base text-white shadow-lg flex items-center justify-center gap-2">
+          <span>🔥</span>
+          <span id="btnRematchLabel">もう一回バトル！（再戦）</span>
+        </button>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnResultRanking" class="py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-yellow-400/40 text-xs font-bold text-yellow-300">
+            🏆 ランキングを見る
+          </button>
+          <button id="btnBackToLobby" class="py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-700 text-xs font-bold text-slate-300">
+            🏠 ロビーへ戻る
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MODAL: ONLINE LEADERBOARD ==================== -->
+    <div id="modalRanking" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="w-full max-w-[400px] bg-slate-900 border-2 border-yellow-400/60 rounded-3xl p-4 flex flex-col max-h-[82dvh] shadow-2xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🏆</span>
+            <div>
+              <h3 class="font-cyber text-base font-black text-yellow-300">ONLINE RANKING</h3>
+              <p class="text-[10px] text-slate-400">世界のプレイヤー勝利数＆ハイスコア</p>
+            </div>
+          </div>
+          <button id="btnCloseRanking" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-bold text-sm active:scale-90">✕</button>
+        </div>
+
+        <div id="rankingListContainer" class="flex-1 overflow-y-auto py-3 space-y-2">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-800 text-center">
+          <button id="btnCloseRankingBottom" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white">
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ============================================================================
+    // 1. WEB AUDIO API SYNTHESIZER (No external audio files required)
+    // ============================================================================
+    class NeonSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.bgmTimer = null;
+        this.bgmStep = 0;
+        this.isFever = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        if (!this.enabled) {
+          this.stopBGM();
+        }
+        return this.enabled;
+      }
+
+      playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.12, slideTo = null) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideTo) {
+          osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+        }
+
+        gain.gain.setValueAtTime(gainVal, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      playTap(combo = 1) {
+        const baseFreq = 360 + Math.min(combo * 32, 520);
+        this.playTone(baseFreq, 'triangle', 0.09, 0.14, baseFreq * 1.35);
+      }
+
+      playBomb() {
+        this.playTone(180, 'sawtooth', 0.28, 0.2, 42);
+        setTimeout(() => this.playTone(320, 'square', 0.18, 0.14, 90), 50);
+      }
+
+      playStar() {
+        this.playTone(587.33, 'sine', 0.1, 0.15);
+        setTimeout(() => this.playTone(880, 'sine', 0.18, 0.16), 70);
+      }
+
+      playFreeze() {
+        this.playTone(1200, 'sawtooth', 0.15, 0.12, 420);
+        setTimeout(() => this.playTone(920, 'triangle', 0.2, 0.14, 300), 80);
+      }
+
+      playHyper() {
+        [440, 554, 659, 880].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'square', 0.12, 0.12), idx * 45);
+        });
+      }
+
+      playEmote() {
+        this.playTone(520, 'sine', 0.08, 0.1, 780);
+      }
+
+      playCountdown(isGo = false) {
+        if (isGo) {
+          this.playTone(880, 'square', 0.3, 0.18, 1320);
+        } else {
+          this.playTone(440, 'sine', 0.15, 0.14);
+        }
+      }
+
+      playWin() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 'triangle', 0.22, 0.16), i * 110);
+        });
+      }
+
+      playLose() {
+        const notes = [392.0, 349.23, 329.63, 261.63];
+        notes.forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 'sawtooth', 0.25, 0.12), i * 130);
+        });
+      }
+
+      startBGM(fever = false) {
+        this.stopBGM();
+        this.isFever = fever;
+        if (!this.enabled) return;
+        this.init();
+
+        const bassNotes = fever
+          ? [146.83, 174.61, 196.0, 220.0, 293.66, 220.0, 196.0, 174.61]
+          : [110.0, 110.0, 130.81, 146.83, 110.0, 110.0, 164.81, 146.83];
+        const intervalMs = fever ? 135 : 195;
+
+        this.bgmStep = 0;
+        this.bgmTimer = setInterval(() => {
+          if (!this.enabled) return;
+          const note = bassNotes[this.bgmStep % bassNotes.length];
+          this.playTone(note, 'triangle', 0.11, 0.045);
+          if (this.bgmStep % 2 === 0 && this.isFever) {
+            this.playTone(note * 2, 'sine', 0.07, 0.03);
+          }
+          this.bgmStep++;
+        }, intervalMs);
+      }
+
+      stopBGM() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      }
+    }
+
+    const sound = new NeonSoundEngine();
+
+    // ============================================================================
+    // 2. PARTICLE ENGINE (Canvas 2D)
+    // ============================================================================
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function spawnParticles(x, y, color = '#00f3ff', count = 16) {
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const speed = 2 + Math.random() * 6.5;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 3 + Math.random() * 4,
+          color,
+          alpha: 1,
+          decay: 0.025 + Math.random() * 0.02
+        });
+      }
+    }
+
+    function spawnFloatingText(x, y, text, colorClass = 'text-cyan-300') {
+      const el = document.createElement('div');
+      el.className = `fixed z-50 font-cyber font-black text-sm floating-pop ${colorClass} drop-shadow`;
+      el.style.left = `${x - 20}px`;
+      el.style.top = `${y - 16}px`;
+      el.textContent = text;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 750);
+    }
+
+    function updateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12; // subtle gravity
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      requestAnimationFrame(updateParticles);
+    }
+    requestAnimationFrame(updateParticles);
+
+    // ============================================================================
+    // 3. GAME STATE & FIREBASE CONFIGURATION
+    // ============================================================================
+    const AVATARS = ['🔥', '⚡', '🐉', '👾', '🦊', '👑', '💎', '🚀'];
+    const GAME_DURATION = 30.0; // 30 seconds match
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let userId = 'local-' + crypto.randomUUID();
+    let isFirebaseReady = false;
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'neon-clash-default';
+
+    // Local Player Profile & Stats
+    const playerProfile = {
+      name: 'ネオンファイター',
+      avatar: '🔥',
+      wins: 0,
+      highScore: 0
+    };
+
+    // Active Match State
+    const match = {
+      mode: 'none', // 'online' | 'cpu'
+      roomId: null,
+      roomCode: null,
+      myRole: 'p1', // 'p1' (Cyan) or 'p2' (Pink)
+      status: 'idle', // 'idle' | 'waiting' | 'countdown' | 'playing' | 'finished'
+      startTime: 0,
+      timeLeft: GAME_DURATION,
+      isFever: false,
+      board: Array(25).fill(0), // 0: neutral, 1: P1, 2: P2
+      items: Array(25).fill(null), // null | 'bomb' | 'star'
+      p1: { uid: '', name: 'プレイヤー1', avatar: '🔥', score: 0, rematch: false },
+      p2: { uid: '', name: 'CPU サイバー', avatar: '🤖', score: 0, rematch: false },
+      combo: 0,
+      lastTapTime: 0,
+      skillGauge: 0, // 0 to 100
+      hyperUntil: 0,
+      freezeHitsLeft: 0,
+      cpuFreezeUntil: 0,
+      lastProcessedAttackId: '',
+      lastProcessedEmoteId: '',
+      unsubscribeRoom: null,
+      gameLoopTimer: null,
+      cpuAiTimer: null,
+      itemSpawnTimer: null,
+      syncPending: false,
+      lastSyncTime: 0
+    };
+
+    // ============================================================================
+    // 4. UI HELPERS & NAVIGATION
+    // ============================================================================
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      banner.textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(banner._timer);
+      banner._timer = setTimeout(() => banner.classList.add('hidden'), 2600);
+    }
+
+    function triggerScreenShake() {
+      const container = document.getElementById('appContainer');
+      container.classList.remove('shake-screen');
+      void container.offsetWidth;
+      container.classList.add('shake-screen');
+    }
+
+    function showScreen(screenId) {
+      ['screenLobby', 'screenWaiting', 'screenBattle', 'screenResult'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', id !== screenId);
+      });
+    }
+
+    function showEmoteBubble(senderName, senderAvatar, text, isMe = true) {
+      sound.playEmote();
+      const layer = document.getElementById('emoteLayer');
+      const bubble = document.createElement('div');
+      const borderCol = isMe ? 'border-cyan-400 bg-cyan-950/90 text-cyan-100' : 'border-pink-400 bg-pink-950/90 text-pink-100';
+      bubble.className = `emote-toast px-3.5 py-1.5 rounded-2xl border-2 ${borderCol} shadow-xl flex items-center gap-2 text-xs font-black`;
+      bubble.innerHTML = `<span class="text-lg">${senderAvatar}</span><span>${senderName}:</span><span class="text-sm text-yellow-300">${text}</span>`;
+      layer.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 2200);
+    }
+
+    // Initialize Avatar Picker
+    function renderAvatarPicker() {
+      const grid = document.getElementById('avatarGrid');
+      grid.innerHTML = '';
+      AVATARS.forEach(icon => {
+        const btn = document.createElement('button');
+        const isSelected = playerProfile.avatar === icon;
+        btn.className = `h-10 rounded-xl flex items-center justify-center text-xl border transition active:scale-90 ${
+          isSelected
+            ? 'bg-cyan-500/30 border-cyan-300 shadow-md scale-105'
+            : 'bg-slate-950/70 border-slate-800 hover:border-slate-600'
+        }`;
+        btn.textContent = icon;
+        btn.addEventListener('click', () => {
+          sound.playTap(1);
+          playerProfile.avatar = icon;
+          document.getElementById('selectedAvatarPreview').textContent = icon;
+          renderAvatarPicker();
+        });
+        grid.appendChild(btn);
+      });
+    }
+    renderAvatarPicker();
+
+    function syncProfileFromInputs() {
+      const rawName = document.getElementById('inputNickname').value.trim();
+      playerProfile.name = rawName || 'ネオンファイター';
+    }
+
+    function updateStatsBadgeUI() {
+      document.getElementById('myStatsBadge').textContent = `🏅 ${playerProfile.wins}勝 / HIGH: ${playerProfile.highScore}pt`;
+    }
+
+    // ============================================================================
+    // 5. FIREBASE INITIALIZATION (STRICT RULES 1, 2, 3)
+    // ============================================================================
+    async function initFirebase() {
+      try {
+        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+          document.getElementById('modeBadge').textContent = 'LOCAL / CPU MODE';
+          document.getElementById('displayUserId').textContent = userId;
+          return;
+        }
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // RULE 3: Authenticate FIRST before any Firestore operation
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            currentUser = user;
+            userId = user.uid;
+            isFirebaseReady = true;
+            document.getElementById('displayUserId').textContent = userId;
+            document.getElementById('modeBadge').textContent = 'ONLINE READY';
+            await loadMyProfileFromFirestore();
+          }
+        });
+      } catch (err) {
+        console.warn('Firebase fallback to CPU/Local mode:', err);
+        document.getElementById('modeBadge').textContent = 'CPU READY';
+        document.getElementById('displayUserId').textContent = userId;
+      }
+    }
+
+    async function loadMyProfileFromFirestore() {
+      if (!currentUser || !db) return;
+      try {
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', userId);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          playerProfile.wins = data.wins || 0;
+          playerProfile.highScore = data.highScore || 0;
+          if (data.name) {
+            playerProfile.name = data.name;
+            document.getElementById('inputNickname').value = data.name;
+          }
+          if (data.avatar && AVATARS.includes(data.avatar)) {
+            playerProfile.avatar = data.avatar;
+            document.getElementById('selectedAvatarPreview').textContent = data.avatar;
+            renderAvatarPicker();
+          }
+          updateStatsBadgeUI();
+        }
+      } catch (e) {
+        console.warn('Profile load error:', e);
+      }
+    }
+
+    async function saveResultToLeaderboard(myFinalScore, didWin) {
+      if (didWin) playerProfile.wins += 1;
+      if (myFinalScore > playerProfile.highScore) {
+        playerProfile.highScore = myFinalScore;
+      }
+      updateStatsBadgeUI();
+
+      if (!currentUser || !db) return;
+      try {
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', userId);
+        await setDoc(ref, {
+          uid: userId,
+          name: playerProfile.name,
+          avatar: playerProfile.avatar,
+          wins: playerProfile.wins,
+          highScore: playerProfile.highScore,
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (e) {
+        console.warn('Leaderboard update error:', e);
+      }
+    }
+
+    // ============================================================================
+    // 6. MATCHMAKING (QUICK MATCH, 4-DIGIT ROOM CODE, AND CPU FALLBACK)
+    // ============================================================================
+    function generate4DigitCode() {
+      return String(Math.floor(1000 + Math.random() * 9000));
+    }
+
+    async function handleQuickMatch() {
+      syncProfileFromInputs();
+      sound.playTap(2);
+
+      if (!isFirebaseReady || !currentUser || !db) {
+        showToast('オンライン未接続のためCPU対戦を開始します🤖');
+        startCpuBattle();
+        return;
+      }
+
+      showToast('⚡ 空いているルームを検索中...');
+      try {
+        // RULE 1 & RULE 2: Fetch from strict collection path without complex where/orderBy
+        const roomsRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+        const snap = await getDocs(roomsRef);
+        const now = Date.now();
+        let targetRoom = null;
+
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          // Filter in memory: public waiting room created within the last 3 minutes
+          if (
+            data.status === 'waiting' &&
+            data.isPublic === true &&
+            data.p1 &&
+            data.p1.uid !== userId &&
+            now - (data.createdAt || 0) < 180000
+          ) {
+            if (!targetRoom) targetRoom = { id: docSnap.id, ...data };
+          }
+        });
+
+        if (targetRoom) {
+          await joinExistingOnlineRoom(targetRoom.id, targetRoom);
+        } else {
+          await createOnlineRoom(true);
+        }
+      } catch (err) {
+        console.warn('Quick match error:', err);
+        showToast('ルーム作成に失敗したためCPUバトルを開始します');
+        startCpuBattle();
+      }
+    }
+
+    async function createOnlineRoom(isPublic = true) {
+      syncProfileFromInputs();
+      sound.playTap(2);
+
+      if (!isFirebaseReady || !currentUser || !db) {
+        showToast('CPUバトルを開始します🤖');
+        startCpuBattle();
+        return;
+      }
+
+      const code = generate4DigitCode();
+      const roomId = `room_${code}`;
+      const initialBoard = Array(25).fill(0);
+
+      const roomData = {
+        roomCode: code,
+        isPublic,
+        status: 'waiting',
+        createdAt: Date.now(),
+        startTime: 0,
+        board: JSON.stringify(initialBoard),
+        items: JSON.stringify(Array(25).fill(null)),
+        p1: {
+          uid: userId,
+          name: playerProfile.name,
+          avatar: playerProfile.avatar,
+          score: 0,
+          rematch: false
+        },
+        p2: null,
+        lastAttack: null,
+        lastEmote: null
+      };
+
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+        await setDoc(roomRef, roomData);
+
+        match.mode = 'online';
+        match.roomId = roomId;
+        match.roomCode = code;
+        match.myRole = 'p1';
+        match.status = 'waiting';
+
+        setupWaitingScreenUI(code, roomData.p1, null, isPublic);
+        subscribeToRoom(roomId);
+      } catch (err) {
+        console.warn('Create room error:', err);
+        showToast('通信エラーが発生しました');
+      }
+    }
+
+    async function joinRoomBy4DigitCode() {
+      syncProfileFromInputs();
+      const codeInput = document.getElementById('inputRoomCode').value.trim();
+      if (!/^\d{4}$/.test(codeInput)) {
+        showToast('⚠️ 4桁の数字コードを入力してください');
+        return;
+      }
+
+      if (!isFirebaseReady || !currentUser || !db) {
+        showToast('オンライン未接続です');
+        return;
+      }
+
+      const roomId = `room_${codeInput}`;
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+        const snap = await getDoc(roomRef);
+
+        if (!snap.exists()) {
+          showToast('❌ そのルームコードは見つかりませんでした');
+          return;
+        }
+
+        const data = snap.data();
+        if (data.status !== 'waiting' && data.p1?.uid !== userId && data.p2?.uid !== userId) {
+          showToast('⚠️ このルームは既に対戦中です');
+          return;
+        }
+
+        await joinExistingOnlineRoom(roomId, data);
+      } catch (err) {
+        console.warn('Join by code error:', err);
+        showToast('入室エラーが発生しました');
+      }
+    }
+
+    async function joinExistingOnlineRoom(roomId, roomData) {
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+      const p2Obj = {
+        uid: userId,
+        name: playerProfile.name,
+        avatar: playerProfile.avatar,
+        score: 0,
+        rematch: false
+      };
+
+      const startTime = Date.now() + 3200; // Start after 3.2s countdown
+      await updateDoc(roomRef, {
+        p2: p2Obj,
+        status: 'playing',
+        startTime
+      });
+
+      match.mode = 'online';
+      match.roomId = roomId;
+      match.roomCode = roomData.roomCode;
+      match.myRole = 'p2';
+      match.status = 'waiting';
+
+      setupWaitingScreenUI(roomData.roomCode, roomData.p1, p2Obj, roomData.isPublic);
+      subscribeToRoom(roomId);
+    }
+
+    function setupWaitingScreenUI(code, p1, p2, isPublic) {
+      showScreen('screenWaiting');
+      document.getElementById('waitingRoomCodeDisplay').textContent = code || '----';
+      document.getElementById('waitingStatusText').textContent = isPublic
+        ? 'クイックマッチ待機中（コード共有もOK）'
+        : 'フレンドの入室を待っています...';
+
+      document.getElementById('waitP1Avatar').textContent = p1?.avatar || '🔥';
+      document.getElementById('waitP1Name').textContent = p1?.name || 'プレイヤー1';
+
+      if (p2) {
+        document.getElementById('waitP2Avatar').textContent = p2.avatar;
+        document.getElementById('waitP2Avatar').classList.remove('animate-pulse');
+        document.getElementById('waitP2Name').textContent = p2.name;
+        document.getElementById('waitP2Badge').textContent = 'MATCHED!';
+        document.getElementById('waitP2Badge').className = 'text-[10px] bg-pink-500/30 text-pink-200 py-0.5 rounded-full font-bold';
+        document.getElementById('waitP2Card').className = 'bg-slate-900/90 border-2 border-pink-500 rounded-2xl p-3 text-center space-y-1.5 box-glow-pink';
+      } else {
+        document.getElementById('waitP2Avatar').textContent = '❓';
+        document.getElementById('waitP2Avatar').classList.add('animate-pulse');
+        document.getElementById('waitP2Name').textContent = '待機中...';
+        document.getElementById('waitP2Badge').textContent = 'SEARCHING';
+        document.getElementById('waitP2Badge').className = 'text-[10px] bg-slate-800 text-slate-400 py-0.5 rounded-full font-bold';
+        document.getElementById('waitP2Card').className = 'bg-slate-900/60 border-2 border-dashed border-slate-700 rounded-2xl p-3 text-center space-y-1.5';
+      }
+    }
+
+    // ============================================================================
+    // 7. REALTIME FIRESTORE ROOM LISTENER
+    // ============================================================================
+    function subscribeToRoom(roomId) {
+      if (match.unsubscribeRoom) {
+        match.unsubscribeRoom();
+        match.unsubscribeRoom = null;
+      }
+      if (!currentUser || !db) return;
+
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+
+      // Mandatory Error Callback included
+      match.unsubscribeRoom = onSnapshot(
+        roomRef,
+        (snap) => {
+          if (!snap.exists()) return;
+          const data = snap.data();
+
+          // Update Players Info
+          if (data.p1) match.p1 = data.p1;
+          if (data.p2) match.p2 = data.p2;
+
+          // If in waiting screen and P2 joins -> transition to battle!
+          if (match.status === 'waiting' && data.status === 'playing' && data.p2) {
+            setupWaitingScreenUI(data.roomCode, data.p1, data.p2, data.isPublic);
+            startBattleSequence(data.startTime || Date.now() + 3000);
+          }
+
+          // Sync Board & Items if playing
+          if (match.status === 'playing' || match.status === 'countdown') {
+            if (data.board) {
+              try {
+                const remoteBoard = JSON.parse(data.board);
+                if (Array.isArray(remoteBoard) && remoteBoard.length === 25) {
+                  match.board = remoteBoard;
+                }
+              } catch (e) {}
+            }
+            if (data.items) {
+              try {
+                const remoteItems = JSON.parse(data.items);
+                if (Array.isArray(remoteItems) && remoteItems.length === 25) {
+                  match.items = remoteItems;
+                }
+              } catch (e) {}
+            }
+            renderBoardUI();
+            updateBattleHUD();
+          }
+
+          // Check Incoming Special Attack (Freeze or Cross Bomb notification)
+          if (data.lastAttack && data.lastAttack.id !== match.lastProcessedAttackId) {
+            match.lastProcessedAttackId = data.lastAttack.id;
+            if (data.lastAttack.by !== match.myRole) {
+              handleIncomingOpponentAttack(data.lastAttack);
+            }
+          }
+
+          // Check Incoming Emote
+          if (data.lastEmote && data.lastEmote.id !== match.lastProcessedEmoteId) {
+            match.lastProcessedEmoteId = data.lastEmote.id;
+            if (data.lastEmote.uid !== userId) {
+              showEmoteBubble(data.lastEmote.name, data.lastEmote.avatar, data.lastEmote.text, false);
+            }
+          }
+
+          // Check Rematch Request on Result Screen
+          if (match.status === 'finished') {
+            const oppRole = match.myRole === 'p1' ? 'p2' : 'p1';
+            const oppData = data[oppRole];
+            if (oppData && oppData.rematch) {
+              document.getElementById('rematchStatusBanner').classList.remove('hidden');
+            }
+            if (data.p1?.rematch && data.p2?.rematch && data.status === 'playing') {
+              // Both agreed and host restarted!
+              document.getElementById('rematchStatusBanner').classList.add('hidden');
+              startBattleSequence(data.startTime || Date.now() + 3000);
+            }
+          }
+        },
+        (err) => {
+          console.warn('Room snapshot error:', err);
+        }
+      );
+    }
+
+    async function pushRoomStateToFirestore(force = false) {
+      if (match.mode !== 'online' || !match.roomId || !currentUser || !db) return;
+      const now = Date.now();
+      if (!force && now - match.lastSyncTime < 170) {
+        if (!match.syncPending) {
+          match.syncPending = true;
+          setTimeout(() => {
+            match.syncPending = false;
+            pushRoomStateToFirestore(true);
+          }, 175);
+        }
+        return;
+      }
+
+      match.lastSyncTime = now;
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', match.roomId);
+        const payload = {
+          board: JSON.stringify(match.board),
+          items: JSON.stringify(match.items)
+        };
+        if (match.myRole === 'p1') {
+          payload.p1 = match.p1;
+        } else {
+          payload.p2 = match.p2;
+        }
+        await updateDoc(roomRef, payload);
+      } catch (e) {
+        console.warn('Sync state error:', e);
+      }
+    }
+
+    // ============================================================================
+    // 8. BATTLE ENGINE (5x5 BOARD, COMBOS, GIMMICKS, SKILLS, CPU AI)
+    // ============================================================================
+    function buildBoardDOM() {
+      const grid = document.getElementById('boardGrid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 25; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'neon-tile flex items-center justify-center text-2xl font-black select-none';
+        tile.dataset.index = i;
+
+        tile.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          handleTileTap(i, e.clientX, e.clientY);
+        });
+
+        grid.appendChild(tile);
+      }
+    }
+    buildBoardDOM();
+
+    function startCpuBattle() {
+      syncProfileFromInputs();
+      if (match.unsubscribeRoom) {
+        match.unsubscribeRoom();
+        match.unsubscribeRoom = null;
+      }
+
+      const cpuAvatars = ['🤖', '👾', '🐉', '🦊'];
+      const cpuNames = ['CPU サイバー', 'CPU ネオンX', 'CPU ブリッツ', 'CPU ヴァルキリー'];
+      const pickIdx = Math.floor(Math.random() * cpuNames.length);
+
+      match.mode = 'cpu';
+      match.roomId = null;
+      match.myRole = 'p1';
+      match.p1 = {
+        uid: userId,
+        name: playerProfile.name,
+        avatar: playerProfile.avatar,
+        score: 0,
+        rematch: false
+      };
+      match.p2 = {
+        uid: 'cpu-bot',
+        name: cpuNames[pickIdx],
+        avatar: cpuAvatars[pickIdx],
+        score: 0,
+        rematch: false
+      };
+
+      startBattleSequence(Date.now() + 2800);
+    }
+
+    function startBattleSequence(targetStartTime) {
+      clearBattleTimers();
+
+      match.status = 'countdown';
+      match.startTime = targetStartTime;
+      match.timeLeft = GAME_DURATION;
+      match.isFever = false;
+      match.board = Array(25).fill(0);
+      match.items = Array(25).fill(null);
+      match.p1.score = 0;
+      match.p2.score = 0;
+      match.p1.rematch = false;
+      match.p2.rematch = false;
+      match.combo = 0;
+      match.skillGauge = 0;
+      match.hyperUntil = 0;
+      match.freezeHitsLeft = 0;
+      match.cpuFreezeUntil = 0;
+
+      // Reset UI
+      showScreen('screenBattle');
+      document.getElementById('freezeOverlay').classList.add('hidden');
+      document.getElementById('feverBadge').classList.add('hidden');
+      document.getElementById('boardFrame').classList.remove('fever-frame');
+      document.getElementById('activeBuffIndicator').classList.add('hidden');
+
+      const roleText = match.myRole === 'p1'
+        ? 'あなた: 1P (シアンブルー)'
+        : 'あなた: 2P (ネオンピンク)';
+      const roleEl = document.getElementById('myRoleIndicator');
+      roleEl.textContent = roleText;
+      roleEl.className = match.myRole === 'p1' ? 'text-cyan-300 font-bold' : 'text-pink-400 font-bold';
+
+      renderBoardUI();
+      updateBattleHUD();
+      updateSkillUI();
+
+      // Countdown Overlay
+      const cdOverlay = document.getElementById('countdownOverlay');
+      const cdNum = document.getElementById('countdownNumber');
+      cdOverlay.classList.remove('hidden');
+
+      let lastCountInt = -1;
+      match.gameLoopTimer = setInterval(() => {
+        const now = Date.now();
+        const diffStart = match.startTime - now;
+
+        if (diffStart > 0) {
+          const countSec = Math.ceil(diffStart / 1000);
+          if (countSec !== lastCountInt) {
+            lastCountInt = countSec;
+            cdNum.textContent = countSec;
+            sound.playCountdown(false);
+          }
+          return;
+        }
+
+        // Start Playing!
+        if (match.status === 'countdown') {
+          match.status = 'playing';
+          cdNum.textContent = 'CLASH!!';
+          sound.playCountdown(true);
+          sound.startBGM(false);
+          setTimeout(() => cdOverlay.classList.add('hidden'), 380);
+          startItemSpawner();
+          if (match.mode === 'cpu') startCpuAI();
+        }
+
+        // Calculate remaining time
+        const elapsed = (now - match.startTime) / 1000;
+        match.timeLeft = Math.max(0, GAME_DURATION - elapsed);
+
+        // Check Last 10s 2x Fever Time
+        if (match.timeLeft <= 10.0 && !match.isFever && match.timeLeft > 0) {
+          match.isFever = true;
+          document.getElementById('feverBadge').classList.remove('hidden');
+          document.getElementById('boardFrame').classList.add('fever-frame');
+          showToast('🔥 ラスト10秒！得点2倍 FEVER TIME 突入！！');
+          sound.startBGM(true);
+        }
+
+        // Check Hyper Fever Buff Expiration
+        if (match.hyperUntil > 0 && now > match.hyperUntil) {
+          match.hyperUntil = 0;
+          document.getElementById('activeBuffIndicator').classList.add('hidden');
+        }
+
+        // Update Timer Display
+        const timerEl = document.getElementById('timerDisplay');
+        timerEl.textContent = match.timeLeft.toFixed(1);
+        timerEl.className = match.isFever
+          ? 'font-cyber text-3xl font-black text-yellow-300 glow-yellow leading-none'
+          : 'font-cyber text-3xl font-black text-white leading-none';
+
+        // Finish Match when time hits 0
+        if (match.timeLeft <= 0) {
+          finishBattle();
+        }
+      }, 60);
+    }
+
+    function clearBattleTimers() {
+      if (match.gameLoopTimer) clearInterval(match.gameLoopTimer);
+      if (match.cpuAiTimer) clearInterval(match.cpuAiTimer);
+      if (match.itemSpawnTimer) clearInterval(match.itemSpawnTimer);
+      match.gameLoopTimer = null;
+      match.cpuAiTimer = null;
+      match.itemSpawnTimer = null;
+      sound.stopBGM();
+    }
+
+    // ============================================================================
+    // 9. TILE TAP, GIMMICKS (BOMB / STAR), AND SPECIAL SKILLS
+    // ============================================================================
+    function handleTileTap(index, clientX, clientY) {
+      if (match.status !== 'playing') return;
+      if (match.freezeHitsLeft > 0) return; // Blocked by Ice Freeze overlay
+
+      const myVal = match.myRole === 'p1' ? 1 : 2;
+      const myPlayer = match.myRole === 'p1' ? match.p1 : match.p2;
+      const myColorHex = match.myRole === 'p1' ? '#00f3ff' : '#ff007f';
+      const myTextClass = match.myRole === 'p1' ? 'text-cyan-300' : 'text-pink-300';
+
+      const now = Date.now();
+      if (now - match.lastTapTime < 900) {
+        match.combo = Math.min(match.combo + 1, 30);
+      } else {
+        match.combo = 1;
+      }
+      match.lastTapTime = now;
+
+      const mult = match.isFever ? 2 : 1;
+      let pointsEarned = 0;
+
+      // Determine affected tiles (1 tile normally, or + cross if Hyper Fever active)
+      const affected = [index];
+      if (now < match.hyperUntil) {
+        const r = Math.floor(index / 5);
+        const c = index % 5;
+        if (r > 0) affected.push((r - 1) * 5 + c);
+        if (r < 4) affected.push((r + 1) * 5 + c);
+        if (c > 0) affected.push(r * 5 + (c - 1));
+        if (c < 4) affected.push(r * 5 + (c + 1));
+      }
+
+      // Check Gimmick Item on tapped tile
+      const item = match.items[index];
+      if (item === 'bomb') {
+        match.items[index] = null;
+        sound.playBomb();
+        triggerScreenShake();
+        const r = Math.floor(index / 5);
+        const c = index % 5;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+              affected.push(nr * 5 + nc);
+            }
+          }
+        }
+        pointsEarned += 3 * mult;
+        spawnFloatingText(clientX, clientY - 12, `💣 BOMB +${3 * mult}!`, 'text-yellow-300');
+      } else if (item === 'star') {
+        match.items[index] = null;
+        sound.playStar();
+        pointsEarned += 3 * mult;
+        match.skillGauge = Math.min(100, match.skillGauge + 18);
+        spawnFloatingText(clientX, clientY - 12, `⭐ STAR +${3 * mult}pt!`, 'text-yellow-300');
+      } else {
+        sound.playTap(match.combo);
+      }
+
+      // Paint affected tiles
+      let newlyClaimed = 0;
+      affected.forEach(idx => {
+        if (match.board[idx] !== myVal) {
+          match.board[idx] = myVal;
+          newlyClaimed++;
+        }
+      });
+
+      const comboBonus = match.combo >= 5 ? 1 : 0;
+      pointsEarned += Math.max(1, newlyClaimed) * mult + comboBonus;
+      myPlayer.score += pointsEarned;
+
+      // Charge Skill Gauge
+      match.skillGauge = Math.min(100, match.skillGauge + (newlyClaimed > 0 ? 7 : 3));
+
+      // Visual Polish
+      const tileEl = document.getElementById('boardGrid').children[index];
+      if (tileEl) {
+        tileEl.classList.remove('tile-pop');
+        void tileEl.offsetWidth;
+        tileEl.classList.add('tile-pop');
+      }
+
+      spawnParticles(clientX || window.innerWidth / 2, clientY || window.innerHeight / 2, myColorHex, 14);
+      if (!item) {
+        spawnFloatingText(clientX || window.innerWidth / 2, clientY || window.innerHeight / 2, `+${pointsEarned}`, myTextClass);
+      }
+
+      document.getElementById('comboBadge').textContent = match.combo >= 2 ? `${match.combo} COMBO!` : 'GOOD!';
+
+      renderBoardUI();
+      updateBattleHUD();
+      updateSkillUI();
+      pushRoomStateToFirestore(false);
+    }
+
+    function renderBoardUI() {
+      const tiles = document.getElementById('boardGrid').children;
+      for (let i = 0; i < 25; i++) {
+        const el = tiles[i];
+        if (!el) continue;
+
+        const val = match.board[i];
+        el.classList.toggle('tile-p1', val === 1);
+        el.classList.toggle('tile-p2', val === 2);
+
+        const item = match.items[i];
+        if (item === 'bomb') {
+          el.innerHTML = '<span class="animate-bounce">💣</span>';
+        } else if (item === 'star') {
+          el.innerHTML = '<span class="animate-spin">⭐</span>';
+        } else {
+          el.innerHTML = '';
+        }
+      }
+    }
+
+    function updateBattleHUD() {
+      const p1Tiles = match.board.filter(v => v === 1).length;
+      const p2Tiles = match.board.filter(v => v === 2).length;
+
+      document.getElementById('battleP1Avatar').textContent = match.p1.avatar || '🔥';
+      document.getElementById('battleP1Name').textContent = match.p1.name || '1P';
+      document.getElementById('battleP1Score').textContent = match.p1.score || 0;
+      document.getElementById('battleP1Tiles').textContent = `${p1Tiles}枚`;
+
+      document.getElementById('battleP2Avatar').textContent = match.p2.avatar || '👾';
+      document.getElementById('battleP2Name').textContent = match.p2.name || '2P';
+      document.getElementById('battleP2Score').textContent = match.p2.score || 0;
+      document.getElementById('battleP2Tiles').textContent = `${p2Tiles}枚`;
+
+      const totalClaimed = p1Tiles + p2Tiles;
+      const p1Pct = totalClaimed === 0 ? 50 : Math.round((p1Tiles / totalClaimed) * 100);
+      const p2Pct = 100 - p1Pct;
+      document.getElementById('barP1').style.width = `${p1Pct}%`;
+      document.getElementById('barP2').style.width = `${p2Pct}%`;
+    }
+
+    function updateSkillUI() {
+      const g = Math.floor(match.skillGauge);
+      document.getElementById('skillGaugeText').textContent = `${g}%`;
+      document.getElementById('skillGaugeFill').style.width = `${g}%`;
+
+      const btnCross = document.getElementById('btnSkillCross');
+      const btnFreeze = document.getElementById('btnSkillFreeze');
+      const btnHyper = document.getElementById('btnSkillHyper');
+
+      const setBtnState = (btn, cost, activeBorder) => {
+        const ready = g >= cost && match.status === 'playing';
+        btn.disabled = !ready;
+        btn.className = ready
+          ? `skill-btn py-2 px-1.5 rounded-xl bg-slate-800 border-2 ${activeBorder} flex flex-col items-center justify-center transition active:scale-95 shadow-lg animate-pulse`
+          : 'skill-btn py-2 px-1.5 rounded-xl bg-slate-900/70 border border-slate-800 opacity-45 flex flex-col items-center justify-center transition';
+      };
+
+      setBtnState(btnCross, 40, 'border-cyan-400');
+      setBtnState(btnFreeze, 60, 'border-sky-300');
+      setBtnState(btnHyper, 80, 'border-yellow-400');
+    }
+
+    // ============================================================================
+    // 10. SPECIAL SKILLS EXECUTION & SABOTAGE
+    // ============================================================================
+    function activateSkillCrossBomb() {
+      if (match.status !== 'playing' || match.skillGauge < 40) return;
+      match.skillGauge -= 40;
+      sound.playBomb();
+      triggerScreenShake();
+
+      const myVal = match.myRole === 'p1' ? 1 : 2;
+      const myPlayer = match.myRole === 'p1' ? match.p1 : match.p2;
+      const centerRow = Math.floor(Math.random() * 3) + 1; // row 1..3
+      const centerCol = Math.floor(Math.random() * 3) + 1; // col 1..3
+
+      for (let i = 0; i < 5; i++) {
+        match.board[centerRow * 5 + i] = myVal;
+        match.board[i * 5 + centerCol] = myVal;
+      }
+
+      const bonus = match.isFever ? 10 : 5;
+      myPlayer.score += bonus;
+
+      spawnParticles(window.innerWidth / 2, window.innerHeight / 2, '#ffe600', 28);
+      showToast(`💥 クロスボム発動！十字ライン制圧 (+${bonus}pt)`);
+
+      renderBoardUI();
+      updateBattleHUD();
+      updateSkillUI();
+      sendAttackEvent('cross');
+      pushRoomStateToFirestore(true);
+    }
+
+    function activateSkillFreeze() {
+      if (match.status !== 'playing' || match.skillGauge < 60) return;
+      match.skillGauge -= 60;
+      sound.playFreeze();
+
+      showToast('❄️ フリーズ妨害を発動！相手を氷漬けにした！');
+      if (match.mode === 'cpu') {
+        match.cpuFreezeUntil = Date.now() + 3600;
+      } else {
+        sendAttackEvent('freeze');
+      }
+      updateSkillUI();
+    }
+
+    function activateSkillHyperFever() {
+      if (match.status !== 'playing' || match.skillGauge < 80) return;
+      match.skillGauge -= 80;
+      sound.playHyper();
+
+      match.hyperUntil = Date.now() + 5000;
+      document.getElementById('activeBuffIndicator').classList.remove('hidden');
+      showToast('⚡ ハイパーフィーバー！5秒間タップで周囲も一気に塗れる！');
+      updateSkillUI();
+    }
+
+    async function sendAttackEvent(type) {
+      if (match.mode !== 'online' || !match.roomId || !currentUser || !db) return;
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', match.roomId);
+        await updateDoc(roomRef, {
+          lastAttack: {
+            id: crypto.randomUUID(),
+            type,
+            by: match.myRole,
+            at: Date.now()
+          }
+        });
+      } catch (e) {}
+    }
+
+    function handleIncomingOpponentAttack(attack) {
+      if (attack.type === 'freeze') {
+        sound.playFreeze();
+        triggerScreenShake();
+        match.freezeHitsLeft = 3;
+        document.getElementById('freezeTapCount').textContent = match.freezeHitsLeft;
+        document.getElementById('freezeOverlay').classList.remove('hidden');
+        showToast('❄️ 相手からフリーズ妨害！氷を3回タップして割れ！');
+      } else if (attack.type === 'cross') {
+        sound.playBomb();
+        triggerScreenShake();
+        showToast('💥 相手がクロスボムを発動！');
+      }
+    }
+
+    // Shatter Freeze Overlay on tap
+    document.getElementById('freezeOverlay').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (match.freezeHitsLeft <= 0) return;
+
+      match.freezeHitsLeft--;
+      sound.playTap(4);
+      spawnParticles(e.clientX || window.innerWidth / 2, e.clientY || window.innerHeight / 2, '#cffafe', 18);
+
+      if (match.freezeHitsLeft <= 0) {
+        document.getElementById('freezeOverlay').classList.add('hidden');
+        showToast('✨ 氷を破壊した！バトル再開！');
+      } else {
+        document.getElementById('freezeTapCount').textContent = match.freezeHitsLeft;
+      }
+    });
+
+    // Random Gimmick Spawner (Bombs & Stars)
+    function startItemSpawner() {
+      // Only P1 or CPU host spawns items so board stays consistent
+      if (match.mode === 'online' && match.myRole !== 'p1') return;
+
+      match.itemSpawnTimer = setInterval(() => {
+        if (match.status !== 'playing') return;
+        const emptyIndices = [];
+        for (let i = 0; i < 25; i++) {
+          if (!match.items[i]) emptyIndices.push(i);
+        }
+        if (emptyIndices.length === 0) return;
+
+        const targetIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        match.items[targetIdx] = Math.random() < 0.48 ? 'bomb' : 'star';
+        renderBoardUI();
+        pushRoomStateToFirestore(false);
+      }, 3600);
+    }
+
+    // CPU Opponent AI Logic
+    function startCpuAI() {
+      match.cpuAiTimer = setInterval(() => {
+        if (match.status !== 'playing') return;
+        const now = Date.now();
+        if (now < match.cpuFreezeUntil) return; // CPU is frozen!
+
+        // Prioritize tiles with items or P1/neutral tiles
+        let candidate = -1;
+        for (let i = 0; i < 25; i++) {
+          if (match.items[i]) {
+            candidate = i;
+            break;
+          }
+        }
+        if (candidate === -1) {
+          const nonCpuTiles = [];
+          for (let i = 0; i < 25; i++) {
+            if (match.board[i] !== 2) nonCpuTiles.push(i);
+          }
+          candidate = nonCpuTiles.length > 0
+            ? nonCpuTiles[Math.floor(Math.random() * nonCpuTiles.length)]
+            : Math.floor(Math.random() * 25);
+        }
+
+        const mult = match.isFever ? 2 : 1;
+        const item = match.items[candidate];
+        if (item === 'bomb') {
+          match.items[candidate] = null;
+          const r = Math.floor(candidate / 5);
+          const c = candidate % 5;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+                match.board[nr * 5 + nc] = 2;
+              }
+            }
+          }
+          match.p2.score += 4 * mult;
+        } else if (item === 'star') {
+          match.items[candidate] = null;
+          match.board[candidate] = 2;
+          match.p2.score += 3 * mult;
+        } else {
+          match.board[candidate] = 2;
+          match.p2.score += 1 * mult;
+        }
+
+        // Occasional CPU Freeze or Emote for excitement
+        if (Math.random() < 0.045 && match.freezeHitsLeft === 0) {
+          handleIncomingOpponentAttack({ type: 'freeze' });
+        } else if (Math.random() < 0.04) {
+          const cpuEmotes = ['よろしく🔥', 'ドーン💥', '負けない⚡', 'やばい💦'];
+          const pick = cpuEmotes[Math.floor(Math.random() * cpuEmotes.length)];
+          showEmoteBubble(match.p2.name, match.p2.avatar, pick, false);
+        }
+
+        renderBoardUI();
+        updateBattleHUD();
+      }, 460);
+    }
+
+    // ============================================================================
+    // 11. MATCH FINISH, RESULTS, REMATCH & LEADERBOARD
+    // ============================================================================
+    function finishBattle() {
+      clearBattleTimers();
+      match.status = 'finished';
+      document.getElementById('freezeOverlay').classList.add('hidden');
+
+      // Calculate Final Score (Tap Score + Final Territory Tile Bonus: 3pt per tile)
+      const p1Tiles = match.board.filter(v => v === 1).length;
+      const p2Tiles = match.board.filter(v => v === 2).length;
+      const p1Bonus = p1Tiles * 3;
+      const p2Bonus = p2Tiles * 3;
+
+      const p1Total = (match.p1.score || 0) + p1Bonus;
+      const p2Total = (match.p2.score || 0) + p2Bonus;
+
+      const myTotal = match.myRole === 'p1' ? p1Total : p2Total;
+      const oppTotal = match.myRole === 'p1' ? p2Total : p1Total;
+      const didWin = myTotal > oppTotal;
+      const isDraw = myTotal === oppTotal;
+
+      // Sound & Confetti
+      if (didWin) {
+        sound.playWin();
+        spawnParticles(window.innerWidth * 0.3, window.innerHeight * 0.3, '#00f3ff', 28);
+        spawnParticles(window.innerWidth * 0.7, window.innerHeight * 0.3, '#ffe600', 28);
+      } else {
+        sound.playLose();
+      }
+
+      // Update Result Screen UI
+      showScreen('screenResult');
+      document.getElementById('rematchStatusBanner').classList.add('hidden');
+      document.getElementById('btnRematchLabel').textContent = 'もう一回バトル！（再戦）';
+
+      const headline = document.getElementById('resultHeadline');
+      const subtext = document.getElementById('resultSubtext');
+      if (didWin) {
+        headline.textContent = 'YOU WIN!! 🎉';
+        headline.className = 'font-cyber text-4xl font-black text-yellow-300 glow-yellow';
+        subtext.textContent = '見事なネオン制圧！ランキングに勝利記録を保存しました！';
+      } else if (isDraw) {
+        headline.textContent = 'DRAW GAME! ⚡';
+        headline.className = 'font-cyber text-4xl font-black text-cyan-300 glow-cyan';
+        subtext.textContent = '互角の超接戦！もう1回勝負して決着をつけよう！';
+      } else {
+        headline.textContent = 'YOU LOSE... 💦';
+        headline.className = 'font-cyber text-4xl font-black text-pink-400 glow-pink';
+        subtext.textContent = '惜しい！必殺スキルとラスト10秒フィーバーでリベンジしよう！';
+      }
+
+      document.getElementById('resP1Avatar').textContent = match.p1.avatar;
+      document.getElementById('resP1Name').textContent = match.p1.name;
+      document.getElementById('resP1Total').textContent = `${p1Total} pt`;
+      document.getElementById('resP1Breakdown').textContent = `パネル${p1Tiles}枚 (+${p1Bonus}pt)`;
+      document.getElementById('resultCrownP1').classList.toggle('hidden', p1Total < p2Total);
+
+      document.getElementById('resP2Avatar').textContent = match.p2.avatar;
+      document.getElementById('resP2Name').textContent = match.p2.name;
+      document.getElementById('resP2Total').textContent = `${p2Total} pt`;
+      document.getElementById('resP2Breakdown').textContent = `パネル${p2Tiles}枚 (+${p2Bonus}pt)`;
+      document.getElementById('resultCrownP2').classList.toggle('hidden', p2Total < p1Total);
+
+      saveResultToLeaderboard(myTotal, didWin);
+    }
+
+    async function handleRematchClick() {
+      sound.playTap(3);
+      if (match.mode === 'cpu') {
+        startCpuBattle();
+        return;
+      }
+
+      if (!match.roomId || !currentUser || !db) {
+        startCpuBattle();
+        return;
+      }
+
+      try {
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', match.roomId);
+        const snap = await getDoc(roomRef);
+        if (!snap.exists()) {
+          startCpuBattle();
+          return;
+        }
+
+        const data = snap.data();
+        const myObj = match.myRole === 'p1' ? { ...data.p1, rematch: true, score: 0 } : { ...data.p2, rematch: true, score: 0 };
+        const oppRole = match.myRole === 'p1' ? 'p2' : 'p1';
+        const oppRematch = data[oppRole]?.rematch;
+
+        document.getElementById('btnRematchLabel').textContent = '相手の応答を待っています...';
+
+        if (oppRematch) {
+          // Both players ready -> reset room & start immediately!
+          const nextStartTime = Date.now() + 3000;
+          await updateDoc(roomRef, {
+            status: 'playing',
+            startTime: nextStartTime,
+            board: JSON.stringify(Array(25).fill(0)),
+            items: JSON.stringify(Array(25).fill(null)),
+            p1: { ...data.p1, score: 0, rematch: true },
+            p2: { ...data.p2, score: 0, rematch: true }
+          });
+        } else {
+          await updateDoc(roomRef, {
+            [match.myRole]: myObj
+          });
+          showToast('🙌 相手に再戦リクエストを送りました！');
+        }
+      } catch (e) {
+        console.warn('Rematch error:', e);
+        startCpuBattle();
+      }
+    }
+
+    // ============================================================================
+    // 12. REALTIME EMOTES & LEADERBOARD MODAL
+    // ============================================================================
+    async function sendEmote(text) {
+      syncProfileFromInputs();
+      showEmoteBubble(playerProfile.name, playerProfile.avatar, text, true);
+
+      if (match.mode === 'online' && match.roomId && currentUser && db) {
+        try {
+          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', match.roomId);
+          await updateDoc(roomRef, {
+            lastEmote: {
+              id: crypto.randomUUID(),
+              uid: userId,
+              name: playerProfile.name,
+              avatar: playerProfile.avatar,
+              text,
+              at: Date.now()
+            }
+          });
+        } catch (e) {}
+      }
+    }
+
+    async function openLeaderboardModal() {
+      sound.playTap(2);
+      const modal = document.getElementById('modalRanking');
+      const container = document.getElementById('rankingListContainer');
+      modal.classList.remove('hidden');
+      container.innerHTML = '<div class="text-center text-xs text-slate-400 py-6">ランキングを読み込み中...</div>';
+
+      let list = [
+        { uid: 'bot-1', name: 'ネオンエンペラー', avatar: '👑', wins: 12, highScore: 168 },
+        { uid: 'bot-2', name: 'サイバーフォックス', avatar: '🦊', wins: 8, highScore: 142 },
+        { uid: 'bot-3', name: 'ドラゴンスマッシュ', avatar: '🐉', wins: 5, highScore: 125 }
+      ];
+
+      // Include current player's local stats
+      list.push({
+        uid: userId,
+        name: playerProfile.name,
+        avatar: playerProfile.avatar,
+        wins: playerProfile.wins,
+        highScore: playerProfile.highScore
+      });
+
+      if (isFirebaseReady && currentUser && db) {
+        try {
+          // RULE 1 & RULE 2: Fetch collection and sort in JavaScript memory
+          const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+          const snap = await getDocs(lbRef);
+          const remoteMap = new Map();
+          list.forEach(item => remoteMap.set(item.uid, item));
+          snap.forEach(d => {
+            const data = d.data();
+            if (data && data.name) {
+              remoteMap.set(d.id, { uid: d.id, ...data });
+            }
+          });
+          list = Array.from(remoteMap.values());
+        } catch (e) {
+          console.warn('Leaderboard fetch error:', e);
+        }
+      }
+
+      // Sort by Wins DESC, then HighScore DESC in JS memory
+      list.sort((a, b) => (b.wins - a.wins) || (b.highScore - a.highScore));
+
+      container.innerHTML = '';
+      list.slice(0, 15).forEach((entry, idx) => {
+        const rank = idx + 1;
+        const isMe = entry.uid === userId;
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-2.5 rounded-2xl border ${
+          isMe
+            ? 'bg-cyan-950/60 border-cyan-400'
+            : 'bg-slate-950/80 border-slate-800'
+        }`;
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="font-cyber text-sm font-black w-7 text-center text-yellow-300">${medal}</span>
+            <span class="text-2xl">${entry.avatar || '🔥'}</span>
+            <div class="min-w-0">
+              <div class="text-xs font-black text-white truncate">
+                ${entry.name} ${isMe ? '<span class="text-[10px] text-cyan-300">(あなた)</span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-400">HIGH SCORE: <span class="text-cyan-300 font-bold">${entry.highScore || 0}pt</span></div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="font-cyber text-sm font-black text-yellow-300">${entry.wins || 0} <span class="text-[10px]">WINS</span></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ============================================================================
+    // 13. EVENT LISTENERS & INITIALIZATION
+    // ============================================================================
+    document.getElementById('btnSoundToggle').addEventListener('click', () => {
+      const isOn = sound.toggle();
+      document.getElementById('soundIcon').textContent = isOn ? '🔊' : '🔇';
+      document.getElementById('soundLabel').textContent = isOn ? 'ON' : 'OFF';
+      if (isOn) sound.playTap(2);
+    });
+
+    document.getElementById('btnQuickMatch').addEventListener('click', handleQuickMatch);
+    document.getElementById('btnCreateRoom').addEventListener('click', () => createOnlineRoom(false));
+    document.getElementById('btnJoinRoomCode').addEventListener('click', joinRoomBy4DigitCode);
+    document.getElementById('btnCpuMatchLobby').addEventListener('click', startCpuBattle);
+    document.getElementById('btnStartCpuFromWait').addEventListener('click', startCpuBattle);
+
+    document.getElementById('btnLeaveWaiting').addEventListener('click', async () => {
+      sound.playTap(1);
+      if (match.unsubscribeRoom) {
+        match.unsubscribeRoom();
+        match.unsubscribeRoom = null;
+      }
+      if (match.roomId && currentUser && db && match.myRole === 'p1') {
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', match.roomId));
+        } catch (e) {}
+      }
+      match.status = 'idle';
+      showScreen('screenLobby');
+    });
+
+    // Copy 4-digit Room Code using document.execCommand('copy') for iframe compatibility
+    document.getElementById('btnCopyRoomCode').addEventListener('click', () => {
+      const code = document.getElementById('waitingRoomCodeDisplay').textContent.trim();
+      const tempInput = document.createElement('input');
+      tempInput.value = code;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      sound.playStar();
+      showToast(`📋 ルームコード「${code}」をコピーしました！`);
+    });
+
+    // Skill Buttons
+    document.getElementById('btnSkillCross').addEventListener('click', activateSkillCrossBomb);
+    document.getElementById('btnSkillFreeze').addEventListener('click', activateSkillFreeze);
+    document.getElementById('btnSkillHyper').addEventListener('click', activateSkillHyperFever);
+
+    // Emote Buttons across all screens
+    document.querySelectorAll('.emote-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-emote');
+        if (text) sendEmote(text);
+      });
+    });
+
+    // Result & Ranking Actions
+    document.getElementById('btnRematch').addEventListener('click', handleRematchClick);
+    document.getElementById('btnBackToLobby').addEventListener('click', () => {
+      sound.playTap(1);
+      clearBattleTimers();
+      if (match.unsubscribeRoom) {
+        match.unsubscribeRoom();
+        match.unsubscribeRoom = null;
+      }
+      match.status = 'idle';
+      showScreen('screenLobby');
+    });
+
+    document.getElementById('btnRanking').addEventListener('click', openLeaderboardModal);
+    document.getElementById('btnResultRanking').addEventListener('click', openLeaderboardModal);
+    document.getElementById('btnCloseRanking').addEventListener('click', () => {
+      document.getElementById('modalRanking').classList.add('hidden');
+    });
+    document.getElementById('btnCloseRankingBottom').addEventListener('click', () => {
+      document.getElementById('modalRanking').classList.add('hidden');
+    });
+
+    // Start Firebase Connection on Window Load
+    window.onload = () => {
+      initFirebase();
+    };
+  </script>
+</body>
+</html>
