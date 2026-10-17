@@ -15,7 +15,7 @@
             --neon-blue: #00fff0;
             --neon-pink: #f000ff;
             --neon-purple: #bd00ff;
-            --neon-red: #ff3333; /* 追加：赤色用 */
+            --neon-red: #ff3333;
             --text-main: #ffffff;
             --text-sub: #8a8a9e;
         }
@@ -37,7 +37,6 @@
             box-sizing: border-box;
         }
 
-        /* 画面共通のフェードトランジション */
         .screen {
             position: absolute;
             width: 100%;
@@ -55,12 +54,10 @@
             display: flex;
             flex-direction: column;
             transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
-            
             -webkit-user-select: none;
             user-select: none;
         }
 
-        /* 画面の非表示状態 */
         .hidden {
             opacity: 0;
             transform: scale(0.95);
@@ -68,7 +65,7 @@
             visibility: hidden;
         }
 
-        /* --- 1. タイトル（スタート）画面 --- */
+        /* 1. タイトル画面 */
         #title-screen {
             justify-content: center;
             align-items: center;
@@ -124,7 +121,7 @@
             100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
         }
 
-        /* --- 2. メイン（ポータル）画面 --- */
+        /* 2. メイン画面 */
         #main-screen {
             justify-content: flex-start;
         }
@@ -146,7 +143,6 @@
             text-align: left;
         }
 
-        /* ゲームリストエリア */
         .game-list {
             display: flex;
             flex-direction: column;
@@ -164,7 +160,6 @@
             border-radius: 10px;
         }
 
-        /* ゲーム起動・設定ボタン共通 */
         .game-btn {
             display: flex;
             justify-content: space-between;
@@ -221,7 +216,6 @@
             box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
         }
 
-        /* 資料室用（水色） */
         .game-btn.manual-color {
             background: rgba(0, 240, 255, 0.05);
             border-color: rgba(0, 240, 255, 0.3);
@@ -234,7 +228,6 @@
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
 
-        /* 四大試練・リミックス用（紫） */
         .game-btn.purple-color {
             background: rgba(189, 0, 255, 0.07);
             border-color: rgba(189, 0, 255, 0.4);
@@ -247,7 +240,6 @@
             box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
         }
 
-        /* クリアチェッカーもっと裏用（調節済み：より鮮やかなマゼンタ・ピンクグラデーション） */
         .game-btn.more-ura-color {
             background: linear-gradient(135deg, rgba(255, 0, 127, 0.12), rgba(189, 0, 255, 0.12));
             border-color: rgba(255, 0, 127, 0.5);
@@ -260,7 +252,6 @@
             box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
         }
 
-        /* ワイヤレスイヤホン遅延設定用（赤色） */
         .game-btn.red-color {
             background: rgba(255, 51, 51, 0.07);
             border-color: rgba(255, 51, 51, 0.4);
@@ -273,7 +264,6 @@
             box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
         }
 
-        /* 設定画面へのボタン用デザイン */
         .game-btn.settings-trigger {
             background: rgba(0, 240, 255, 0.05);
             border-color: rgba(0, 240, 255, 0.3);
@@ -293,7 +283,7 @@
             border-radius: 16px;
         }
 
-        /* --- 4. 設定画面 --- */
+        /* 3. 設定画面 */
         #settings-screen {
             justify-content: flex-start;
         }
@@ -334,7 +324,6 @@
             cursor: pointer;
         }
 
-        /* 並び順設定用リストのスタイル */
         .order-list {
             display: flex;
             flex-direction: column;
@@ -420,7 +409,7 @@
             transform: scale(0.98);
         }
 
-        /* --- 5. 全画面ゲームプレイヤーエリア --- */
+        /* 4. ゲームプレイヤー画面 */
         #game-player-screen {
             position: fixed;
             top: 0;
@@ -471,31 +460,26 @@
 </head>
 <body>
 
-<!-- タイトル画面 -->
 <div id="title-screen" class="screen">
     <div class="title-logo">Online Game Portal</div>
     <div class="title-sub">NEXT GENERATION</div>
     <button class="start-btn" onclick="startGamePortal()">PRESS START</button>
 </div>
 
-<!-- メイン画面 -->
 <div id="main-screen" class="screen hidden">
     <h1>MY GAME PORTAL</h1>
     <p class="subtitle">SELECT A MISSION TO LAUNCH</p>
 
-    <!-- ゲームリストエリア -->
     <div id="game-list" class="game-list">
         <div class="no-game">LOADING DATA...</div>
     </div>
 </div>
 
-<!-- 設定画面 -->
 <div id="settings-screen" class="screen hidden">
     <h1>SETTINGS</h1>
     <p class="subtitle">CUSTOMIZE APP & BUTTONS</p>
 
     <div class="settings-container">
-        <!-- 透明度設定 -->
         <div class="setting-group">
             <div class="setting-label">
                 透明度 (Opacity) <span id="val-opacity" class="value-disp">0.6</span>
@@ -503,7 +487,6 @@
             <input type="range" id="range-opacity" min="0.1" max="1.0" step="0.05" value="0.6" oninput="updateSettingPreview()">
         </div>
 
-        <!-- サイズ設定 -->
         <div class="setting-group">
             <div class="setting-label">
                 サイズ (Size) <span id="val-size" class="value-disp">44px</span>
@@ -511,7 +494,6 @@
             <input type="range" id="range-size" min="30" max="70" step="2" value="44" oninput="updateSettingPreview()">
         </div>
 
-        <!-- 位置調整（上下） -->
         <div class="setting-group">
             <div class="setting-label">
                 下からの距離 (Bottom) <span id="val-bottom" class="value-disp">24px</span>
@@ -519,7 +501,6 @@
             <input type="range" id="range-bottom" min="10" max="800" step="2" value="24" oninput="updateSettingPreview()">
         </div>
 
-        <!-- 位置調整（左右） -->
         <div class="setting-group">
             <div class="setting-label">
                 左からの距離 (Left) <span id="val-left" class="value-disp">24px</span>
@@ -527,18 +508,14 @@
             <input type="range" id="range-left" min="10" max="350" step="2" value="24" oninput="updateSettingPreview()">
         </div>
 
-        <!-- 解放済みゲームの順序設定 -->
         <div class="setting-group">
             <div class="setting-label">
                 ゲームの表示順序変更
             </div>
             <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">リスト内の表示順を上下で入れ替えます</div>
-            <div id="order-list-container" class="order-list">
-                <!-- 動的に生成 -->
-            </div>
+            <div id="order-list-container" class="order-list"></div>
         </div>
 
-        <!-- プレビュー＆ボタンアクション -->
         <div class="setting-group" style="text-align: center; border-style: dashed;">
             <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">戻るボタンプレビュー</div>
             <div style="position: relative; height: 80px; display: flex; align-items: center; justify-content: center;">
@@ -555,7 +532,6 @@
     </div>
 </div>
 
-<!-- ゲームプレイヤー画面 -->
 <div id="game-player-screen" class="hidden">
     <button id="active-close-btn" class="close-game-btn" onclick="closeGame()">◀</button>
     <iframe id="game-frame" src=""></iframe>
@@ -574,7 +550,7 @@
         }
     }, { passive: false });
 
-    // ゲームライブラリ
+    // ゲームライブラリ（今後ゲームを追加する際はここに追加するだけで自動的に解放・表示されます）
     const gameLibrary = {
         "arena_survival": "arena.io",
         "sakana_online": "魚オンライン",
@@ -585,17 +561,12 @@
         "air_hocker": "エアホッケー",
         "game_fest": "GAME FEST 15",
         "jinrou": "人狼ゲーム系",
-        "cybernexus":"CYBER NEXUS",
+        "cybernexus": "CYBER NEXUS",
         "BlockMerge": "BlockMerge",
         "neon_clash": "NEON CLASH",
-        "hiragananarabe2": "ひらがなならべ2"
+        "blockbreakonline": "ブロック崩しオンライン"
     };
 
-    const defaultUnlockedIds = ["neon_clash","arena_survival", "sakana_online", "hurappi_battle", "color_card_duel", "neon_duel", "denkiisu","air_hocker","jinrou","cybernexus","BlockMerge"];
-    const storageKeyPrefix = "";
-    const unlockedValue = "1";
-
-    // --- 設定関連のデフォルト値＆管理 ---
     const defaultSettings = {
         opacity: 0.6,
         size: 44,
@@ -627,16 +598,9 @@
         btnElem.style.boxShadow = '0 4px 15px rgba(255, 0, 127, 0.3)';
     }
 
+    // gameLibrary に登録されている空でないキーをすべて解放済みとして扱う
     function getUnlockedGameIds() {
-        let unlocked = [];
-        for (const id of Object.keys(gameLibrary)) {
-            if (id === "datamanagement") continue;
-            const status = localStorage.getItem(storageKeyPrefix + id);
-            if (defaultUnlockedIds.includes(id) || status === unlockedValue || status === "1" || status === "true") {
-                unlocked.push(id);
-            }
-        }
-        return unlocked;
+        return Object.keys(gameLibrary).filter(id => id.trim() !== "" && gameLibrary[id].trim() !== "");
     }
 
     function openSettings() {
@@ -739,38 +703,7 @@
         currentEditingOrder[index] = currentEditingOrder[newIndex];
         currentEditingOrder[newIndex] = temp;
 
-        const container = document.getElementById('order-list-container');
-        container.innerHTML = "";
-
-        currentEditingOrder.forEach((id, idx) => {
-            const item = document.createElement('div');
-            item.className = 'order-item';
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.innerText = gameLibrary[id] || id;
-            item.appendChild(nameSpan);
-
-            const btnDiv = document.createElement('div');
-            btnDiv.className = 'order-btns';
-
-            const upBtn = document.createElement('button');
-            upBtn.className = 'order-btn';
-            upBtn.innerText = '▲';
-            upBtn.onclick = () => moveOrder(idx, -1);
-            if (idx === 0) upBtn.style.opacity = '0.3';
-
-            const downBtn = document.createElement('button');
-            downBtn.className = 'order-btn';
-            downBtn.innerText = '▼';
-            downBtn.onclick = () => moveOrder(idx, 1);
-            if (idx === currentEditingOrder.length - 1) downBtn.style.opacity = '0.3';
-
-            btnDiv.appendChild(upBtn);
-            btnDiv.appendChild(downBtn);
-            item.appendChild(btnDiv);
-
-            container.appendChild(item);
-        });
+        buildOrderListUI();
     }
 
     function saveSettings() {
@@ -807,7 +740,6 @@
         button.className = "game-btn";
         button.innerText = displayName;
         
-        // 各種専用色の割り当て
         if (id === "ClearCheckerUra") {
             button.classList.add("ura");
         } else if (id === "clear_checker" || id === "datamanagement") {
@@ -817,9 +749,9 @@
         } else if (id === "yondaisiren" || id === "remix") {
             button.classList.add("purple-color");
         } else if (id === "ClearCheckerMoreUra") {
-            button.classList.add("manual-color"); // 調節後のマゼンタ/ピンク系グラデーション
+            button.classList.add("more-ura-color");
         } else if (id === "motokarateka") {
-            button.classList.add("special"); // 追加：ワイヤレスイヤホン遅延設定を赤色に
+            button.classList.add("red-color");
         }
 
         button.onclick = () => {
@@ -849,6 +781,7 @@
         const s = getAppSettings();
         let unlockedIds = getUnlockedGameIds();
 
+        // 設定で指定された順序があれば並び替え
         if (s.gameOrder && Array.isArray(s.gameOrder) && s.gameOrder.length > 0) {
             unlockedIds.sort((a, b) => {
                 let idxA = s.gameOrder.indexOf(a);
@@ -859,36 +792,18 @@
             });
         }
 
-        let hasGames = false;
-
         for (const id of unlockedIds) {
             const displayName = gameLibrary[id];
-            if (displayName) {
-                const button = createGameButton(id, displayName);
-                listContainer.appendChild(button);
-                hasGames = true;
-            }
+            const button = createGameButton(id, displayName);
+            listContainer.appendChild(button);
         }
 
+        // 設定ボタン
         const settingsButton = document.createElement("button");
         settingsButton.className = "game-btn settings-trigger special";
         settingsButton.innerText = "設定";
         settingsButton.onclick = openSettings;
         listContainer.appendChild(settingsButton);
-
-        let dataManagementButton = null;
-        const dmStatus = localStorage.getItem(storageKeyPrefix + "datamanagement");
-        if (defaultUnlockedIds.includes("datamanagement") || dmStatus === unlockedValue || dmStatus === "1" || dmStatus === "true") {
-            dataManagementButton = createGameButton("datamanagement", gameLibrary["datamanagement"]);
-        }
-
-        if (dataManagementButton) {
-            listContainer.appendChild(dataManagementButton);
-        }
-
-        if (!hasGames && !dataManagementButton) {
-            listContainer.innerHTML = '<div class="no-game">解放されているゲームがありません。<br><span style="font-size:11px; color:#666;">（テスト用にストレージデータを保存してください）</span></div>';
-        }
     }
 
     window.onload = loadGames;
