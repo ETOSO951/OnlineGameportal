@@ -539,7 +539,7 @@
 
   <script>
     // ============================================================================
-    // 1. WEB AUDIO SOUND SYNTHESIZER (No external audio files required)
+    // 1. WEB AUDIO SOUND SYNTHESIZER
     // ============================================================================
     class SoundManager {
       constructor() {
@@ -613,14 +613,13 @@
     const sfx = new SoundManager();
 
     // ============================================================================
-    // 2. CONSTANTS & PLAYER SLOT DEFINITIONS
+    // 2. CONSTANTS & DEFINITIONS
     // ============================================================================
     const ARENA_SIZE = 600;
     const PADDLE_THICKNESS = 14;
     const PADDLE_MARGIN = 22;
     const DEFAULT_PADDLE_LENGTH = 122;
 
-    // 4 Directions: 0 = Bottom, 1 = Top, 2 = Left, 3 = Right
     const SLOT_CONFIGS = [
       { index: 0, label: 'P1 (下)', dir: 'bottom', color: '#06b6d4', light: '#67e8f9', bgClass: 'border-cyan-500/50 bg-cyan-950/30', badgeClass: 'bg-cyan-500 text-slate-950' },
       { index: 1, label: 'P2 (上)', dir: 'top',    color: '#f43f5e', light: '#fda4af', bgClass: 'border-rose-500/50 bg-rose-950/30', badgeClass: 'bg-rose-500 text-white' },
@@ -671,14 +670,25 @@
     ];
 
     // ============================================================================
-    // 3. STATE VARIABLES
+    // 3. STATE VARIABLES & FIREBASE CONFIG
     // ============================================================================
-    let fb = null; // Holds dynamically imported Firebase functions
+    let fb = null;
     let db = null;
     let auth = null;
     let currentUser = { uid: 'local-' + Math.random().toString(36).slice(2, 9) };
     let isFirebaseReady = false;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'neon-breaker-arena-app';
+
+    // 直接設定されているFirebase構成
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
+      authDomain: "onlinegame-341cf.firebaseapp.com",
+      databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
+      projectId: "onlinegame-341cf",
+      storageBucket: "onlinegame-341cf.firebasestorage.app",
+      messagingSenderId: "995082102439",
+      appId: "1:995082102439:web:49e57d48312e25f7879d82",
+      measurementId: "G-LBFXFHP9MF"
+    };
 
     let myPlayerName = '';
     let currentRoomId = null;
@@ -796,7 +806,7 @@
     window.copyRoomCode = copyRoomCode;
 
     // ============================================================================
-    // 5. FIREBASE DYNAMIC INITIALIZATION & REALTIME LISTENERS
+    // 5. FIREBASE INITIALIZATION & REALTIME LISTENERS
     // ============================================================================
     function setNetBadge(online, text) {
       const dot = document.getElementById('netStatusDot');
@@ -810,11 +820,7 @@
 
     async function initFirebase() {
       try {
-        const rawConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-        if (!rawConfig) {
-          setNetBadge(false, 'ローカル/CPU対戦モード');
-          return;
-        }
+        setNetBadge(false, 'Firebase接続試行中...');
 
         const [appMod, authMod, fsMod] = await Promise.all([
           import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
@@ -823,25 +829,12 @@
         ]);
 
         fb = { ...appMod, ...authMod, ...fsMod };
-        const firebaseConfig = {
-  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
-  authDomain: "onlinegame-341cf.firebaseapp.com",
-  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
-  projectId: "onlinegame-341cf",
-  storageBucket: "onlinegame-341cf.firebasestorage.app",
-  messagingSenderId: "995082102439",
-  appId: "1:995082102439:web:49e57d48312e25f7879d82",
-  measurementId: "G-LBFXFHP9MF"
-};
         const app = fb.initializeApp(firebaseConfig);
         auth = fb.getAuth(app);
         db = fb.getFirestore(app);
 
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await fb.signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await fb.signInAnonymously(auth);
-        }
+        // 匿名認証で接続
+        await fb.signInAnonymously(auth);
 
         fb.onAuthStateChanged(auth, (user) => {
           if (user) {
@@ -852,19 +845,19 @@
           }
         });
       } catch (err) {
-        console.warn('Firebase fallback to local CPU mode:', err);
+        console.warn('Firebase connection failed, falling back to local mode:', err);
         setNetBadge(false, 'ローカル/CPU対戦モード');
       }
     }
 
     function getRoomsCollection() {
-      return fb.collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+      return fb.collection(db, 'rooms');
     }
     function getRoomDoc(roomId) {
-      return fb.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+      return fb.doc(db, 'rooms', roomId);
     }
     function getChatsCollection() {
-      return fb.collection(db, 'artifacts', appId, 'public', 'data', 'chats');
+      return fb.collection(db, 'chats');
     }
 
     function subscribeToPublicRooms() {
@@ -1014,7 +1007,6 @@
       unreadChatCount = 0;
       updateChatBadge();
 
-      // Switch to lobby immediately so UI feels responsive even on slow connections
       enterLobbyView(roomDocData);
 
       if (isFirebaseReady && currentUser && fb) {
@@ -1022,7 +1014,7 @@
           await fb.setDoc(getRoomDoc(roomId), roomDocData);
           subscribeToRoom(roomId);
         } catch (e) {
-          console.warn('Firestore room create fallback to local:', e);
+          console.warn('Firestore room create error:', e);
         }
       }
 
@@ -1506,7 +1498,7 @@
     }
 
     // ============================================================================
-    // 8. GAME INITIALIZATION, WAVE & STAGE GENERATOR & PHYSICS ENGINE
+    // 8. GAME INITIALIZATION & ENGINE
     // ============================================================================
     async function hostStartGame() {
       if (!isHost || !currentRoomData) return;
@@ -1853,7 +1845,7 @@
     }
 
     // ============================================================================
-    // 9. HOST PHYSICS STEP, SPECIAL SKILLS & CLIENT SYNC
+    // 9. HOST PHYSICS STEP & SKILLS
     // ============================================================================
     function triggerMySpecialSkill() {
       if (gameState.status !== 'playing') return;
@@ -1986,7 +1978,7 @@
         return;
       }
 
-      // ---------------- AUTHORITATIVE HOST SIMULATION ----------------
+      // Authoritative Host Simulation
       if (now - gameState.lastTimerTick >= 1000) {
         gameState.lastTimerTick = now;
 
@@ -2301,12 +2293,12 @@
             b.vy = Math.abs(curSpeed * Math.cos(hitOffset));
             b.y = rect.y + rect.h + b.r + 1;
           } else if (idx === 2) {
-            const hitOffset = ((b.y - (rect.y + rect.h / 2)) / (rect.h / 2)) * 0.95;
+            const hitOffset = ((b.y - (rect.h / 2 + rect.y)) / (rect.h / 2)) * 0.95;
             b.vy = curSpeed * Math.sin(hitOffset);
             b.vx = Math.abs(curSpeed * Math.cos(hitOffset));
             b.x = rect.x + rect.w + b.r + 1;
           } else if (idx === 3) {
-            const hitOffset = ((b.y - (rect.y + rect.h / 2)) / (rect.h / 2)) * 0.95;
+            const hitOffset = ((b.y - (rect.h / 2 + rect.y)) / (rect.h / 2)) * 0.95;
             b.vy = curSpeed * Math.sin(hitOffset);
             b.vx = -Math.abs(curSpeed * Math.cos(hitOffset));
             b.x = rect.x - b.r - 1;
@@ -2524,7 +2516,7 @@
     }
 
     // ============================================================================
-    // 10. FIRESTORE SNAPSHOT SERIALIZATION & REMOTE SYNC
+    // 10. FIRESTORE SYNC LOGIC
     // ============================================================================
     function serializeSnapshot() {
       return {
@@ -2662,7 +2654,7 @@
     }
 
     // ============================================================================
-    // 11. CANVAS RENDERING & PERSPECTIVE ROTATION
+    // 11. CANVAS RENDERING
     // ============================================================================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -2732,7 +2724,6 @@
         ctx.translate(-ARENA_SIZE / 2, -ARENA_SIZE / 2);
       }
 
-      // Subtle Cyber Grid
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.06)';
       ctx.lineWidth = 1;
       for (let g = 60; g < ARENA_SIZE; g += 60) {
@@ -2740,7 +2731,7 @@
         ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(ARENA_SIZE, g); ctx.stroke();
       }
 
-      // 1. Draw 4 Walls / Goal Lines & Shields
+      // Walls / Goal Lines
       const nowRender = Date.now();
       for (let idx = 0; idx < 4; idx++) {
         const p = gameState.players[idx];
@@ -2769,7 +2760,7 @@
         ctx.restore();
       }
 
-      // 1.5 Draw Warp Portals
+      // Portals
       if (gameState.portals && gameState.portals.length > 0) {
         gameState.portals.forEach((pt) => {
           ctx.save();
@@ -2789,7 +2780,7 @@
         });
       }
 
-      // 2. Draw Blocks, Boss Core, Crown Core & Bumpers
+      // Blocks
       gameState.blocks.forEach((blk) => {
         if (blk.type === 'regen' && blk.hp <= 0) {
           ctx.save();
@@ -2897,7 +2888,7 @@
         ctx.restore();
       });
 
-      // 3. Draw Paddles
+      // Paddles
       for (let idx = 0; idx < 4; idx++) {
         const p = gameState.players[idx];
         if (!p || !p.alive || (p.type !== 'human' && p.type !== 'cpu')) continue;
@@ -2918,7 +2909,7 @@
         ctx.restore();
       }
 
-      // 4. Draw Items
+      // Items
       gameState.items.forEach((itm) => {
         const def = ITEM_TYPES.find(t => t.id === itm.type) || ITEM_TYPES[0];
         ctx.save();
@@ -2935,7 +2926,7 @@
         ctx.restore();
       });
 
-      // 5. Draw Balls
+      // Balls
       const now = Date.now();
       gameState.balls.forEach((b) => {
         const cfg = SLOT_CONFIGS[b.ownerSlot] || SLOT_CONFIGS[0];
@@ -2953,7 +2944,7 @@
         ctx.restore();
       });
 
-      // 6. Draw Particles & Floating Score Popups
+      // Particles & Popups
       gameState.particles.forEach((pt) => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
@@ -2992,7 +2983,7 @@
     }
 
     // ============================================================================
-    // 12. HUD, CONTROLS & RESULT MODAL
+    // 12. HUD & CONTROLS
     // ============================================================================
     function updateGameHUD() {
       const t = gameState.timeLeft || 0;
