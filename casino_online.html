@@ -147,20 +147,35 @@ function defaultPlayer(uid,name,host=false){return {uid,name,host,chips:1000,rea
 function currentPlayers(){return state.room?Object.values(state.room.players||{}):[]}
 function myPlayer(){return currentPlayers().find(p=>p.uid===state.uid)}
 function sortedPlayers(){return currentPlayers().slice().sort((a,b)=>b.chips-a.chips)}
-function roomDoc(){return {code:state.roomId,hostUid:state.uid,status:"lobby",day:0,gameOrder:[],players:{[state.uid]:defaultPlayer(state.uid,state.name,true)},createdAt:Date.now(),gameResult:null}}
-async function createRoom(){
+function roomDoc(passwordHash=""){return {code:state.roomId,hostUid:state.uid,status:"lobby",day:0,gameOrder:[],players:{[state.uid]:defaultPlayer(state.uid,state.name,true)},createdAt:Date.now(),gameResult:null,passwordHash}}
+async function hashPassphrase(value){
+ const normalized=String(value||"").normalize("NFKC").trim().toLocaleLowerCase("ja-JP");
+ if(!normalized)throw new Error("合言葉を入力してください");
+ if(window.crypto?.subtle){const bytes=new TextEncoder().encode(normalized);const digest=await crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("")}
+ let h=2166136261;for(let i=0;i<normalized.length;i++){h^=normalized.charCodeAt(i);h=Math.imul(h,16777619)}return "fallback-"+(h>>>0).toString(16);
+}
+async function updateRoom(patch){
+ if(!state.room)throw new Error("ルーム情報がありません");
+ if(state.local||!state.roomRef){state.room={...state.room,...patch};return}
+ await state.roomRef.update(patch);state.room={...state.room,...patch};
+}
+async function createRoom(passphrase){
  ensureUid();state.name=state.name||"Player";
- if(state.local){state.roomId=randCode();state.room=roomDoc();state.isHost=true;state.roomRef=null;renderLobby();showScreen("lobbyScreen");return}
+ let passwordHash;try{passwordHash=await hashPassphrase(passphrase)}catch(e){toast(e.message||"合言葉を入力してください");return}
+ if(state.local){state.roomId=randCode();state.room=roomDoc(passwordHash);state.isHost=true;state.roomRef=null;renderLobby();showScreen("lobbyScreen");return}
  try{
-  const code=randCode();const ref=db.collection("rooms").doc(code);const data=roomDoc();data.code=code;
+  const code=randCode();const ref=db.collection("rooms").doc(code);const data=roomDoc(passwordHash);data.code=code;
   await ref.set(data);state.roomId=code;state.roomRef=ref;state.room=data;state.isHost=true;subscribeRoom();renderLobby();showScreen("lobbyScreen");
  }catch(e){console.error(e);toast("ルーム作成に失敗しました。Firestore設定を確認してください。")}
 }
-async function joinRoom(code){
- ensureUid();code=(code||"").trim().toUpperCase();if(!code)return toast("ルームコードを入力してください");
- if(state.local){toast("Firebase設定前はローカルモードです。自分用ルームを作成してください。");return}
- try{const ref=db.collection("rooms").doc(code);const snap=await ref.get();if(!snap.exists)return toast("ルームが見つかりません");
- const data=snap.data();if(data.status!=="lobby")return toast("このルームはすでに開始しています");
+async function joinRoom(code,passphrase){
+ ensureUid();code=(code||"").trim().toUpperCase();
+ let passwordHash;try{passwordHash=await hashPassphrase(passphrase)}catch(e){toast(e.message||"合言葉を入力してください");return}
+ if(state.local){toast("Firebase接続が必要です。接続状態を確認してください。");return}
+ try{
+  let ref,snap,data;
+  if(code){ref=db.collection("rooms").doc(code);snap=await ref.get();if(!snap.exists)return toast("ルームが見つかりません");data=snap.data();if(data.passwordHash!==passwordHash)return toast("合言葉が違います");if(data.status!=="lobby")return toast("このルームはすでに開始しています");}
+  else{const found=await db.collection("rooms").where("passwordHash","==",passwordHash).get();const match=found.docs.find(d=>d.data().status==="lobby"&&Object.keys(d.data().players||{}).length<8);if(!match)return toast("合言葉が一致する募集中ルームがありません");ref=match.ref;snap=match;data=match.data();code=match.id;}
  if(Object.keys(data.players||{}).length>=8)return toast("このルームは満員です");
  const player=defaultPlayer(state.uid,state.name,false);await ref.update({["players."+state.uid]:player});
  state.roomId=code;state.roomRef=ref;state.room=data;state.isHost=false;subscribeRoom();renderLobby();showScreen("lobbyScreen");
@@ -197,7 +212,7 @@ async function startTournament(){
  const players={};ps.forEach(p=>players[p.uid]={...p,bet:0,betConfirmed:false,choice:null,score:0});
  const patch={status:"playing",day:0,gameOrder:order,players,gameResult:null,roundStatus:"betting",gameData:null};
  if(state.local){state.room={...state.room,...patch};renderDay();showScreen("dayScreen");return}
- try{await updateRoom(patch)}catch(e){console.error(e);toast("開始に失敗しました")}
+ try{await updateRoom(patch);renderDay();showScreen("dayScreen")}catch(e){console.error("startTournament failed:",e);toast("開始失敗："+(e?.message||e?.code||"通信エラー"))}
 }
 function gameForDay(){const id=state.room.gameOrder[state.room.day];return games.find(g=>g.id===id)||games[0]}
 function renderDayLine(){const day=state.room.day;$("dayLine").innerHTML=Array.from({length:5},(_,i)=>`<div class="day ${i===day?"current":i<day?"done":""}"><b>${i<day?"✓":String(i+1).padStart(2,"0")}</b>${i===4?"FINAL":"DAY"}</div>`).join("");$("dayEyebrow").textContent=`DAY ${String(day+1).padStart(2,"0")} / 05`;$("dayTitle").textContent=dayTitles[day]||"FINAL DAY"}
@@ -401,10 +416,10 @@ function flipMemory(i){
 }
 function showModal(title,body,confirmLabel,callback){
  $("modalRoot").innerHTML=`<div class="modal-back" id="modalBack"><div class="modal"><h2>${title}</h2>${body}<div class="modal-actions"><button class="btn secondary" id="modalCancel">キャンセル</button><button class="btn primary" id="modalConfirm">${confirmLabel}</button></div></div></div>`;
- $("modalCancel").onclick=()=>$("modalRoot").innerHTML="";$("modalConfirm").onclick=()=>{const v=$("modalInput")?.value; const extra=$("joinName")?.value; $("modalRoot").innerHTML="";callback(v,extra)};
+ $("modalCancel").onclick=()=>$("modalRoot").innerHTML="";$("modalConfirm").onclick=()=>{const v=$("modalInput")?.value; const extra=$("joinName")?.value; const passphrase=$("passInput")?.value; $("modalRoot").innerHTML="";callback(v,extra,passphrase)};
 }
-$("createBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("ルームを作成","<label class='label'>プレイヤー名</label><input id='modalInput' class='field' maxlength='14' value='Player' placeholder='名前'>","作成",async name=>{state.name=(name||"Player").trim().slice(0,14)||"Player";await createRoom()})};
-$("joinBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("ルームに参加","<label class='label'>プレイヤー名</label><input id='joinName' class='field' maxlength='14' value='Player' placeholder='名前'><label class='label'>ルームコード</label><input id='modalInput' class='field' maxlength='6' placeholder='例：A1B2C3' style='text-transform:uppercase'>","参加",async (code,joinName)=>{state.name=(joinName||"Player").trim()||"Player";await joinRoom(code)})};
+$("createBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("ルームを作成","<label class='label'>プレイヤー名</label><input id='modalInput' class='field' maxlength='14' value='Player' placeholder='名前'><label class='label'>マッチング用の合言葉</label><input id='passInput' class='field' maxlength='40' placeholder='友達と共有する合言葉' autocomplete='off'>","作成",async (name,unused,passphrase)=>{state.name=(name||"Player").trim().slice(0,14)||"Player";await createRoom(passphrase)})};
+$("joinBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("合言葉でマッチング","<label class='label'>プレイヤー名</label><input id='joinName' class='field' maxlength='14' value='Player' placeholder='名前'><label class='label'>合言葉</label><input id='passInput' class='field' maxlength='40' placeholder='作成者と同じ合言葉' autocomplete='off'><label class='label'>ルームコード（任意）</label><input id='modalInput' class='field' maxlength='6' placeholder='空欄なら合言葉で検索' style='text-transform:uppercase'>","参加",async (code,joinName,passphrase)=>{state.name=(joinName||"Player").trim()||"Player";await joinRoom(code,passphrase)})};
 $("copyCodeBtn").onclick=async()=>{try{await navigator.clipboard.writeText(state.roomId);toast("ルームコードをコピーしました")}catch(e){toast("ルームコード："+state.roomId)}};
 $("saveNameBtn").onclick=async()=>{const n=$("nameInput").value.trim().slice(0,14);if(!n)return toast("名前を入力してください");state.name=n;await updateMyPlayer({name:n});renderLobby();toast("名前を変更しました")};
 $("readyBtn").onclick=setReady;
