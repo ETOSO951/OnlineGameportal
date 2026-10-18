@@ -7,49 +7,52 @@
 <title>FATE CASINO — 5 DAYS</title>
 <style>
 :root{--bg:#080912;--panel:#121522;--panel2:#191d2d;--gold:#f2c76b;--gold2:#a8792b;--text:#f7f3e8;--muted:#a5a9bc;--line:#34384b;--red:#ff657a;--green:#6ce0ad;--blue:#75d9f5}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -20%,#29213a 0%,#101322 38%,var(--bg) 72%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP","Hiragino Kaku Gothic ProN","Meiryo UI",Meiryo,sans-serif}
-/* Interactive Board Styles for 30 Duel Games */
-.c4-board{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;background:#1b2238;padding:10px;border-radius:14px;width:min(100%,350px);margin:12px auto;border:1px solid #3d4766}
-.c4-cell{aspect-ratio:1;background:#0d111a;border-radius:50%;display:grid;place-items:center;border:2px solid #283047;cursor:pointer;transition:transform .1s}
-.c4-cell:active{transform:scale(.92)}
-.c4-cell.p1{background:linear-gradient(135deg,#f2c76b,#b98a3b);border-color:#ffe8a4}
-.c4-cell.p2{background:linear-gradient(135deg,#ff657a,#c72c4b);border-color:#ffb7c1}
-.dots-grid{display:grid;grid-template-columns:repeat(7,auto);gap:4px;width:min(100%,320px);margin:12px auto;background:#131625;padding:12px;border-radius:14px;justify-content:center;align-items:center}
-.dot{width:12px;height:12px;background:var(--gold);border-radius:50%}
-.line-h{height:12px;width:36px;background:#252a3d;border-radius:6px;cursor:pointer;transition:background .2s}
-.line-v{width:12px;height:36px;background:#252a3d;border-radius:6px;cursor:pointer;transition:background .2s}
-.line-h.active,.line-v.active{background:var(--gold)}
-.box-cell{width:36px;height:36px;background:#1a1e2e;border-radius:6px;display:grid;place-items:center;font-weight:900;font-size:12px;color:var(--gold)}
-.quoridor-board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(100%,320px);margin:12px auto;background:#141724;padding:10px;border-radius:14px}
-.q-cell{aspect-ratio:1;background:#202638;border-radius:8px;border:1px solid #363d54;display:grid;place-items:center;font-size:20px;cursor:pointer;touch-action:manipulation}
-.q-cell.p1-pos{background:#38311e;border-color:var(--gold)}
-.q-cell.p2-pos{background:#3d1e28;border-color:var(--red)}
-.mancala-board{display:flex;gap:8px;justify-content:center;background:#181c2b;padding:12px;border-radius:16px;width:min(100%,360px);margin:12px auto;border:1px solid #32384e}
-.mancala-pit{flex:1;background:#0d101a;border-radius:12px;padding:12px 4px;text-align:center;border:1px solid #282f45;cursor:pointer;touch-action:manipulation}
-.mancala-pit b{display:block;font-size:18px;color:var(--gold);margin-top:4px}
-.nim-rows{display:flex;flex-direction:column;gap:10px;align-items:center;margin:16px 0}
-.nim-row{display:flex;gap:8px}
-.nim-stick{width:16px;height:48px;background:linear-gradient(180deg,#f2c76b,#8f6225);border-radius:8px;cursor:pointer;box-shadow:0 3px 8px #0004;transition:transform .15s}
-.nim-stick.selected{background:#ff657a;transform:translateY(-6px)}
-.speed-cards{display:flex;justify-content:center;gap:12px;margin:16px 0;align-items:center}.hidden{display:none!important}.result-rank{display:flex;align-items:center;justify-content:space-between}
-@media(min-width:600px){.actions{grid-template-columns:1fr 1fr}.hero{padding:34px}.main-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.main-grid .panel{margin-top:0}}
-button, .choice, .c4-cell, .q-cell, .mancala-pit, .nim-stick { touch-action: manipulation; }
-.header, .top{display:flex;justify-content:space-between;align-items:center}
-.app{max-width:980px;margin:0 auto;padding:18px}
-.top .brand{font-weight:900;font-size:20px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -20%,#29213a 0%,#101322 38%,var(--bg) 72%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP","Hiragino Kaku Gothic ProN","Meiryo UI",Meiryo,sans-serif}
+.app{max-width:980px;margin:0 auto;padding:22px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.eyebrow{font-size:12px;color:var(--muted);letter-spacing:.12em}
+.brand{font-weight:900;font-size:20px}
 .pill{background:#0f1420;padding:6px 10px;border-radius:999px;border:1px solid #242834}
 .screen{display:none}
 .screen.active{display:block}
-.panel{background:var(--panel);padding:12px;border-radius:12px;margin:12px 0;border:1px solid var(--panel2)}
+.hero{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:18px;border-radius:12px}
+.hero h1{margin:10px 0 6px;font-size:34px;line-height:1.02}
+.hero h1 em{font-style:normal;color:var(--gold);font-weight:800}
+.sub{color:var(--muted);margin-bottom:12px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .btn{padding:10px 12px;border-radius:10px;border:0;background:#222733;color:var(--text);cursor:pointer}
 .btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080912}
+.panel{background:var(--panel);padding:14px;border-radius:12px;margin:12px 0;border:1px solid var(--panel2)}
+.stats{display:flex;gap:12px;margin-top:12px}
+.stat{flex:1;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);padding:12px;border-radius:8px;text-align:center}
+.stat .v{font-weight:900;font-size:20px;color:var(--gold)}
+.stat .k{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:8px}
+.row{display:flex;align-items:center}
+.row.between{justify-content:space-between}
+.player-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.player{padding:8px;border-radius:8px;background:#0d1117;border:1px solid #232834}
+.game-card{display:flex;gap:12px;align-items:center}
+.game-icon{font-size:28px}
+#dayLine{height:8px;background:linear-gradient(90deg,var(--gold),transparent);border-radius:6px;margin:12px 0}
+#gamePanel,#betPanel{transition:all .18s}
+.hidden{display:none!important}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111426;padding:10px 14px;border-radius:10px;border:1px solid #25283b;color:var(--text);opacity:0}
+input[type=range]{appearance:none;height:8px;border-radius:6px;background:#202534}
 .field{padding:8px;border-radius:8px;border:1px solid #2b2f3f;background:#0f1420;color:var(--text)}
+.small{padding:6px 8px;font-size:13px}
+.game-message{margin:10px 0;color:var(--muted)}
+@media(max-width:599px){.actions{grid-template-columns:1fr}.hero h1{font-size:26px}}
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <div><div class="eyebrow">THE FIVE-DAY TOURNAMENT</div><div class="brand">FATE <span>CASINO</span></div></div>
+    <div>
+      <div class="eyebrow">THE FIVE-DAY TOURNAMENT</div>
+      <div class="brand">FATE <span>CASINO</span></div>
+    </div>
     <div class="pill" id="connectionBadge">● LOCAL MODE</div>
   </header>
 
@@ -60,7 +63,7 @@ button, .choice, .c4-cell, .q-cell, .mancala-pit, .nim-stick { touch-action: man
       <div class="sub">5日間。毎日違うゲーム。限られたチップ。<br>最後に笑うのは、運か、頭脳か、それとも心理戦か。</div>
       <div class="actions">
         <button class="btn primary" id="createBtn">ルームを作成する　↗</button>
-        <button class="btn secondary" id="joinBtn">ルームに参加する</button>
+        <button class="btn" id="joinBtn">ルームに参加する</button>
       </div>
     </div>
     <div class="panel">
@@ -70,39 +73,51 @@ button, .choice, .c4-cell, .q-cell, .mancala-pit, .nim-stick { touch-action: man
         <div class="stat"><div class="v">05</div><div class="k">DAYS</div></div>
         <div class="stat"><div class="v">1,000</div><div class="k">START CHIPS</div></div>
       </div>
-      <div class="notice">対戦ごとにゲームを5種類抽選。重複なしでDAY 01〜05を進み、最終チップ数で順位が決まる。</div>
-      <div class="notice warn">チップはゲーム内専用の仮想ポイントです。現金・換金機能はありません。</div>
+      <div class="notice" style="margin-top:12px;color:var(--muted)">対戦ごとにゲームを5種類抽選。重複なしでDAY 01〜05を進み、最終チップ数で順位が決まる。</div>
+      <div class="notice warn" style="margin-top:8px;color:var(--muted)">チップはゲーム内専用の仮想ポイントです。現金・換金機能はありません。</div>
     </div>
     <div class="footer">FATE CASINO · FRIENDS ONLY · NO REAL-MONEY GAMBLING</div>
   </section>
 
   <section class="screen" id="lobbyScreen">
-    <div class="row between"><div><div class="eyebrow">WAITING ROOM</div><h1 style="margin:4px 0 0;font-size:28px">LOBBY</h1></div><button class="btn secondary small" id="leaveLobbyBtn">退出</button></div>
+    <div class="row between"><div><div class="eyebrow">WAITING ROOM</div><h1 style="margin:4px 0 0;font-size:28px">LOBBY</h1></div><button class="btn small" id="leaveLobbyBtn">退出</button></div>
     <div class="panel">
       <div class="row between"><div><div class="label" style="margin-top:0">ROOM CODE</div><div id="roomCode" style="font-size:30px;font-weight:950;letter-spacing:.18em;color:var(--gold)">------</div></div></div>
-      <div class="label">あなたの名前</div><div class="row"><input id="nameInput" class="field" maxlength="14" placeholder="プレイヤー名"><button id="saveNameBtn" class="btn secondary">保存</button></div>
+      <div style="margin-top:10px">
+        <div class="label">あなたの名前</div>
+        <div class="row" style="gap:8px;margin-top:6px"><input id="nameInput" class="field" maxlength="14" placeholder="プレイヤー名"><button id="saveNameBtn" class="btn small">保存</button></div>
+      </div>
       <div class="row between" style="margin-top:17px"><h2 style="margin:0">PLAYERS</h2><span id="playerCount" class="muted tiny">1 / 8</span></div>
       <div id="playerList" class="player-list"></div>
-      <div class="notice" id="lobbyHint">ホストが開始すると、5日間のトーナメントが始まります。</div>
-      <div class="actions"><button class="btn primary" id="startBtn">トーナメント開始</button><button class="btn secondary" id="readyBtn">準備OK ✓</button></div>
+      <div class="notice" id="lobbyHint" style="margin-top:10px;color:var(--muted)">ホストが開始すると、5日間のトーナメントが始まります。</div>
+      <div class="actions" style="margin-top:12px"><button class="btn primary" id="startBtn">トーナメント開始</button><button class="btn" id="readyBtn">準備OK ✓</button></div>
     </div>
   </section>
 
   <section class="screen" id="dayScreen">
-    <div class="row between"><div><div class="eyebrow" id="dayEyebrow">DAY 01 / 05</div><h1 id="dayTitle" style="margin:4px 0;font-size:30px">開幕戦</h1></div><div class="pill" id="phaseBadge">BETTING</div></div>
-    <div class="dayline" id="dayLine"></div>
-    <div class="game-card"><div class="game-icon" id="gameIcon">🂡</div><h2 id="gameName">HIGH & LOW</h2><p id="gameDesc">次のカードの数字を予想しよう。</p></div>
+    <div class="row between" style="align-items:flex-end"><div><div class="eyebrow" id="dayEyebrow">DAY 01 / 05</div><h1 id="dayTitle" style="margin:4px 0;font-size:22px">開幕戦</h1></div><div class="pill" id="phaseBadge">BETTING</div></div>
+    <div id="dayLine"></div>
+    <div class="game-card panel">
+      <div>
+        <div class="game-icon" id="gameIcon">🂡</div>
+      </div>
+      <div>
+        <h2 id="gameName">HIGH & LOW</h2>
+        <p id="gameDesc" style="color:var(--muted);margin:6px 0 0">次のカードの数字を予想しよう。</p>
+      </div>
+    </div>
     <div class="stats">
       <div class="stat"><div class="v" id="myChips">1,000</div><div class="k">YOUR CHIPS</div></div>
       <div class="stat"><div class="v" id="myBet">50</div><div class="k">YOUR BET</div></div>
       <div class="stat"><div class="v" id="myRank">#1</div><div class="k">RANK</div></div>
     </div>
     <div class="panel" id="betPanel">
-      <h2>PLACE YOUR BET</h2><div class="row between"><span class="muted tiny">賭けるチップ</span><strong id="betLabel" style="color:var(--gold)">50</strong></div>
-      <input id="betSlider" type="range" min="10" max="500" step="10" value="50" style="width:100%;accent-color:var(--gold);margin:12px 0">
+      <h2 style="margin:0 0 8px">PLACE YOUR BET</h2>
+      <div class="row between"><span class="muted tiny">賭けるチップ</span><strong id="betLabel" style="color:var(--gold)">50</strong></div>
+      <input id="betSlider" type="range" min="10" max="500" step="10" value="50" style="width:100%;margin:12px 0">
       <div class="row between tiny muted"><span>10</span><span id="maxBetLabel">MAX 1,000</span></div>
       <button class="btn primary" id="confirmBetBtn" style="width:100%;margin-top:12px">ベットを確定</button>
-      <div class="notice">全員のベットが確定するとゲームが始まります。テストモードでは自分ひとりでも進行できます。</div>
+      <div class="notice" style="margin-top:10px;color:var(--muted)">全員のベットが確定するとゲームが始まります。テストモードでは自分ひとりでも進行できます。</div>
     </div>
     <div class="panel hidden" id="gamePanel">
       <div class="row between"><h2 id="gamePanelTitle">GAME ON</h2><span class="pill" id="gameStatus">YOUR TURN</span></div>
@@ -112,37 +127,22 @@ button, .choice, .c4-cell, .q-cell, .mancala-pit, .nim-stick { touch-action: man
     </div>
     <div class="panel">
       <div class="row between"><h2 style="margin:0">LIVE LEADERBOARD</h2><span class="tiny muted">CHIPS</span></div>
-      <div id="dayLeaderboard"></div>
+      <div id="dayLeaderboard" style="margin-top:8px"></div>
     </div>
   </section>
 
   <section class="screen" id="finalScreen">
-    <div class="hero" style="text-align:center"><div class="eyebrow">TOURNAMENT COMPLETE</div><div style="font-size:64px;margin:14px">🏆</div><h1 style="font-size:34px">THE LAST<br><em>PLAYER STANDING</em></h1></div>
-    <div class="panel"><h2>FINAL RANKING</h2><div id="finalRanking"></div><button class="btn primary" id="newTournamentBtn" style="width:100%;margin-top:16px">新しいトーナメント</button></div>
+    <div class="hero" style="text-align:center;margin-bottom:12px"><div class="eyebrow">TOURNAMENT COMPLETE</div><div style="font-size:64px;margin:14px">🏆</div><h1 style="font-size:34px">THE LAST<br><em>PLAYER STANDING</em></h1></div>
+    <div class="panel"><h2>FINAL RANKING</h2><div id="finalRanking" style="margin-top:10px"></div><button class="btn primary" id="newTournamentBtn" style="width:100%;margin-top:16px">新しいトーナメント</button></div>
   </section>
 </div>
 <div class="toast" id="toast"></div>
 <div id="modalRoot"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /*
-  FATE CASINO — single-file prototype (conflicts cleaned)
-  This script restores a working local-mode UI. Firebase integration was left as a config block but not initialized here to keep the page runnable without external setup.
+  FATE CASINO — UI polish after conflict resolution
 */
-const firebaseConfig = {
-  apiKey: "AIzaSyBfCIcope9_paZiVXHAiqyIOUonOYztW28",
-  authDomain: "onlinegame-341cf.firebaseapp.com",
-  databaseURL: "https://onlinegame-341cf-default-rtdb.firebaseio.com",
-  projectId: "onlinegame-341cf",
-  storageBucket: "onlinegame-341cf.firebasestorage.app",
-  messagingSenderId: "995082102439",
-  appId: "1:995082102439:web:49e57d48312e25f7879d82",
-  measurementId: "G-LBFXFHP9MF"
-};
-
 const $ = id => document.getElementById(id);
 function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
@@ -154,38 +154,16 @@ const games = [
  {id:"mancala",name:"MANCALA DUEL",icon:"🫘",desc:"種まきと石の配分計算が勝敗を分ける思考型ボードゲーム。"},
  {id:"speed",name:"CARD SPEED",icon:"⚡",desc:"場札の数字に繋がる手札を瞬時に判断して出し切る対戦。"},
  {id:"reversi",name:"REVERSI DUEL",icon:"⚫",desc:"相手のコマを挟んでひっくり返し盤面を制覇するオセロ勝負。"},
- {id:"quoridor",name:"CORRIDOR DUEL",icon:"🧱",desc:"マス目を移動し壁を掻い潜り最奥のゴールを目���す戦略戦。"},
- {id:"dotsboxes",name:"DOTS & BOXES",icon:"🔲",desc:"線を引いて四角形の陣地を囲み、獲得数を競う古典頭脳戦。"},
- {id:"hitandblow",name:"HIT & BLOW",icon:"🔢",desc:"相手が隠した3桁の秘密数字コードを論理的に推理・解読。"},
- {id:"indianpoker",name:"INDIAN POKER",icon:"🂠",desc:"自分の額のカードが見えない極限の心理戦とレイズ勝負。"},
- {id:"bluff",name:"BLUFF MASTER",icon:"🎭",desc:"相手の宣言が真実かブラフ(嘘)かを見極める高度な心理戦。"},
- {id:"auction",name:"BLIND AUCTION",icon:"🔨",desc:"相手の懐事情と提示価値を読む密室のブラインドオークション。"},
- {id:"skull",name:"SKULL & ROSES",icon:"💀",desc:"ドクロを避けつつ安全なバラの花をめくる度胸勝負。"},
- {id:"split",name:"DIVIDE & TAKE",icon:"🍰",desc:"一方が山を二つに分け、もう一方が選ぶ分配心理戦。"},
- {id:"highlow",name:"HIGH & LOW DUEL",icon:"🂡",desc:"次に来るトランプカードがハイかローかを当てるバトル。"},
- {id:"blackjack",name:"BLACKJACK 21",icon:"🃏",desc:"21を超えずにディーラーより強い手札を作るディーラー勝負。"},
- {id:"wordwolf",name:"WORD WOLF",icon:"🐺",desc:"お題のズレから少数派のウルフを見抜いて投票・討伐する。"},
- {id:"majority",name:"MAJORITY READ",icon:"👥",desc:"多数派の選択をどれだけ正確に読めるか試される集団心理戦。"},
- {id:"number",name:"NUMBER GUESS",icon:"🎯",desc:"1〜20の秘密のターゲットナンバーに最も近づく数字を選択。"},
- {id:"roulette",name:"COLOR BATTING",icon:"🎡",desc:"他のプレイヤーと選択色が重ならないよう出し抜くバッティング戦。"},
- {id:"quickmath",name:"QUICK MATH DUEL",icon:"🧮",desc:"ランダムな算術式の答えを電光石火のスピードで弾き出す。"},
- {id:"memory",name:"MEMORY MATCH",icon:"🧠",desc:"記憶力をフル稼働させて8枚のカードからペアを連続奪取。"},
- {id:"mastermind",name:"CODE BREAKER",icon:"🔐",desc:"色のヒントを手がかりに3つのカラーコードを完全解読。"},
- {id:"reflex",name:"REFLEX FLASH",icon:"💥",desc:"合図が出た瞬間に画面を誰よりも速くタップする瞬発勝負。"},
- {id:"timebomb",name:"JUST TIMER",icon:"⏱️",desc:"体内時計だけで「5.00秒」ジャストを叩き出すタイミング勝負。"},
- {id:"mazerace",name:"MAZE ESCAPE",icon:"🧩",desc:"迷路構造から最短脱出歩数(7歩)を看破する観察力勝負。"},
- {id:"puzzleduel",name:"BLOCK FIT",icon:"🟩",desc:"空きスペースに完璧にハマるブロック形状(T型)を見極める。"},
  {id:"battleship",name:"NAVAL CLASH",icon:"⚓",desc:"相手の戦艦の潜伏座標(1〜9)を直感と推理で撃破する海戦。"},
  {id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
 ];
 
 function chooseGameOrder(){ return shuffle(games.map(g=>g.id)).slice(0,5); }
 const dayTitles = ["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
-
 const state = { name: "Player", chips: 1000, selectedBet:50, gameIndex:0, gameOrder: [] };
 
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); const el = document.getElementById(id); if(el) el.classList.add('active'); }
-function toast(msg, dur=2200){ const t = $('toast'); if(!t) return; t.textContent = msg; t.style.opacity=1; setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity=0; }, dur); }
+function toast(msg, dur=2000){ const t = $('toast'); if(!t) return; t.textContent = msg; t.style.opacity=1; setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity=0; }, dur); }
 
 function renderDay(){ const idx = state.gameIndex; const day = idx+1; $('dayEyebrow').textContent = `DAY ${String(day).padStart(2,'0')} / 05`; const gid = state.gameOrder[idx]; const g = games.find(x=>x.id===gid) || games[0]; $('gameIcon').textContent = g.icon; $('gameName').textContent = g.name; $('gameDesc').textContent = g.desc; $('myChips').textContent = state.chips; $('myBet').textContent = state.selectedBet; }
 
@@ -193,24 +171,17 @@ function renderDay(){ const idx = state.gameIndex; const day = idx+1; $('dayEyeb
 document.getElementById('createBtn').addEventListener('click', ()=>{ state.gameOrder = chooseGameOrder(); state.gameIndex = 0; showScreen('lobbyScreen'); $('roomCode').textContent = Math.random().toString(36).slice(2,8).toUpperCase(); toast('ローカルルームを作成しました'); });
 document.getElementById('joinBtn').addEventListener('click', ()=>{ showScreen('lobbyScreen'); toast('ルームに参加 — ローカルモード'); });
 document.getElementById('leaveLobbyBtn').addEventListener('click', ()=>{ showScreen('homeScreen'); });
-document.getElementById('startBtn').addEventListener('click', ()=>{ // simplified local start
- state.gameOrder = state.gameOrder.length? state.gameOrder : chooseGameOrder(); state.gameIndex = 0; renderDay(); showScreen('dayScreen'); toast('トーナメント開始'); });
+document.getElementById('startBtn').addEventListener('click', ()=>{ state.gameOrder = state.gameOrder.length? state.gameOrder : chooseGameOrder(); state.gameIndex = 0; renderDay(); showScreen('dayScreen'); toast('トーナメント開始'); });
 document.getElementById('readyBtn').addEventListener('click', ()=>{ toast('準備OK！'); });
 
-// Bet UI
-$('betSlider').addEventListener('input', e=>{ state.selectedBet = Number(e.target.value); $('betLabel').textContent = state.selectedBet; $('myBet').textContent = state.selectedBet; });
-$('confirmBetBtn').addEventListener('click', ()=>{ toast(`ベット ${state.selectedBet} を確定しました`); // reveal simple game panel
- $('betPanel').classList.add('hidden'); $('gamePanel').classList.remove('hidden'); $('gameMessage').textContent = 'シンプルテストモード — 結果を確認して次へ'; $('finishGameBtn').classList.remove('hidden'); });
+document.getElementById('betSlider').addEventListener('input', e=>{ state.selectedBet = Number(e.target.value); $('betLabel').textContent = state.selectedBet; $('myBet').textContent = state.selectedBet; });
+$('confirmBetBtn').addEventListener('click', ()=>{ toast(`ベット ${state.selectedBet} を確定しました`); $('betPanel').classList.add('hidden'); $('gamePanel').classList.remove('hidden'); $('gameMessage').textContent = 'シンプルテストモード — 結果を確認して次へ'; $('finishGameBtn').classList.remove('hidden'); });
 
-$('finishGameBtn').addEventListener('click', ()=>{ // advance to next day or final
- state.chips = Math.max(0, state.chips + (Math.floor(Math.random()*201)-100)); state.gameIndex++; if(state.gameIndex>=5){ // finish
- showScreen('finalScreen'); $('finalRanking').textContent = `あなたの最終チップ: ${state.chips}`; } else { renderDay(); $('betPanel').classList.remove('hidden'); $('gamePanel').classList.add('hidden'); toast('次のデイへ'); } });
+$('finishGameBtn').addEventListener('click', ()=>{ state.chips = Math.max(0, state.chips + (Math.floor(Math.random()*201)-100)); state.gameIndex++; if(state.gameIndex>=5){ showScreen('finalScreen'); $('finalRanking').textContent = `あなたの最終チップ: ${state.chips}`; } else { renderDay(); $('betPanel').classList.remove('hidden'); $('gamePanel').classList.add('hidden'); toast('次のデイへ'); } });
 
 $('newTournamentBtn').addEventListener('click', ()=>{ state.chips = 1000; state.gameIndex = 0; state.gameOrder = []; showScreen('homeScreen'); toast('準備ができました'); });
 
-// small boot
 document.addEventListener('DOMContentLoaded', ()=>{ $('roomCode').textContent = '------'; $('playerList').textContent = 'あなた (ホスト)'; });
-
 </script>
 </body>
 </html>
