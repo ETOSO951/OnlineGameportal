@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080912">
+<title>FATE CASINO — 5 DAYS</title>
+<style>
+:root{--bg:#080912;--panel:#121522;--panel2:#191d2d;--gold:#f2c76b;--gold2:#a8792b;--text:#f7f3e8;--muted:#a5a9bc;--line:#34384b;--red:#ff657a;--green:#6ce0ad;--blue:#75d9f5}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -20%,#29213a 0%,#101322 38%,var(--bg) 72%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}button,input{font:inherit}button{border:0;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:not-allowed}.app{width:min(100%,760px);margin:auto;padding:14px 14px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.brand{font-weight:950;letter-spacing:.13em;font-size:clamp(18px,5vw,25px)}.brand span{color:var(--gold)}.eyebrow{font-size:10px;letter-spacing:.2em;color:var(--gold);font-weight:800}.pill{border:1px solid #55506a;border-radius:999px;padding:7px 10px;color:var(--muted);font-size:11px}.screen{display:none;animation:appear .25s ease}.screen.active{display:block}@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}.hero{padding:26px 18px;border:1px solid #5a4a34;border-radius:24px;background:linear-gradient(145deg,#242034dd,#121522f2 65%);box-shadow:0 18px 50px #0005;position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:15px;top:5px;font-size:100px;color:#f2c76b12}.hero h1{font-size:clamp(28px,8vw,46px);line-height:1;margin:10px 0 12px;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:var(--gold)}.sub{color:var(--muted);font-size:13px;line-height:1.7}.actions{display:grid;gap:10px;margin-top:20px}.btn{border-radius:13px;padding:14px 16px;font-weight:850;letter-spacing:.02em;transition:transform .12s,filter .12s}.btn:active{transform:scale(.985)}.primary{background:linear-gradient(135deg,#ffe8a4,#d6a344);color:#211606;box-shadow:0 6px 22px #d8a34325}.secondary{background:#202437;color:var(--text);border:1px solid #3c4158}.danger{background:#3a1d2a;color:#ffb7c1;border:1px solid #713246}.small{padding:9px 12px;font-size:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel{background:linear-gradient(145deg,#171a29,#10131f);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:13px}.panel h2,.panel h3{margin:0 0 10px}.panel h2{font-size:17px}.panel h3{font-size:14px}.label{display:block;font-size:11px;color:var(--muted);margin:12px 0 6px}.field{width:100%;padding:13px 12px;border:1px solid #3a3e52;border-radius:12px;background:#0b0e18;color:var(--text);outline:none}.field:focus{border-color:var(--gold)}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.grow{flex:1;min-width:0}.muted{color:var(--muted)}.tiny{font-size:11px}.notice{padding:11px 12px;border-radius:12px;background:#242235;color:#d7d3e8;font-size:12px;line-height:1.6;margin-top:12px}.notice.warn{background:#38272a;color:#ffd0b4}.notice.good{background:#172f2b;color:#a6f0ce}.player-list{display:grid;gap:8px;margin-top:12px}.player{display:flex;align-items:center;gap:10px;background:#1a1e2d;border-radius:12px;padding:10px}.avatar{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#e9c46a,#8f6225);color:#201708;display:grid;place-items:center;font-weight:950}.player .name{font-weight:750;font-size:13px}.player .meta{font-size:10px;color:var(--muted)}.chip{color:var(--gold);font-weight:850;white-space:nowrap}.progress{height:5px;border-radius:8px;background:#303346;overflow:hidden;margin:12px 0}.progress>i{display:block;height:100%;background:linear-gradient(90deg,#a8792b,#ffe8a4);width:20%;transition:width .3s}.dayline{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}.day{padding:9px 2px;border-radius:10px;background:#191d2c;border:1px solid #30354a;text-align:center;font-size:10px;color:var(--muted)}.day b{display:block;font-size:13px;margin-bottom:4px}.day.current{border-color:var(--gold);background:#332b1d;color:#ffe4a1}.day.done{color:var(--green);border-color:#32624f}.game-card{padding:18px;border-radius:20px;border:1px solid #5a4a34;background:radial-gradient(ellipse at top,#32273a,#171a28 65%);text-align:center;margin:14px 0}.game-icon{font-size:42px}.game-card h2{margin:5px 0 4px;font-size:24px}.game-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#1b1e2d;border:1px solid #303448;border-radius:13px;padding:11px;text-align:center}.stat .v{font-size:20px;font-weight:900;color:var(--gold)}.stat .k{font-size:10px;color:var(--muted)}.playing-card{display:inline-grid;place-items:center;min-width:88px;height:126px;border-radius:13px;background:linear-gradient(145deg,#fffdf5,#e3e1dc);color:#181923;font-size:35px;font-weight:900;box-shadow:0 8px 22px #0005;margin:6px}.playing-card.red{color:#c72c4b}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice{border-radius:13px;padding:13px 8px;background:#24283a;border:1px solid #444a62;color:var(--text);font-weight:800}.choice.gold{border-color:#b98a3b;background:#352b1d;color:#ffe4a1}.choice.selected{outline:2px solid var(--gold)}.game-message{min-height:24px;text-align:center;color:var(--gold);font-weight:800;margin:12px 0}.board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,360px);margin:12px auto;background:#101c1c;padding:5px;border-radius:10px}.cell{aspect-ratio:1;background:#28745e;border-radius:4px;display:grid;place-items:center;padding:0}.disc{width:76%;height:76%;border-radius:50%;background:#171923;box-shadow:inset 0 -3px 3px #0007}.disc.white{background:#f6f0df}.cell.hint:after{content:"";width:24%;height:24%;border-radius:50%;background:#ffffff55}.hidden{display:none!important}.result-rank{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#1a1e2c;border-radius:12px;margin-top:8px}.result-rank:first-child{border:1px solid #b98a3b}.footer{text-align:center;color:#686d81;font-size:10px;line-height:1.6;margin-top:18px}.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#f2c76b;color:#1c160b;padding:12px 16px;border-radius:12px;font-size:12px;font-weight:850;z-index:9;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.modal-back{position:fixed;inset:0;background:#000a;z-index:10;display:grid;place-items:center;padding:18px}.modal{width:min(100%,420px);background:#171a29;border:1px solid #655335;border-radius:20px;padding:20px;box-shadow:0 20px 80px #0009}.modal h2{margin-top:0}.modal-actions{display:flex;gap:8px;margin-top:14px}.modal-actions>*{flex:1}
+@media(min-width:600px){.actions{grid-template-columns:1fr 1fr}.hero{padding:34px}.main-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.main-grid .panel{margin-top:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div><div class="eyebrow">THE FIVE-DAY TOURNAMENT</div><div class="brand">FATE <span>CASINO</span></div></div>
+    <div class="pill" id="connectionBadge">● LOCAL MODE</div>
+  </header>
+
+  <section class="screen active" id="homeScreen">
+    <div class="hero">
+      <div class="eyebrow">PLAY YOUR ODDS</div>
+      <h1>FATE IS<br><em>IN YOUR HANDS.</em></h1>
+      <div class="sub">5日間。毎日違うゲーム。限られたチップ。<br>最後に笑うのは、運か、頭脳か、それとも心理戦か。</div>
+      <div class="actions">
+        <button class="btn primary" id="createBtn">ルームを作成する　↗</button>
+        <button class="btn secondary" id="joinBtn">ルームに参加する</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>TOURNAMENT RULES</h2>
+      <div class="stats">
+        <div class="stat"><div class="v">2–8</div><div class="k">PLAYERS</div></div>
+        <div class="stat"><div class="v">05</div><div class="k">DAYS</div></div>
+        <div class="stat"><div class="v">1,000</div><div class="k">START CHIPS</div></div>
+      </div>
+      <div class="notice">対戦ごとにゲームを5種類抽選。重複なしでDAY 01〜05を進み、最終チップ数で順位が決まる。</div>
+      <div class="notice warn">チップはゲーム内専用の仮想ポイントです。現金・換金機能はありません。</div>
+    </div>
+    <div class="footer">FATE CASINO · FRIENDS ONLY · NO REAL-MONEY GAMBLING</div>
+  </section>
+
+  <section class="screen" id="lobbyScreen">
+    <div class="row between"><div><div class="eyebrow">WAITING ROOM</div><h1 style="margin:4px 0 0;font-size:28px">LOBBY</h1></div><button class="btn secondary small" id="leaveLobbyBtn">退出</button></div>
+    <div class="panel">
+      <div class="row between"><div><div class="label" style="margin-top:0">ROOM CODE</div><div id="roomCode" style="font-size:30px;font-weight:950;letter-spacing:.18em;color:var(--gold)">------</div></div><button class="btn secondary small" id="copyCodeBtn">コードをコピー</button></div>
+      <div class="label">あなたの名前</div><div class="row"><input id="nameInput" class="field" maxlength="14" placeholder="プレイヤー名"><button id="saveNameBtn" class="btn secondary small">変更</button></div>
+      <div class="row between" style="margin-top:17px"><h2 style="margin:0">PLAYERS</h2><span id="playerCount" class="muted tiny">1 / 8</span></div>
+      <div id="playerList" class="player-list"></div>
+      <div class="notice" id="lobbyHint">ホストが開始すると、5日間のトーナメントが始まります。</div>
+      <div class="actions"><button class="btn primary" id="startBtn">トーナメント開始</button><button class="btn secondary" id="readyBtn">準備OK ✓</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="dayScreen">
+    <div class="row between"><div><div class="eyebrow" id="dayEyebrow">DAY 01 / 05</div><h1 id="dayTitle" style="margin:4px 0;font-size:30px">開幕戦</h1></div><div class="pill" id="phaseBadge">BETTING</div></div>
+    <div class="dayline" id="dayLine"></div>
+    <div class="game-card"><div class="game-icon" id="gameIcon">🂡</div><h2 id="gameName">HIGH & LOW</h2><p id="gameDesc">次のカードの数字を予想しよう。</p></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="myChips">1,000</div><div class="k">YOUR CHIPS</div></div>
+      <div class="stat"><div class="v" id="myBet">50</div><div class="k">YOUR BET</div></div>
+      <div class="stat"><div class="v" id="myRank">#1</div><div class="k">RANK</div></div>
+    </div>
+    <div class="panel" id="betPanel">
+      <h2>PLACE YOUR BET</h2><div class="row between"><span class="muted tiny">賭けるチップ</span><strong id="betLabel" style="color:var(--gold)">50</strong></div>
+      <input id="betSlider" type="range" min="10" max="500" step="10" value="50" style="width:100%;accent-color:var(--gold);margin:12px 0">
+      <div class="row between tiny muted"><span>10</span><span id="maxBetLabel">MAX 1,000</span></div>
+      <button class="btn primary" id="confirmBetBtn" style="width:100%;margin-top:12px">ベットを確定</button>
+      <div class="notice">全員のベットが確定するとゲームが始まります。テストモードでは自分ひとりでも進行できます。</div>
+    </div>
+    <div class="panel hidden" id="gamePanel">
+      <div class="row between"><h2 id="gamePanelTitle">GAME ON</h2><span class="pill" id="gameStatus">YOUR TURN</span></div>
+      <div id="gameContent"></div>
+      <div class="game-message" id="gameMessage"></div>
+      <button class="btn primary hidden" id="finishGameBtn" style="width:100%">結果を確定して次へ</button>
+    </div>
+    <div class="panel">
+      <div class="row between"><h2 style="margin:0">LIVE LEADERBOARD</h2><span class="tiny muted">CHIPS</span></div>
+      <div id="dayLeaderboard"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="finalScreen">
+    <div class="hero" style="text-align:center"><div class="eyebrow">TOURNAMENT COMPLETE</div><div style="font-size:64px;margin:14px">🏆</div><h1 style="font-size:34px">THE LAST<br><em>PLAYER STANDING.</em></h1><div class="sub">5日間の勝負が終了。最終チップランキングはこちら。</div></div>
+    <div class="panel"><h2>FINAL RANKING</h2><div id="finalRanking"></div><button class="btn primary" id="newTournamentBtn" style="width:100%;margin-top:16px">新しいトーナメント</button></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<div id="modalRoot"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/*
+  FATE CASINO — single-file prototype
+  1) Firebase ConsoleでWebアプリを作成し、下の firebaseConfig を置き換える
+  2) Authentication > Sign-in method > Anonymous を有効にする
+  3) Firestore Databaseを作成する
+  4) 静的ホスティング(HTTPS)へ配置する
+  NOTE: 本プロトタイプはクライアント主導の試作です。本番運用でチップの改ざんを防ぐには
+        Cloud Functionsによるサーバー側のゲーム進行・精算とFirestore Security Rulesが必須です。
+*/
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const $ = id => document.getElementById(id);
+const games = [
+ {id:"highlow",name:"HIGH & LOW",icon:"🂡",desc:"次のカードは高い？低い？読みを当ててチップを増やそう。"},
+ {id:"blackjack",name:"BLACKJACK 21",icon:"🃏",desc:"21を超えずにディーラーより強い手を作ろう。"},
+ {id:"reversi",name:"REVERSI DUEL",icon:"⚫",desc:"盤面をひっくり返す頭脳戦。テスト版ではCPUと対戦。"},
+ {id:"dice",name:"DICE DUEL",icon:"🎲",desc:"サイコロの合計が7より大きいか、小さいかを予想。"},
+ {id:"wordwolf",name:"WORD WOLF",icon:"🐺",desc:"少数派のお題を見抜く会話型ゲーム。テスト版では投票シミュレーション。"},
+ {id:"memory",name:"MEMORY MATCH",icon:"🧠",desc:"カードのペアを見つけてポイントを獲得。"},
+ {id:"majority",name:"MAJORITY",icon:"👥",desc:"みんなが選びそうな答えを予想して多数派を読む。"},
+ {id:"number",name:"NUMBER GUESS",icon:"🔢",desc:"秘密の数字を推理。近いほど高得点。"},
+ {id:"roulette",name:"COLOR ROULETTE",icon:"🔴",desc:"赤・黒・金から結果を予想する。"},
+ {id:"auction",name:"BLIND AUCTION",icon:"🔨",desc:"秘密の入札額で賞品を競り落とす。"},
+ {id:"bluff",name:"BLUFF MASTER",icon:"🎭",desc:"相手の宣言を信じるか、見破るか。"},
+ {id:"quickmath",name:"QUICK MATH",icon:"⚡",desc:"制限時間内に計算問題を解くスピード勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+const state={uid:null,name:"Player",roomId:null,roomRef:null,room:null,unsub:null,isHost:false,ready:false,local:false,selectedBet:50,gameIndex:0,gameData:null,betConfirmed:false,finished:false,blackjack:null,reversi:null};
+let db=null,auth=null;
+function toast(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2300)}
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));window.scrollTo({top:0,behavior:"smooth"})}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function randCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function isFirebaseConfigured(){return firebaseConfig.apiKey!=="YOUR_API_KEY"&&firebaseConfig.projectId!=="YOUR_PROJECT_ID"}
+async function initFirebase(){
+ if(!isFirebaseConfigured()){state.local=true;$("connectionBadge").textContent="● LOCAL MODE";return false}
+ try{if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();const cred=await auth.signInAnonymously();state.uid=cred.user.uid;$("connectionBadge").textContent="● FIREBASE ONLINE";return true}
+ catch(e){console.error(e);state.local=true;$("connectionBadge").textContent="● LOCAL FALLBACK";toast("Firebaseに接続できません。ローカルモードで起動します。");return false}
+}
+function ensureUid(){if(!state.uid)state.uid="local_"+Math.random().toString(36).slice(2,12)}
+function defaultPlayer(uid,name,host=false){return {uid,name,host,chips:1000,ready:host,bet:0,betConfirmed:false,choice:null,score:0,connected:true}}
+function currentPlayers(){return state.room?Object.values(state.room.players||{}):[]}
+function myPlayer(){return currentPlayers().find(p=>p.uid===state.uid)}
+function sortedPlayers(){return currentPlayers().slice().sort((a,b)=>b.chips-a.chips)}
+function roomDoc(){return {code:state.roomId,hostUid:state.uid,status:"lobby",day:0,gameOrder:[],players:{[state.uid]:defaultPlayer(state.uid,state.name,true)},createdAt:Date.now(),gameResult:null}}
+async function createRoom(){
+ ensureUid();state.name=state.name||"Player";
+ if(state.local){state.roomId=randCode();state.room=roomDoc();state.isHost=true;state.roomRef=null;renderLobby();showScreen("lobbyScreen");return}
+ try{
+  const code=randCode();const ref=db.collection("rooms").doc(code);const data=roomDoc();data.code=code;
+  await ref.set(data);state.roomId=code;state.roomRef=ref;state.room=data;state.isHost=true;subscribeRoom();renderLobby();showScreen("lobbyScreen");
+ }catch(e){console.error(e);toast("ルーム作成に失敗しました。Firestore設定を確認してください。")}
+}
+async function joinRoom(code){
+ ensureUid();code=(code||"").trim().toUpperCase();if(!code)return toast("ルームコードを入力してください");
+ if(state.local){toast("Firebase設定前はローカルモードです。自分用ルームを作成してください。");return}
+ try{const ref=db.collection("rooms").doc(code);const snap=await ref.get();if(!snap.exists)return toast("ルームが見つかりません");
+ const data=snap.data();if(data.status!=="lobby")return toast("このルームはすでに開始しています");
+ if(Object.keys(data.players||{}).length>=8)return toast("このルームは満員です");
+ const player=defaultPlayer(state.uid,state.name,false);await ref.update({["players."+state.uid]:player});
+ state.roomId=code;state.roomRef=ref;state.room=data;state.isHost=false;subscribeRoom();renderLobby();showScreen("lobbyScreen");
+ }catch(e){console.error(e);toast("参加できませんでした。Firebase設定を確認してください")}
+}
+function subscribeRoom(){if(state.unsub)state.unsub();if(!state.roomRef)return;state.unsub=state.roomRef.onSnapshot(s=>{if(!s.exists){toast("ルームが終了しました");return}state.room=s.data();state.isHost=state.room.hostUid===state.uid;if(state.room.status==="lobby"){renderLobby();if(!$("lobbyScreen").classList.contains("active"))showScreen("lobbyScreen")}else if(state.room.status==="playing"){renderDay();if(!$("dayScreen").classList.contains("active"))showScreen("dayScreen")}else if(state.room.status==="finished"){renderFinal();showScreen("finalScreen")}},e=>{console.error(e);toast("同期エラーが発生しました")})}
+async function updateRoom(patch){if(state.local){state.room={...state.room,...patch};return}if(!state.roomRef)throw new Error("No room");await state.roomRef.update(patch)}
+async function updateMyPlayer(patch){
+ if(!state.room)return;const p=myPlayer();if(!p)return;const updated={...p,...patch};
+ if(state.local){state.room.players[state.uid]=updated;renderPlayers();return}
+ await state.roomRef.update({["players."+state.uid]:updated});
+}
+function renderLobby(){
+ $("roomCode").textContent=state.roomId||"------";$("nameInput").value=state.name;
+ const ps=currentPlayers();$("playerCount").textContent=`${ps.length} / 8`;
+ $("playerList").innerHTML=ps.map((p,i)=>`<div class="player"><div class="avatar">${escapeHtml((p.name||"?").slice(0,1).toUpperCase())}</div><div class="grow"><div class="name">${escapeHtml(p.name)} ${p.host?"<span class='muted tiny'>HOST</span>":""}</div><div class="meta">${p.ready?"✓ 準備OK":"準備中"}</div></div><div class="chip">${p.chips.toLocaleString()} ◈</div></div>`).join("");
+ $("startBtn").classList.toggle("hidden",!state.isHost);$("readyBtn").classList.toggle("hidden",state.isHost);
+ $("lobbyHint").textContent=state.local?"ローカルモード：ひとりで全5日間をテストできます。Firebase設定後は友達とオンライン対戦できます。":"ルームコードを友達に共有。2〜8人が集まったらホストが開始できます。";
+}
+async function setReady(){state.ready=!state.ready;await updateMyPlayer({ready:state.ready});renderLobby();toast(state.ready?"準備OK！":"準備を解除しました")}
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+async function startTournament(){
+ if(!state.isHost)return;
+ const ps=currentPlayers();if(ps.length<1)return;
+ const order=chooseGameOrder();
+ const players={};ps.forEach(p=>players[p.uid]={...p,bet:0,betConfirmed:false,choice:null,score:0});
+ const patch={status:"playing",day:0,gameOrder:order,players,gameResult:null,roundStatus:"betting",gameData:null};
+ if(state.local){state.room={...state.room,...patch};renderDay();showScreen("dayScreen");return}
+ try{await updateRoom(patch)}catch(e){console.error(e);toast("開始に失敗しました")}
+}
+function gameForDay(){const id=state.room.gameOrder[state.room.day];return games.find(g=>g.id===id)||games[0]}
+function renderDayLine(){const day=state.room.day;$("dayLine").innerHTML=Array.from({length:5},(_,i)=>`<div class="day ${i===day?"current":i<day?"done":""}"><b>${i<day?"✓":String(i+1).padStart(2,"0")}</b>${i===4?"FINAL":"DAY"}</div>`).join("");$("dayEyebrow").textContent=`DAY ${String(day+1).padStart(2,"0")} / 05`;$("dayTitle").textContent=dayTitles[day]||"FINAL DAY"}
+function renderDay(){
+ if(!state.room)return;const day=state.room.day||0,g=gameForDay(),me=myPlayer();renderDayLine();
+ $("gameIcon").textContent=g.icon;$("gameName").textContent=g.name;$("gameDesc").textContent=g.desc;
+ $("myChips").textContent=(me?.chips||0).toLocaleString();$("myBet").textContent=(me?.bet||0).toLocaleString();
+ const rank=sortedPlayers().findIndex(p=>p.uid===state.uid)+1;$("myRank").textContent="#"+(rank||"-");
+ $("phaseBadge").textContent=state.room.roundStatus==="playing"?"GAME ON":"BETTING";
+ $("betPanel").classList.toggle("hidden",state.room.roundStatus!=="betting"||!!me?.betConfirmed);
+ $("gamePanel").classList.toggle("hidden",!(state.room.roundStatus==="playing"||state.room.roundStatus==="result"));
+ const max=Math.max(10,me?.chips||10);$("betSlider").max=max;$("betSlider").value=Math.min(state.selectedBet,max);state.selectedBet=Number($("betSlider").value);$("betLabel").textContent=state.selectedBet;$("maxBetLabel").textContent="MAX "+max.toLocaleString();
+ $("confirmBetBtn").disabled=!!me?.betConfirmed;
+ $("dayLeaderboard").innerHTML=sortedPlayers().map((p,i)=>`<div class="result-rank"><div><b>${i+1}. ${escapeHtml(p.name)}</b><div class="tiny muted">${p.uid===state.uid?"YOU":p.betConfirmed?"ベット確定":"ベット待ち"}</div></div><div class="chip">${p.chips.toLocaleString()} ◈</div></div>`).join("");
+ if(state.room.roundStatus==="playing")renderGameContent();
+ if(state.room.roundStatus==="result"){
+   const gr=state.room.gameResult||{};
+   const items=gr.items||[];
+   $("gamePanelTitle").textContent="ROUND RESULT";
+   $("gameContent").innerHTML=items.length?`<div class="notice good">ラウンド結果を集計しました。</div>`:`<div class="game-card"><div style="font-size:42px">${gr.win?"🎉":"🫣"}</div><h2>${gr.win?"WIN!":"ROUND COMPLETE"}</h2><p>${escapeHtml(gr.message||"チップを精算しました")}</p></div>`;
+   if(items.length) $("gameContent").innerHTML+=items.map(x=>`<div class="result-rank"><b>${escapeHtml(x.name)}</b><span class="chip" style="color:${x.delta>=0?"var(--green)":"var(--red)"}">${x.delta>=0?"+":""}${Number(x.delta).toLocaleString()} ◈</span></div>`).join("");
+   $("finishGameBtn").classList.toggle("hidden",!state.isHost&&!state.local);
+   $("finishGameBtn").textContent=state.room.day===4?"最終結果を見る":"次の日へ進む";
+ }
+}
+async function confirmBet(){
+ const me=myPlayer();if(!me)return;const amount=Math.max(10,Math.min(Number($("betSlider").value)||10,me.chips));
+ await updateMyPlayer({bet:amount,betConfirmed:true});toast("ベットを確定しました！");
+ if(state.local){await beginGame();return}
+ const latest=state.room;const ps=Object.values(latest.players||{});if(ps.length&&ps.every(p=>p.betConfirmed)){if(state.isHost)await beginGame()}
+}
+async function beginGame(){
+ const g=gameForDay();let gameData={id:g.id,startedAt:Date.now(),seed:Math.random()};
+ if(g.id==="highlow"){gameData.card=drawCard();gameData.next=drawCard()}
+ if(g.id==="blackjack"){gameData.deck=makeDeck();gameData.player=[gameData.deck.pop(),gameData.deck.pop()];gameData.dealer=[gameData.deck.pop(),gameData.deck.pop()]}
+ if(g.id==="dice"){gameData.dice=[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)]}
+ if(g.id==="roulette"){gameData.result=["赤","黒","金"][Math.floor(Math.random()*3)]}
+ if(g.id==="number"){gameData.secret=1+Math.floor(Math.random()*20)}
+ if(g.id==="majority"){gameData.question="休みの日にするなら？";gameData.options=["家でのんびり","外に出かける"]}
+ if(g.id==="wordwolf"){gameData.civilian=["りんご","みかん"][Math.floor(Math.random()*2)];gameData.wolf=gameData.civilian==="りんご"?"みかん":"りんご"}
+ if(g.id==="memory"){gameData.deck=shuffle(["🍒","🍋","🍇","🍉","🍒","🍋","🍇","🍉"]);gameData.flipped=[];gameData.matched=[]}
+ if(g.id==="auction"){gameData.prize=100+Math.floor(Math.random()*400);gameData.winnerBid=null}
+ if(g.id==="bluff"){gameData.truth=Math.random()<.5}
+ if(g.id==="quickmath"){gameData.a=2+Math.floor(Math.random()*18);gameData.b=2+Math.floor(Math.random()*18);gameData.op=Math.random()<.5?"+":"×"}
+ if(state.local){state.room.roundStatus="playing";state.room.gameData=gameData;state.room.players[state.uid].choice=null;renderDay();return}
+ await updateRoom({roundStatus:"playing",gameData});
+}
+function drawCard(){const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];const suits=["♠","♥","♦","♣"];return {rank:ranks[Math.floor(Math.random()*13)],suit:suits[Math.floor(Math.random()*4)],value:0}}
+function cardValue(c){return ({A:1,J:11,Q:12,K:13})[c.rank]||Number(c.rank)}
+function cardHTML(c){return `<span class="playing-card ${c.suit==="♥"||c.suit==="♦"?"red":""}">${c.rank}<br>${c.suit}</span>`}
+function setGameMessage(s){$("gameMessage").textContent=s}
+function renderGameContent(){
+ const g=gameForDay(),d=state.room.gameData||{},me=myPlayer();let html="";
+ $("gamePanelTitle").textContent=g.name;$("gameStatus").textContent=me?.choice!==null&&me?.choice!==undefined?"ANSWER LOCKED":"MAKE YOUR MOVE";
+ $("finishGameBtn").classList.toggle("hidden",!state.isHost||!Object.values(state.room.players).every(p=>p.choice!==null&&p.choice!==undefined));
+ if(me?.choice!==null&&me?.choice!==undefined){$("gameContent").innerHTML=`<div class="notice good">選択をロックしました。ほかのプレイヤーを待っています…</div>`;return}
+ switch(g.id){
+ case "highlow":
+ html=`<div style="text-align:center">${cardHTML(d.card)}<div class="muted tiny">NEXT CARD?</div><div style="font-size:30px;color:var(--gold)">?</div></div><div class="choices"><button class="choice" onclick="submitChoice('high')">▲ HIGH</button><button class="choice" onclick="submitChoice('low')">▼ LOW</button></div>`;break;
+ case "blackjack":
+ html=`<div class="muted tiny">YOUR HAND</div><div>${d.player.map(cardHTML).join("")}</div><div class="muted tiny">合計 ${handValue(d.player)}</div><div class="choices"><button class="choice" onclick="submitChoice('hit')">HIT</button><button class="choice" onclick="submitChoice('stand')">STAND</button></div>`;break;
+ case "dice":
+ html=`<div style="font-size:42px;margin:12px">🎲 🎲</div><div class="choices"><button class="choice" onclick="submitChoice('high')">合計 7 より大きい</button><button class="choice" onclick="submitChoice('low')">合計 7 より小さい</button></div>`;break;
+ case "roulette":
+ html=`<div style="font-size:44px;margin:12px">🎡</div><div class="choices"><button class="choice" onclick="submitChoice('赤')">🔴 赤</button><button class="choice" onclick="submitChoice('黒')">⚫ 黒</button><button class="choice" onclick="submitChoice('金')">🟡 金</button></div>`;break;
+ case "number":
+ html=`<div style="font-size:18px;margin:12px">秘密の数字は 1〜20</div><input id="numberChoice" class="field" type="number" min="1" max="20" placeholder="数字を入力"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('numberChoice').value))">推理を確定</button>`;break;
+ case "majority":
+ html=`<h3 style="text-align:center">${d.question}</h3><div class="choices">${d.options.map((o,i)=>`<button class="choice" onclick="submitChoice(${i})">${o}</button>`).join("")}</div>`;break;
+ case "wordwolf":
+ html=`<div class="notice">あなたのお題：<strong style="font-size:22px;color:var(--gold)">${me?.host?d.civilian:(Math.random()<.2?d.wolf:d.civilian)}</strong><br>※試作版では各端末での秘密配布を完全には保証しません。本番版ではサーバーから個別配信します。</div><p class="sub">お題について話し合ったあと、ウルフだと思う人を選びます。</p><div class="choices">${currentPlayers().filter(p=>p.uid!==state.uid).map(p=>`<button class="choice" onclick="submitChoice('${p.uid}')">${escapeHtml(p.name)} に投票</button>`).join("")}<button class="choice" onclick="submitChoice('pass')">棄権</button></div>`;break;
+ case "reversi":
+ html=`<p class="sub">試作版：CPUと対戦。黒を置いて白を挟もう。</p><div id="reversiBoard" class="board"></div><div class="tiny muted" id="reversiInfo"></div>`;break;
+ case "memory":
+ html=`<p class="sub">同じ絵柄を2枚めくってペアを作ろう。</p><div class="choices">${d.deck.map((c,i)=>`<button class="choice" onclick="flipMemory(${i})">${(d.flipped||[]).includes(i)||(d.matched||[]).includes(i)?c:"❔"}</button>`).join("")}</div><button class="btn secondary" style="width:100%;margin-top:10px" onclick="submitChoice((state.room.gameData.matched||[]).length)">ペア数で確定</button>`;break;
+ case "auction":
+ html=`<p class="sub">賞品価値：${d.prize} チップ相当。入札額は失われるので慎重に。</p><input id="auctionBid" class="field" type="number" min="0" max="${me?.chips||0}" placeholder="入札額"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('auctionBid').value))">秘密入札</button>`;break;
+ case "bluff":
+ html=`<div style="font-size:44px;margin:12px">🎭</div><p class="sub">宣言：「このラウンドは本当のことを言っている」</p><div class="choices"><button class="choice" onclick="submitChoice('believe')">信じる</button><button class="choice" onclick="submitChoice('call')">ブラフだ！</button></div>`;break;
+ case "quickmath":
+ const answer=d.op==="+"?d.a+d.b:d.a*d.b;
+ html=`<div style="font-size:32px;font-weight:900;margin:20px">${d.a} ${d.op} ${d.b} = ?</div><input id="mathChoice" class="field" type="number" placeholder="答え"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('mathChoice').value))">回答する</button>`;break;
+ default:html=`<button class="btn primary" onclick="submitChoice('ok')">プレイ</button>`;
+ }
+ $("gameContent").innerHTML=html;if(g.id==="reversi")initReversi();setGameMessage("");
+}
+function handValue(hand){let total=0,aces=0;hand.forEach(c=>{let v=cardValue(c);if(c.rank==="A"){v=11;aces++}else if(["J","Q","K"].includes(c.rank))v=10;total+=v});while(total>21&&aces){total-=10;aces--}return total}
+function makeDeck(){const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"],suits=["♠","♥","♦","♣"];return shuffle(suits.flatMap(s=>ranks.map(r=>({rank:r,suit:s}))))}
+async function submitChoice(choice){
+ const me=myPlayer();if(!me)return;
+ let data=state.room.gameData||{};
+ if(gameForDay().id==="blackjack"&&choice==="hit"){
+   data.player.push(data.deck.pop());
+   if(state.local){state.room.gameData=data;renderGameContent();if(handValue(data.player)>21)submitChoice("bust");return}
+   await updateRoom({gameData:data});if(handValue(data.player)>21)submitChoice("bust");return;
+ }
+ await updateMyPlayer({choice});
+ if(state.local){resolveLocalGame(choice);return}
+ const ps=Object.values(state.room.players||{});if(state.isHost&&ps.every(p=>p.choice!==null&&p.choice!==undefined))await resolveOnlineGame();
+ else toast("選択を送信しました");
+}
+function resolveLocalGame(choice){
+ const g=gameForDay(),d=state.room.gameData,p=state.room.players[state.uid];let win=false,msg="";
+ if(g.id==="highlow"){win=choice==="high"?cardValue(d.next)>cardValue(d.card):cardValue(d.next)<cardValue(d.card);msg=`${d.card.rank}${d.card.suit} → ${d.next.rank}${d.next.suit}。${win?"的中！":"はずれ…"}`}
+ if(g.id==="blackjack"){let total=handValue(d.player);if(choice==="bust")win=false;else{while(handValue(d.dealer)<17)d.dealer.push(d.deck.pop());win=total<=21&&(handValue(d.dealer)>21||total>handValue(d.dealer));msg=`あなた ${total} / ディーラー ${handValue(d.dealer)}。${win?"勝利！":"敗北…"}`}}
+ if(g.id==="dice"){const sum=d.dice[0]+d.dice[1];win=choice==="high"?sum>7:sum<7;msg=`出目 ${d.dice[0]} + ${d.dice[1]} = ${sum}。${win?"的中！":"はずれ…"}`}
+ if(g.id==="roulette"){win=choice===d.result;msg=`結果は「${d.result}」。${win?"的中！":"はずれ…"}`}
+ if(g.id==="number"){win=Number(choice)===d.secret;msg=`正解は ${d.secret}。${win?"完全正解！":"今回は不正解。"}`}
+ if(g.id==="majority"){win=Number(choice)===Math.floor(Math.random()*2);msg=win?"多数派を読んだ！":"読み違えた…"}
+ if(g.id==="wordwolf"){win=choice==="pass"?false:Math.random()<.5;msg=win?"推理成功！":"ウルフを見抜けなかった…"}
+ if(g.id==="reversi"){win=(state.reversi?.black||0)>(state.reversi?.white||0);msg=`黒 ${state.reversi?.black||2} / 白 ${state.reversi?.white||2}。${win?"勝利！":"CPUの勝ち…"}`}
+ if(g.id==="memory"){win=Number(choice)>0;msg=`ペア数：${choice}。${win?"ペア獲得！":"ペアなし…"}`}
+ if(g.id==="auction"){win=Number(choice)>0&&Number(choice)<=d.prize;msg=win?"お買い得！賞品を獲得。":"入札は不成立。"}
+ if(g.id==="bluff"){win=(choice==="believe")===d.truth;msg=win?"読みが当たった！":"読み違えた…"}
+ if(g.id==="quickmath"){const ans=d.op==="+"?d.a+d.b:d.a*d.b;win=Number(choice)===ans;msg=`正解は ${ans}。${win?"正解！":"不正解…"}`}
+ const bet=p.bet||10;let delta=0;if(win)delta=bet;else delta=-bet;if(g.id==="auction"&&win)delta=Math.max(0,Math.floor(d.prize-Number(choice)));
+ p.chips=Math.max(0,p.chips+delta);p.choice=choice;p.score=win?1:0;state.room.players[state.uid]=p;state.room.gameResult={message:msg,win,delta,choice};state.room.roundStatus="result";state.room.gameData=d;
+ renderLocalResult(msg,win,delta);
+}
+function renderLocalResult(msg,win,delta){
+ $("gameContent").innerHTML=`<div class="game-card"><div style="font-size:42px">${win?"🎉":"🫣"}</div><h2>${win?"WIN!":"NEXT TIME!"}</h2><p>${escapeHtml(msg)}</p><div style="font-size:25px;font-weight:950;color:${delta>=0?"var(--green)":"var(--red)"};margin-top:12px">${delta>=0?"+":""}${delta.toLocaleString()} ◈</div></div>`;
+ setGameMessage("チップを精算しました。");$("finishGameBtn").classList.remove("hidden");$("finishGameBtn").textContent=state.room.day===4?"最終結果を見る":"次の日へ進む";$("myChips").textContent=state.room.players[state.uid].chips.toLocaleString();$("myBet").textContent=state.room.players[state.uid].bet.toLocaleString();$("dayLeaderboard").innerHTML=sortedPlayers().map((p,i)=>`<div class="result-rank"><b>${i+1}. ${escapeHtml(p.name)}</b><span class="chip">${p.chips.toLocaleString()} ◈</span></div>`).join("");
+}
+async function resolveOnlineGame(){
+ // Shared round result is calculated by the host. This prototype uses simple deterministic checks.
+ const g=gameForDay(),d=state.room.gameData,ps=Object.values(state.room.players||{});let resultText=[];
+ const players={...state.room.players};
+ for(const p of ps){
+   let win=false;const c=p.choice;
+   if(g.id==="highlow")win=c==="high"?cardValue(d.next)>cardValue(d.card):cardValue(d.next)<cardValue(d.card);
+   else if(g.id==="dice"){const sum=d.dice[0]+d.dice[1];win=c==="high"?sum>7:sum<7}
+   else if(g.id==="roulette")win=c===d.result;
+   else if(g.id==="number")win=Number(c)===d.secret;
+   else if(g.id==="blackjack")win=handValue(d.player)<=21;
+   else if(g.id==="majority")win=Number(c)===0;
+   else if(g.id==="wordwolf")win=c!=="pass";
+   else if(g.id==="memory")win=Number(c)>0;
+   else if(g.id==="auction")win=Number(c)>0&&Number(c)<=d.prize;
+   else if(g.id==="bluff")win=(c==="believe")===d.truth;
+   else if(g.id==="quickmath")win=Number(c)===(d.op==="+"?d.a+d.b:d.a*d.b);
+   else win=Math.random()<.5;
+   let delta=win?(p.bet||10):-(p.bet||10);if(g.id==="auction"&&win)delta=Math.max(0,Math.floor(d.prize-Number(c)));
+   players[p.uid]={...p,chips:Math.max(0,p.chips+delta),score:win?1:0,lastDelta:delta,choice:null,betConfirmed:false,bet:0};resultText.push({name:p.name,win,delta});
+ }
+ await updateRoom({players,roundStatus:"result",gameResult:{items:resultText,at:Date.now()}});
+}
+async function nextDay(){
+ if(!state.isHost&&!state.local)return toast("ホストが次の日へ進むのを待っています");
+ if(state.room.day>=4){await updateRoom({status:"finished"});if(state.local){state.room.status="finished";renderFinal();showScreen("finalScreen")}return}
+ const players={};currentPlayers().forEach(p=>players[p.uid]={...p,bet:0,betConfirmed:false,choice:null,score:0});
+ const patch={day:state.room.day+1,players,roundStatus:"betting",gameData:null,gameResult:null};
+ if(state.local){state.room={...state.room,...patch};renderDay();return}
+ await updateRoom(patch);
+}
+function renderFinal(){
+ const list=sortedPlayers();$("finalRanking").innerHTML=list.map((p,i)=>`<div class="result-rank"><div class="row"><div style="font-size:24px">${["🥇","🥈","🥉"][i]||"🏅"}</div><div><b>${escapeHtml(p.name)}</b><div class="tiny muted">${i===0?"CHAMPION":`RANK ${i+1}`}</div></div></div><div class="chip">${p.chips.toLocaleString()} ◈</div></div>`).join("");
+}
+function initReversi(){
+ const board=Array(64).fill(0);board[27]=2;board[28]=1;board[35]=1;board[36]=2;state.reversi={board,black:2,white:2,turn:1};
+ renderReversi();
+}
+function legalMoves(board,player){
+ const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]],moves=[];
+ for(let i=0;i<64;i++){if(board[i])continue;let r=i>>3,c=i%8,ok=false;
+ for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc,seen=false;while(rr>=0&&rr<8&&cc>=0&&cc<8&&board[rr*8+cc]===3-player){seen=true;rr+=dr;cc+=dc}if(seen&&rr>=0&&rr<8&&cc>=0&&cc<8&&board[rr*8+cc]===player)ok=true}
+ if(ok)moves.push(i)}return moves;
+}
+function putDisc(i,player){const b=state.reversi.board,r=i>>3,c=i%8,dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];if(b[i])return false;let flips=[];
+ for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc,line=[];while(rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr*8+cc]===3-player){line.push(rr*8+cc);rr+=dr;cc+=dc}if(line.length&&rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr*8+cc]===player)flips.push(...line)}
+ if(!flips.length)return false;b[i]=player;flips.forEach(x=>b[x]=player);return true;
+}
+function renderReversi(){
+ const s=state.reversi;if(!s)return;const moves=legalMoves(s.board,1);
+ $("reversiBoard").innerHTML=s.board.map((v,i)=>`<button class="cell ${moves.includes(i)?"hint":""}" onclick="reversiMove(${i})">${v?`<span class="disc ${v===2?"white":""}"></span>`:""}</button>`).join("");
+ s.black=s.board.filter(v=>v===1).length;s.white=s.board.filter(v=>v===2).length;$("reversiInfo").textContent=`あなた（黒） ${s.black}　CPU（白） ${s.white}`;
+}
+function reversiMove(i){
+ const s=state.reversi;if(!s||!putDisc(i,1))return;
+ const moves=legalMoves(s.board,2);
+ if(moves.length){const best=moves[Math.floor(Math.random()*moves.length)];putDisc(best,2)}
+ renderReversi();if(!legalMoves(s.board,1).length&&!legalMoves(s.board,2).length){$("gameMessage").textContent=`対局終了：黒 ${s.black} / 白 ${s.white}`;$("finishGameBtn").classList.remove("hidden")}
+}
+function flipMemory(i){
+ if(!state.room?.gameData)return;const d={...state.room.gameData};if(d.matched.includes(i)||d.flipped.includes(i))return;d.flipped=[...d.flipped,i];
+ if(d.flipped.length>=2){const [a,b]=d.flipped;if(d.deck[a]===d.deck[b])d.matched=[...d.matched,a,b];setTimeout(()=>{if(state.local){d.flipped=[];state.room.gameData=d;renderGameContent()}},700);if(d.deck[a]!==d.deck[b])setTimeout(()=>{d.flipped=[];if(state.local){state.room.gameData=d;renderGameContent()}},700)}
+ if(state.local){state.room.gameData=d;renderGameContent()}
+}
+function showModal(title,body,confirmLabel,callback){
+ $("modalRoot").innerHTML=`<div class="modal-back" id="modalBack"><div class="modal"><h2>${title}</h2>${body}<div class="modal-actions"><button class="btn secondary" id="modalCancel">キャンセル</button><button class="btn primary" id="modalConfirm">${confirmLabel}</button></div></div></div>`;
+ $("modalCancel").onclick=()=>$("modalRoot").innerHTML="";$("modalConfirm").onclick=()=>{const v=$("modalInput")?.value; const extra=$("joinName")?.value; $("modalRoot").innerHTML="";callback(v,extra)};
+}
+$("createBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("ルームを作成","<label class='label'>プレイヤー名</label><input id='modalInput' class='field' maxlength='14' value='Player' placeholder='名前'>","作成",async name=>{state.name=(name||"Player").trim().slice(0,14)||"Player";await createRoom()})};
+$("joinBtn").onclick=async()=>{await initFirebase();ensureUid();showModal("ルームに参加","<label class='label'>プレイヤー名</label><input id='joinName' class='field' maxlength='14' value='Player' placeholder='名前'><label class='label'>ルームコード</label><input id='modalInput' class='field' maxlength='6' placeholder='例：A1B2C3' style='text-transform:uppercase'>","参加",async (code,joinName)=>{state.name=(joinName||"Player").trim()||"Player";await joinRoom(code)})};
+$("copyCodeBtn").onclick=async()=>{try{await navigator.clipboard.writeText(state.roomId);toast("ルームコードをコピーしました")}catch(e){toast("ルームコード："+state.roomId)}};
+$("saveNameBtn").onclick=async()=>{const n=$("nameInput").value.trim().slice(0,14);if(!n)return toast("名前を入力してください");state.name=n;await updateMyPlayer({name:n});renderLobby();toast("名前を変更しました")};
+$("readyBtn").onclick=setReady;
+$("startBtn").onclick=startTournament;
+$("leaveLobbyBtn").onclick=()=>{if(state.unsub)state.unsub();state.unsub=null;state.room=null;state.roomId=null;state.roomRef=null;showScreen("homeScreen")};
+$("betSlider").oninput=()=>{$("betLabel").textContent=Number($("betSlider").value).toLocaleString();state.selectedBet=Number($("betSlider").value)};
+$("confirmBetBtn").onclick=confirmBet;
+$("finishGameBtn").onclick=async()=>{if(state.room.roundStatus==="result"||state.local&&state.room.roundStatus==="result")await nextDay();else if(state.room.day===4)await nextDay()};
+$("newTournamentBtn").onclick=()=>{if(state.unsub)state.unsub();state.room=null;state.roomId=null;state.roomRef=null;state.isHost=false;showScreen("homeScreen")};
+initFirebase().catch(()=>{});
+</script>
+</body>
+</html>
