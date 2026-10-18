@@ -159,6 +159,21 @@ async function updateRoom(patch){
  if(state.local||!state.roomRef){state.room={...state.room,...patch};return}
  await state.roomRef.update(patch);state.room={...state.room,...patch};
 }
+async function updateMyPlayer(patch){
+ if(!state.room||!state.uid)throw new Error("プレイヤー情報がありません。ルームに入り直してください");
+ const players={...(state.room.players||{})};
+ const current=players[state.uid];
+ if(!current)throw new Error("自分のプレイヤー情報が見つかりません");
+ const updated={...current,...patch};
+ players[state.uid]=updated;
+ if(state.local||!state.roomRef){state.room={...state.room,players};return updated}
+ try{
+  await state.roomRef.update({["players."+state.uid]:updated});
+  // Update the local snapshot immediately; the realtime listener will confirm it.
+  state.room={...state.room,players:{...(state.room.players||{}),[state.uid]:updated}};
+  return updated;
+ }catch(e){console.error("updateMyPlayer failed:",e);throw e}
+}
 async function createRoom(passphrase){
  ensureUid();state.name=state.name||"Player";
  let passwordHash;try{passwordHash=await hashPassphrase(passphrase)}catch(e){toast(e.message||"合言葉を入力してください");return}
@@ -239,10 +254,22 @@ function renderDay(){
  }
 }
 async function confirmBet(){
- const me=myPlayer();if(!me)return;const amount=Math.max(10,Math.min(Number($("betSlider").value)||10,me.chips));
- await updateMyPlayer({bet:amount,betConfirmed:true});toast("ベットを確定しました！");
- if(state.local){await beginGame();return}
- const latest=state.room;const ps=Object.values(latest.players||{});if(ps.length&&ps.every(p=>p.betConfirmed)){if(state.isHost)await beginGame()}
+ const me=myPlayer();
+ if(!me)return toast("プレイヤー情報を読み込めません。ルームに入り直してください");
+ if(state.room?.roundStatus!=="betting")return toast("現在はベット受付中ではありません");
+ if(me.betConfirmed)return toast("このラウンドのベットは確定済みです");
+ const chips=Math.max(0,Number(me.chips)||0);
+ if(chips<10)return toast("チップが足りません（最低10チップ）");
+ const amount=Math.max(10,Math.min(Number($("betSlider").value)||10,chips));
+ const btn=$("confirmBetBtn");btn.disabled=true;
+ try{
+  await updateMyPlayer({bet:amount,betConfirmed:true});
+  toast("ベットを確定しました！");
+  renderDay();
+  if(state.local){await beginGame();return}
+  const ps=Object.values(state.room.players||{});
+  if(ps.length&&ps.every(p=>p.betConfirmed)&&state.isHost)await beginGame();
+ }catch(e){console.error("confirmBet failed:",e);toast("ベット失敗："+(e?.message||e?.code||"通信エラー"));btn.disabled=false;}
 }
 async function beginGame(){
  if(state.resolving||!state.room||state.room.roundStatus!=="betting")return;
