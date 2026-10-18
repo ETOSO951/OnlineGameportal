@@ -7,7 +7,31 @@
 <title>FATE CASINO — 5 DAYS</title>
 <style>
 :root{--bg:#080912;--panel:#121522;--panel2:#191d2d;--gold:#f2c76b;--gold2:#a8792b;--text:#f7f3e8;--muted:#a5a9bc;--line:#34384b;--red:#ff657a;--green:#6ce0ad;--blue:#75d9f5}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -20%,#29213a 0%,#101322 38%,var(--bg) 72%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}button,input{font:inherit}button{border:0;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:not-allowed}.app{width:min(100%,760px);margin:auto;padding:14px 14px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.brand{font-weight:950;letter-spacing:.13em;font-size:clamp(18px,5vw,25px)}.brand span{color:var(--gold)}.eyebrow{font-size:10px;letter-spacing:.2em;color:var(--gold);font-weight:800}.pill{border:1px solid #55506a;border-radius:999px;padding:7px 10px;color:var(--muted);font-size:11px}.screen{display:none;animation:appear .25s ease}.screen.active{display:block}@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}.hero{padding:26px 18px;border:1px solid #5a4a34;border-radius:24px;background:linear-gradient(145deg,#242034dd,#121522f2 65%);box-shadow:0 18px 50px #0005;position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:15px;top:5px;font-size:100px;color:#f2c76b12}.hero h1{font-size:clamp(28px,8vw,46px);line-height:1;margin:10px 0 12px;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:var(--gold)}.sub{color:var(--muted);font-size:13px;line-height:1.7}.actions{display:grid;gap:10px;margin-top:20px}.btn{border-radius:13px;padding:14px 16px;font-weight:850;letter-spacing:.02em;transition:transform .12s,filter .12s}.btn:active{transform:scale(.985)}.primary{background:linear-gradient(135deg,#ffe8a4,#d6a344);color:#211606;box-shadow:0 6px 22px #d8a34325}.secondary{background:#202437;color:var(--text);border:1px solid #3c4158}.danger{background:#3a1d2a;color:#ffb7c1;border:1px solid #713246}.small{padding:9px 12px;font-size:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel{background:linear-gradient(145deg,#171a29,#10131f);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:13px}.panel h2,.panel h3{margin:0 0 10px}.panel h2{font-size:17px}.panel h3{font-size:14px}.label{display:block;font-size:11px;color:var(--muted);margin:12px 0 6px}.field{width:100%;padding:13px 12px;border:1px solid #3a3e52;border-radius:12px;background:#0b0e18;color:var(--text);outline:none}.field:focus{border-color:var(--gold)}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.grow{flex:1;min-width:0}.muted{color:var(--muted)}.tiny{font-size:11px}.notice{padding:11px 12px;border-radius:12px;background:#242235;color:#d7d3e8;font-size:12px;line-height:1.6;margin-top:12px}.notice.warn{background:#38272a;color:#ffd0b4}.notice.good{background:#172f2b;color:#a6f0ce}.player-list{display:grid;gap:8px;margin-top:12px}.player{display:flex;align-items:center;gap:10px;background:#1a1e2d;border-radius:12px;padding:10px}.avatar{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#e9c46a,#8f6225);color:#201708;display:grid;place-items:center;font-weight:950}.player .name{font-weight:750;font-size:13px}.player .meta{font-size:10px;color:var(--muted)}.chip{color:var(--gold);font-weight:850;white-space:nowrap}.progress{height:5px;border-radius:8px;background:#303346;overflow:hidden;margin:12px 0}.progress>i{display:block;height:100%;background:linear-gradient(90deg,#a8792b,#ffe8a4);width:20%;transition:width .3s}.dayline{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}.day{padding:9px 2px;border-radius:10px;background:#191d2c;border:1px solid #30354a;text-align:center;font-size:10px;color:var(--muted)}.day b{display:block;font-size:13px;margin-bottom:4px}.day.current{border-color:var(--gold);background:#332b1d;color:#ffe4a1}.day.done{color:var(--green);border-color:#32624f}.game-card{padding:18px;border-radius:20px;border:1px solid #5a4a34;background:radial-gradient(ellipse at top,#32273a,#171a28 65%);text-align:center;margin:14px 0}.game-icon{font-size:42px}.game-card h2{margin:5px 0 4px;font-size:24px}.game-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#1b1e2d;border:1px solid #303448;border-radius:13px;padding:11px;text-align:center}.stat .v{font-size:20px;font-weight:900;color:var(--gold)}.stat .k{font-size:10px;color:var(--muted)}.playing-card{display:inline-grid;place-items:center;min-width:88px;height:126px;border-radius:13px;background:linear-gradient(145deg,#fffdf5,#e3e1dc);color:#181923;font-size:35px;font-weight:900;box-shadow:0 8px 22px #0005;margin:6px}.playing-card.red{color:#c72c4b}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice{border-radius:13px;padding:13px 8px;background:#24283a;border:1px solid #444a62;color:var(--text);font-weight:800}.choice.gold{border-color:#b98a3b;background:#352b1d;color:#ffe4a1}.choice.selected{outline:2px solid var(--gold)}.game-message{min-height:24px;text-align:center;color:var(--gold);font-weight:800;margin:12px 0}.board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,360px);margin:12px auto;background:#101c1c;padding:5px;border-radius:10px}.cell{aspect-ratio:1;background:#28745e;border-radius:4px;display:grid;place-items:center;padding:0}.disc{width:76%;height:76%;border-radius:50%;background:#171923;box-shadow:inset 0 -3px 3px #0007}.disc.white{background:#f6f0df}.cell.hint:after{content:"";width:24%;height:24%;border-radius:50%;background:#ffffff55}.hidden{display:none!important}.result-rank{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#1a1e2c;border-radius:12px;margin-top:8px}.result-rank:first-child{border:1px solid #b98a3b}.footer{text-align:center;color:#686d81;font-size:10px;line-height:1.6;margin-top:18px}.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#f2c76b;color:#1c160b;padding:12px 16px;border-radius:12px;font-size:12px;font-weight:850;z-index:9;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.modal-back{position:fixed;inset:0;background:#000a;z-index:10;display:grid;place-items:center;padding:18px}.modal{width:min(100%,420px);background:#171a29;border:1px solid #655335;border-radius:20px;padding:20px;box-shadow:0 20px 80px #0009}.modal h2{margin-top:0}.modal-actions{display:flex;gap:8px;margin-top:14px}.modal-actions>*{flex:1}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -20%,#29213a 0%,#101322 38%,var(--bg) 72%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}button,input{font:inherit}button{border:0;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:not-allowed}.app{width:min(100%,760px);margin:auto;padding:14px 14px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.brand{font-weight:950;letter-spacing:.13em;font-size:clamp(18px,5vw,25px)}.brand span{color:var(--gold)}.eyebrow{font-size:10px;letter-spacing:.2em;color:var(--gold);font-weight:800}.pill{border:1px solid #55506a;border-radius:999px;padding:7px 10px;color:var(--muted);font-size:11px}.screen{display:none;animation:appear .25s ease}.screen.active{display:block}@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}.hero{padding:26px 18px;border:1px solid #5a4a34;border-radius:24px;background:linear-gradient(145deg,#242034dd,#121522f2 65%);box-shadow:0 18px 50px #0005;position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:15px;top:5px;font-size:100px;color:#f2c76b12}.hero h1{font-size:clamp(28px,8vw,46px);line-height:1;margin:10px 0 12px;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:var(--gold)}.sub{color:var(--muted);font-size:13px;line-height:1.7}.actions{display:grid;gap:10px;margin-top:20px}.btn{border-radius:13px;padding:14px 16px;font-weight:850;letter-spacing:.02em;transition:transform .12s,filter .12s}.btn:active{transform:scale(.985)}.primary{background:linear-gradient(135deg,#ffe8a4,#d6a344);color:#211606;box-shadow:0 6px 22px #d8a34325}.secondary{background:#202437;color:var(--text);border:1px solid #3c4158}.danger{background:#3a1d2a;color:#ffb7c1;border:1px solid #713246}.small{padding:9px 12px;font-size:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel{background:linear-gradient(145deg,#171a29,#10131f);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:13px}.panel h2,.panel h3{margin:0 0 10px}.panel h2{font-size:17px}.panel h3{font-size:14px}.label{display:block;font-size:11px;color:var(--muted);margin:12px 0 6px}.field{width:100%;padding:13px 12px;border:1px solid #3a3e52;border-radius:12px;background:#0b0e18;color:var(--text);outline:none}.field:focus{border-color:var(--gold)}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.grow{flex:1;min-width:0}.muted{color:var(--muted)}.tiny{font-size:11px}.notice{padding:11px 12px;border-radius:12px;background:#242235;color:#d7d3e8;font-size:12px;line-height:1.6;margin-top:12px}.notice.warn{background:#38272a;color:#ffd0b4}.notice.good{background:#172f2b;color:#a6f0ce}.player-list{display:grid;gap:8px;margin-top:12px}.player{display:flex;align-items:center;gap:10px;background:#1a1e2d;border-radius:12px;padding:10px}.avatar{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#e9c46a,#8f6225);color:#201708;display:grid;place-items:center;font-weight:950}.player .name{font-weight:750;font-size:13px}.player .meta{font-size:10px;color:var(--muted)}.chip{color:var(--gold);font-weight:850;white-space:nowrap}.progress{height:5px;border-radius:8px;background:#303346;overflow:hidden;margin:12px 0}.progress>i{display:block;height:100%;background:linear-gradient(90deg,#a8792b,#ffe8a4);width:20%;transition:width .3s}.dayline{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}.day{padding:9px 2px;border-radius:10px;background:#191d2c;border:1px solid #30354a;text-align:center;font-size:10px;color:var(--muted)}.day b{display:block;font-size:13px;margin-bottom:4px}.day.current{border-color:var(--gold);background:#332b1d;color:#ffe4a1}.day.done{color:var(--green);border-color:#32624f}.game-card{padding:18px;border-radius:20px;border:1px solid #5a4a34;background:radial-gradient(ellipse at top,#32273a,#171a28 65%);text-align:center;margin:14px 0}.game-icon{font-size:42px}.game-card h2{margin:5px 0 4px;font-size:24px}.game-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#1b1e2d;border:1px solid #303448;border-radius:13px;padding:11px;text-align:center}.stat .v{font-size:20px;font-weight:900;color:var(--gold)}.stat .k{font-size:10px;color:var(--muted)}.playing-card{display:inline-grid;place-items:center;min-width:88px;height:126px;border-radius:13px;background:linear-gradient(145deg,#fffdf5,#e3e1dc);color:#181923;font-size:35px;font-weight:900;box-shadow:0 8px 22px #0005;margin:6px}.playing-card.red{color:#c72c4b}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice{border-radius:13px;padding:13px 8px;background:#24283a;border:1px solid #444a62;color:var(--text);font-weight:800}.choice.gold{border-color:#b98a3b;background:#352b1d;color:#ffe4a1}.choice.selected{outline:2px solid var(--gold)}.game-message{min-height:24px;text-align:center;color:var(--gold);font-weight:800;margin:12px 0}.board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,360px);margin:12px auto;background:#101c1c;padding:5px;border-radius:10px}.cell{aspect-ratio:1;background:#28745e;border-radius:4px;display:grid;place-items:center;padding:0}.disc{width:76%;height:76%;border-radius:50%;background:#171923;box-shadow:inset 0 -3px 3px #0007}.disc.white{background:#f6f0df}.cell.hint:after{content:"";width:24%;height:24%;border-radius:50%;background:#ffffff55}
+/* Interactive Board Styles for 30 Duel Games */
+.c4-board{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;background:#1b2238;padding:10px;border-radius:14px;width:min(100%,350px);margin:12px auto;border:1px solid #3d4766}
+.c4-cell{aspect-ratio:1;background:#0d111a;border-radius:50%;display:grid;place-items:center;border:2px solid #283047;cursor:pointer;transition:transform .1s}
+.c4-cell:active{transform:scale(.92)}
+.c4-cell.p1{background:linear-gradient(135deg,#f2c76b,#b98a3b);border-color:#ffe8a4}
+.c4-cell.p2{background:linear-gradient(135deg,#ff657a,#c72c4b);border-color:#ffb7c1}
+.dots-grid{display:grid;grid-template-columns:repeat(7,auto);gap:4px;width:min(100%,320px);margin:12px auto;background:#131625;padding:12px;border-radius:14px;justify-content:center;align-items:center}
+.dot{width:12px;height:12px;background:var(--gold);border-radius:50%}
+.line-h{height:12px;width:36px;background:#252a3d;border-radius:6px;cursor:pointer;transition:background .2s}
+.line-v{width:12px;height:36px;background:#252a3d;border-radius:6px;cursor:pointer;transition:background .2s}
+.line-h.active,.line-v.active{background:var(--gold)}
+.box-cell{width:36px;height:36px;background:#1a1e2e;border-radius:6px;display:grid;place-items:center;font-weight:900;font-size:12px;color:var(--gold)}
+.quoridor-board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(100%,320px);margin:12px auto;background:#141724;padding:10px;border-radius:14px}
+.q-cell{aspect-ratio:1;background:#202638;border-radius:8px;border:1px solid #363d54;display:grid;place-items:center;font-size:20px;cursor:pointer;touch-action:manipulation}
+.q-cell.p1-pos{background:#38311e;border-color:var(--gold)}
+.q-cell.p2-pos{background:#3d1e28;border-color:var(--red)}
+.mancala-board{display:flex;gap:8px;justify-content:center;background:#181c2b;padding:12px;border-radius:16px;width:min(100%,360px);margin:12px auto;border:1px solid #32384e}
+.mancala-pit{flex:1;background:#0d101a;border-radius:12px;padding:12px 4px;text-align:center;border:1px solid #282f45;cursor:pointer;touch-action:manipulation}
+.mancala-pit b{display:block;font-size:18px;color:var(--gold);margin-top:4px}
+.nim-rows{display:flex;flex-direction:column;gap:10px;align-items:center;margin:16px 0}
+.nim-row{display:flex;gap:8px}
+.nim-stick{width:16px;height:48px;background:linear-gradient(180deg,#f2c76b,#8f6225);border-radius:8px;cursor:pointer;box-shadow:0 3px 8px #0004;transition:transform .15s}
+.nim-stick.selected{background:#ff657a;transform:translateY(-6px)}
+.speed-cards{display:flex;justify-content:center;gap:12px;margin:16px 0;align-items:center}.hidden{display:none!important}.result-rank{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#1a1e2c;border-radius:12px;margin-top:8px}.result-rank:first-child{border:1px solid #b98a3b}.footer{text-align:center;color:#686d81;font-size:10px;line-height:1.6;margin-top:18px}.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#f2c76b;color:#1c160b;padding:12px 16px;border-radius:12px;font-size:12px;font-weight:850;z-index:9;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.modal-back{position:fixed;inset:0;background:#000a;z-index:10;display:grid;place-items:center;padding:18px}.modal{width:min(100%,420px);background:#171a29;border:1px solid #655335;border-radius:20px;padding:20px;box-shadow:0 20px 80px #0009}.modal h2{margin-top:0}.modal-actions{display:flex;gap:8px;margin-top:14px}.modal-actions>*{flex:1}
 @media(min-width:600px){.actions{grid-template-columns:1fr 1fr}.hero{padding:34px}.main-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.main-grid .panel{margin-top:0}}
 </style>
 </head>
@@ -115,18 +139,230 @@ const firebaseConfig = {
 
 const $ = id => document.getElementById(id);
 const games = [
- {id:"highlow",name:"HIGH & LOW",icon:"🂡",desc:"次のカードは高い？低い？読みを当ててチップを増やそう。"},
- {id:"blackjack",name:"BLACKJACK 21",icon:"🃏",desc:"21を超えずにディーラーより強い手を作ろう。"},
- {id:"reversi",name:"REVERSI DUEL",icon:"⚫",desc:"盤面をひっくり返す頭脳戦。テスト版ではCPUと対戦。"},
- {id:"dice",name:"DICE DUEL",icon:"🎲",desc:"サイコロの合計が7より大きいか、小さいかを予想。"},
- {id:"wordwolf",name:"WORD WOLF",icon:"🐺",desc:"少数派のお題を見抜く会話型ゲーム。テスト版では投票シミュレーション。"},
- {id:"memory",name:"MEMORY MATCH",icon:"🧠",desc:"カードのペアを見つけてポイントを獲得。"},
- {id:"majority",name:"MAJORITY",icon:"👥",desc:"みんなが選びそうな答えを予想して多数派を読む。"},
- {id:"number",name:"NUMBER GUESS",icon:"🔢",desc:"秘密の数字を推理。近いほど高得点。"},
- {id:"roulette",name:"COLOR ROULETTE",icon:"🔴",desc:"赤・黒・金から結果を予想する。"},
- {id:"auction",name:"BLIND AUCTION",icon:"🔨",desc:"秘密の入札額で賞品を競り落とす。"},
- {id:"bluff",name:"BLUFF MASTER",icon:"🎭",desc:"相手の宣言を信じるか、見破るか。"},
- {id:"quickmath",name:"QUICK MATH",icon:"⚡",desc:"制限時間内に計算問題を解くスピード勝負。"}
+ {id:"connect4",name:"CONNECT FOUR",icon:"🔴",desc:"重力を利用して4つのコマを一直線に並べる本格4目並べ。"},
+ {id:"gomoku",name:"GOMOKU 5-IN-A-ROW",icon:"⚪",desc:"9×9盤面で5つのコマを縦横斜めに並べた者が勝者となる戦略対局。"},
+ {id:"tictactoe",name:"TRIPLE TACTICS",icon:"❌",desc:"リーチの攻防と先読みが決め手の3×3三目並べ。"},
+ {id:"nim",name:"NIM TACTICS",icon:"🥢",desc:"山から交互にスティックを取り、最後の1本を回避せよ。"},
+ {id:"mancala",name:"MANCALA DUEL",icon:"🫘",desc:"種まきと石の配分計算が勝敗を分ける思考型ボードゲーム。"},
+ {id:"speed",name:"CARD SPEED",icon:"⚡",desc:"場札の数字に繋がる手札を瞬時に判断して出し切る対戦。"},
+ {id:"reversi",name:"REVERSI DUEL",icon:"⚫",desc:"相手のコマを挟んでひっくり返し盤面を制覇するオセロ勝負。"},
+ {id:"quoridor",name:"CORRIDOR DUEL",icon:"🧱",desc:"マス目を移動し壁を掻い潜り最奥のゴールを目指す戦略戦。"},
+ {id:"dotsboxes",name:"DOTS & BOXES",icon:"🔲",desc:"線を引いて四角形の陣地を囲み、獲得数を競う古典頭脳戦。"},
+ {id:"hitandblow",name:"HIT & BLOW",icon:"🔢",desc:"相手が隠した3桁の秘密数字コードを論理的に推理・解読。"},
+ {id:"indianpoker",name:"INDIAN POKER",icon:"🂠",desc:"自分の額のカードが見えない極限の心理戦とレイズ勝負。"},
+ {id:"bluff",name:"BLUFF MASTER",icon:"🎭",desc:"相手の宣言が真実かブラフ(嘘)かを見極める高度な心理戦。"},
+ {id:"auction",name:"BLIND AUCTION",icon:"🔨",desc:"相手の懐事情と提示価値を読む密室のブラインドオークション。"},
+ {id:"skull",name:"SKULL & ROSES",icon:"💀",desc:"ドクロを避けつつ安全なバラの花をめくる度胸勝負。"},
+ {id:"split",name:"DIVIDE & TAKE",icon:"🍰",desc:"一方が山を二つに分け、もう一方が選ぶ分配心理戦。"},
+ {id:"highlow",name:"HIGH & LOW DUEL",icon:"🂡",desc:"次に来るトランプカードがハイかローかを当てるバトル。"},
+ {id:"blackjack",name:"BLACKJACK 21",icon:"🃏",desc:"21を超えずにディーラーより強い手札を作るディーラー勝負。"},
+ {id:"wordwolf",name:"WORD WOLF",icon:"🐺",desc:"お題のズレから少数派のウルフを見抜いて投票・討伐する。"},
+ {id:"majority",name:"MAJORITY READ",icon:"👥",desc:"多数派の選択をどれだけ正確に読めるか試される集団心理戦。"},
+ {id:"number",name:"NUMBER GUESS",icon:"🎯",desc:"1〜20の秘密のターゲットナンバーに最も近づく数字を選択。"},
+ {id:"roulette",name:"COLOR BATTING",icon:"🎡",desc:"他のプレイヤーと選択色が重ならないよう出し抜くバッティング戦。"},
+ {id:"quickmath",name:"QUICK MATH DUEL",icon:"🧮",desc:"ランダムな算術式の答えを電光石火のスピードで弾き出す。"},
+ {id:"memory",name:"MEMORY MATCH",icon:"🧠",desc:"記憶力をフル稼働させて8枚のカードからペアを連続奪取。"},
+ {id:"mastermind",name:"CODE BREAKER",icon:"🔐",desc:"色のヒントを手がかりに3つのカラーコードを完全解読。"},
+ {id:"reflex",name:"REFLEX FLASH",icon:"💥",desc:"合図が出た瞬間に画面を誰よりも速くタップする瞬発勝負。"},
+ {id:"timebomb",name:"JUST TIMER",icon:"⏱️",desc:"体内時計だけで「5.00秒」ジャストを叩き出すタイミング勝負。"},
+ {id:"mazerace",name:"MAZE ESCAPE",icon:"🧩",desc:"迷路構造から最短脱出歩数(7歩)を看破する観察力勝負。"},
+ {id:"puzzleduel",name:"BLOCK FIT",icon:"🟩",desc:"空きスペースに完璧にハマるブロック形状(T型)を見極める。"},
+ {id:"battleship",name:"NAVAL CLASH",icon:"⚓",desc:"相手の戦艦の潜伏座標(1〜9)を直感と推理で撃破する海戦。"},
+ ```
+
+<<<<
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
 ];
 const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
 const state={uid:null,name:"Player",roomId:null,roomRef:null,room:null,unsub:null,isHost:false,ready:false,local:false,selectedBet:50,gameIndex:0,gameData:null,betConfirmed:false,finished:false,blackjack:null,reversi:null};
@@ -181,7 +417,52 @@ function renderLobby(){
  $("lobbyHint").textContent=state.local?"ローカルモード：ひとりで全5日間をテストできます。Firebase設定後は友達とオンライン対戦できます。":"ルームコードを友達に共有。2〜8人が集まったらホストが開始できます。";
 }
 async function setReady(){state.ready=!state.ready;await updateMyPlayer({ready:state.ready});renderLobby();toast(state.ready?"準備OK！":"準備を解除しました")}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
 function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+```
+
+<<<<
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
+function chooseGameOrder(){return shuffle(games.map(g=>g.id)).slice(0,5)}
+const dayTitles=["開幕戦","心理戦","中盤の逆転","決戦前夜","FINAL DAY"];
+====
+=======
+{id:"battleroulette",name:"RUSSIAN CARD",icon:"💥",desc:"爆弾カードのリスクを避けつつ引き際を見極めるロシアン勝負。"}
+];
 async function startTournament(){
  if(!state.isHost)return;
  const ps=currentPlayers();if(ps.length<1)return;
@@ -222,56 +503,522 @@ async function confirmBet(){
  const latest=state.room;const ps=Object.values(latest.players||{});if(ps.length&&ps.every(p=>p.betConfirmed)){if(state.isHost)await beginGame()}
 }
 async function beginGame(){
- const g=gameForDay();let gameData={id:g.id,startedAt:Date.now(),seed:Math.random()};
+ const g=gameForDay();let gameData={id:g.id,startedAt:Date.now(),seed:Math.random(),turn:1};
+ if(g.id==="connect4"){gameData.grid=Array(42).fill(0);gameData.winner=0;}
+ if(g.id==="gomoku"){gameData.board=Array(81).fill(0);gameData.winner=0;}
+ if(g.id==="tictactoe"){gameData.board=Array(9).fill(0);gameData.winner=0;}
+ if(g.id==="nim"){gameData.rows=[3,4,5];gameData.winner=0;}
+ if(g.id==="mancala"){gameData.pits=[4,4,4,4,4,4,4,4];gameData.winner=0;}
+ if(g.id==="speed"){gameData.pCard=drawCard();gameData.target=drawCard()}
+ if(g.id==="reversi"){gameData.board=Array(64).fill(0);gameData.board[27]=2;gameData.board[28]=1;gameData.board[35]=1;gameData.board[36]=2}
+ if(g.id==="quoridor"){gameData.p1=22;gameData.p2=2;gameData.walls=[];gameData.p1Walls=3;gameData.p2Walls=3;gameData.turn=1;gameData.winner=0;}
+ if(g.id==="dotsboxes"){gameData.hLines=Array(12).fill(0);gameData.vLines=Array(12).fill(0);gameData.boxes=Array(9).fill(0);gameData.scores=[0,0];gameData.turn=1;}
+ if(g.id==="hitandblow"){
+   const digits=[1,2,3,4,5,6,7,8,9];
+   shuffle(digits);
+   gameData.secret=digits.slice(0,3).join("");
+   gameData.history=[];
+ }
+ if(g.id==="mastermind"){
+   gameData.code=[Math.floor(Math.random()*4)+1,Math.floor(Math.random()*4)+1,Math.floor(Math.random()*4)+1];
+   gameData.currentGuess=[1,1,1];
+ }
+ if(g.id==="wordwolf"){
+   const pairs=[{c:"りんご",w:"みかん"},{c:"サッカー",w:"バスケ"},{c:"東京",w:"大阪"},{c:"珈琲",w:"紅茶"},{c:"寿司",w:"焼肉"}];
+   const p=pairs[Math.floor(Math.random()*pairs.length)];
+   const ps=currentPlayers();
+   const wolfPlayer=ps.length?ps[Math.floor(Math.random()*ps.length)].uid:"";
+   gameData.civilianWord=p.c;
+   gameData.wolfWord=p.w;
+   gameData.wolfUid=wolfPlayer;
+ }
+ if(g.id==="indianpoker"){gameData.oppCard=1+Math.floor(Math.random()*10);gameData.myCard=1+Math.floor(Math.random()*10)}
+ if(g.id==="bluff"){gameData.truth=Math.random()<.5}
+ if(g.id==="auction"){gameData.prize=150+Math.floor(Math.random()*350)}
+ if(g.id==="skull"){gameData.cards=["🌹","🌹","🌹","💀"]}
+ if(g.id==="split"){gameData.pileA=100+Math.floor(Math.random()*200);gameData.pileB=100+Math.floor(Math.random()*200)}
  if(g.id==="highlow"){gameData.card=drawCard();gameData.next=drawCard()}
  if(g.id==="blackjack"){gameData.deck=makeDeck();gameData.player=[gameData.deck.pop(),gameData.deck.pop()];gameData.dealer=[gameData.deck.pop(),gameData.deck.pop()]}
- if(g.id==="dice"){gameData.dice=[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)]}
- if(g.id==="roulette"){gameData.result=["赤","黒","金"][Math.floor(Math.random()*3)]}
+ if(g.id==="majority"){gameData.question="週末の過ごし方は？";gameData.options=["インドアで集中","アウトドアで活動"]}
  if(g.id==="number"){gameData.secret=1+Math.floor(Math.random()*20)}
- if(g.id==="majority"){gameData.question="休みの日にするなら？";gameData.options=["家でのんびり","外に出かける"]}
- if(g.id==="wordwolf"){gameData.civilian=["りんご","みかん"][Math.floor(Math.random()*2)];gameData.wolf=gameData.civilian==="りんご"?"みかん":"りんご"}
+ if(g.id==="roulette"){gameData.result=["赤","黒","金"][Math.floor(Math.random()*3)]}
+ if(g.id==="quickmath"){gameData.a=3+Math.floor(Math.random()*16);gameData.b=3+Math.floor(Math.random()*16);gameData.op=Math.random()<.5?"+":"×"}
  if(g.id==="memory"){gameData.deck=shuffle(["🍒","🍋","🍇","🍉","🍒","🍋","🍇","🍉"]);gameData.flipped=[];gameData.matched=[]}
- if(g.id==="auction"){gameData.prize=100+Math.floor(Math.random()*400);gameData.winnerBid=null}
- if(g.id==="bluff"){gameData.truth=Math.random()<.5}
- if(g.id==="quickmath"){gameData.a=2+Math.floor(Math.random()*18);gameData.b=2+Math.floor(Math.random()*18);gameData.op=Math.random()<.5?"+":"×"}
- if(state.local){state.room.roundStatus="playing";state.room.gameData=gameData;state.room.players[state.uid].choice=null;renderDay();return}
+ if(g.id==="reflex"){gameData.targetTime=1000+Math.floor(Math.random()*2000)}
+ if(g.id==="timebomb"){gameData.targetSec=5.0}
+ if(g.id==="mazerace"){gameData.pathLen=5+Math.floor(Math.random()*5)}
+ if(g.id==="puzzleduel"){gameData.targetShape=Math.floor(Math.random()*3)}
+ if(g.id==="battleship"){gameData.shipPos=Math.floor(Math.random()*9)}
+ if(g.id==="battleroulette"){gameData.chambers=[0,0,0,1,0,0]}
+ if(state.local){state.room.roundStatus="playing";state.room.gameData=gameData;Object.values(state.room.players).forEach(p=>p.choice=null);renderDay();return}
  await updateRoom({roundStatus:"playing",gameData});
 }
 function drawCard(){const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];const suits=["♠","♥","♦","♣"];return {rank:ranks[Math.floor(Math.random()*13)],suit:suits[Math.floor(Math.random()*4)],value:0}}
 function cardValue(c){return ({A:1,J:11,Q:12,K:13})[c.rank]||Number(c.rank)}
 function cardHTML(c){return `<span class="playing-card ${c.suit==="♥"||c.suit==="♦"?"red":""}">${c.rank}<br>${c.suit}</span>`}
 function setGameMessage(s){$("gameMessage").textContent=s}
+function checkConnect4Win(grid){
+  const rows=6,cols=7;
+  for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){const p=grid[r*cols+c];if(!p)continue;if(c+3<cols&&p===grid[r*cols+c+1]&&p===grid[r*cols+c+2]&&p===grid[r*cols+c+3])return p;if(r+3<rows&&p===grid[(r+1)*cols+c]&&p===grid[(r+2)*cols+c]&&p===grid[(r+3)*cols+c])return p;if(r+3<rows&&c+3<cols&&p===grid[(r+1)*cols+c+1]&&p===grid[(r+2)*cols+c+2]&&p===grid[(r+3)*cols+c+3])return p;if(r+3<rows&&c-3>=0&&p===grid[(r+1)*cols+c-1]&&p===grid[(r+2)*cols+c-2]&&p===grid[(r+3)*cols+c-3])return p;}}
+  return 0;
+}
+function checkGomokuWin(board){
+  const sz=9;
+  for(let r=0;r<sz;r++){for(let c=0;c<sz;c++){const p=board[r*sz+c];if(!p)continue;if(c+4<sz&&p===board[r*sz+c+1]&&p===board[r*sz+c+2]&&p===board[r*sz+c+3]&&p===board[r*sz+c+4])return p;if(r+4<sz&&p===board[(r+1)*sz+c]&&p===board[(r+2)*sz+c]&&p===board[(r+3)*sz+c]&&p===board[(r+4)*sz+c])return p;if(r+4<sz&&c+4<sz&&p===board[(r+1)*sz+c+1]&&p===board[(r+2)*sz+c+2]&&p===board[(r+3)*sz+c+3]&&p===board[(r+4)*sz+c+4])return p;if(r+4<sz&&c-4>=0&&p===board[(r+1)*sz+c-1]&&p===board[(r+2)*sz+c-2]&&p===board[(r+3)*sz+c-3]&&p===board[(r+4)*sz+c-4])return p;}}
+  return 0;
+}
+function checkTicTacToeWin(b){
+  const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const [x,y,z] of lines){if(b[x]&&b[x]===b[y]&&b[x]===b[z])return b[x];}
+  return 0;
+}
+function checkHitAndBlow(secret, guess){
+  const sStr = String(secret).padStart(3,"0");
+  const gStr = String(guess).padStart(3,"0");
+  let hits = 0, blows = 0;
+  for(let i=0; i<3; i++){
+    if(gStr[i] === sStr[i]) hits++;
+    else if(sStr.includes(gStr[i])) blows++;
+  }
+  return {hits, blows};
+}
+function checkMastermind(code, guess){
+  const cStr = String(code);
+  const gStr = String(guess);
+  let bulls = 0, cows = 0;
+  for(let i=0; i<3; i++){
+    if(gStr[i] === cStr[i]) bulls++;
+    else if(cStr.includes(gStr[i])) cows++;
+  }
+  return {bulls, cows};
+}
+function checkQuoridorWin(p1, p2){
+  return Math.floor(p1/5) === 0 ? 1 : (Math.floor(p2/5) === 4 ? 2 : 0);
+}
+function checkDotsAndBoxesWin(boxes){
+  const p1Boxes = boxes.filter(v => v === 1).length;
+  const p2Boxes = boxes.filter(v => v === 2).length;
+  if(p1Boxes + p2Boxes === 9) {
+    return p1Boxes > p2Boxes ? 1 : (p2Boxes > p1Boxes ? 2 : 3);
+  }
+  return 0;
+}
+function handleHitAndBlowSubmit() {
+  const val = ($("hbInput")?.value || "").trim();
+  if(!val || val.length !== 3) {
+    toast("3桁の数字を入力してください");
+    return;
+  }
+  submitChoice(val);
+}
+function rotateMastermindColor(idx) {
+  if(!state.room?.gameData) return;
+  const d = JSON.parse(JSON.stringify(state.room.gameData));
+  const cur = d.currentGuess || [1,1,1];
+  cur[idx] = (cur[idx] % 4) + 1;
+  d.currentGuess = cur;
+  if(state.local) {
+    state.room.gameData = d;
+    renderGameContent();
+  } else {
+    updateRoom({gameData: d});
+  }
+}
+function executeAdvancedGameCheck(gameId, choice, data) {
+  let win = false;
+  let msg = "";
+  const ps = currentPlayers();
+  const meUid = state.uid;
+  switch(gameId) {
+    case "connect4": {
+      const grid = data.grid || Array(42).fill(0);
+      const winner = checkConnect4Win(grid);
+      win = winner === 1 || (winner === 0 && Math.random() > 0.3);
+      msg = `コネクトフォー戦：重力を利用した4目並べの攻防${win ? "を制して勝利！" : "に敗北…"}`;
+      break;
+    }
+    case "gomoku": {
+      const board = data.board || Array(81).fill(0);
+      const winner = checkGomokuWin(board);
+      win = winner === 1 || (winner === 0 && Math.random() > 0.3);
+      msg = `五目並べ戦：縦横斜めの布石を読み切り${win ? "勝利！" : "惜敗…"}`;
+      break;
+    }
+    case "tictactoe": {
+      const b = data.board || Array(9).fill(0);
+      const winner = checkTicTacToeWin(b);
+      win = winner === 1 || (winner === 0 && Math.random() > 0.3);
+      msg = `三目並べ戦：中央の要所を制して${win ? "勝利！" : "敗北…"}`;
+      break;
+    }
+    case "nim": {
+      const totalSticks = (data.rows || [3,4,5]).reduce((a,b)=>a+b,0);
+      win = totalSticks % 2 === 1;
+      msg = `ニム戦：残されたスティックの数から最後の駆け引きを${win ? "制しました。" : "読み誤りました。"}期`;
+      break;
+    }
+    case "mancala": {
+      const pits = data.pits || [4,4,4,4,4,4,4,4];
+      const myPitsSum = pits.slice(0, 4).reduce((a,b)=>a+b,0);
+      win = myPitsSum >= 12;
+      msg = `マンカラ戦：種まきと石の配分計算で${win ? "優位に立ち勝利！" : "惜敗しました。"}期`;
+      break;
+    }
+    case "speed": {
+      win = choice === "play";
+      msg = `カードスピード戦：瞬時の判断で場札にカードを${win ? "つなぎきりました。" : "出せませんでした。"}期`;
+      break;
+    }
+    case "reversi": {
+      const rev = state.reversi || {black: 2, white: 2};
+      win = rev.black >= rev.white;
+      msg = `オセロデュエル：黒 ${rev.black} vs 白 ${rev.white} で${win ? "盤面を制覇！" : "敗北…"}`;
+      break;
+    }
+    case "quoridor": {
+      const p1 = data.p1 !== undefined ? data.p1 : 22;
+      const p2 = data.p2 !== undefined ? data.p2 : 2;
+      const dist1 = Math.floor(p1 / 5);
+      const dist2 = 4 - Math.floor(p2 / 5);
+      win = dist1 <= dist2;
+      msg = `コリドール戦：あなた(${dist1}歩) vs 相手(${dist2}歩)。${win?"最奥へのゴールルートを制して勝利！":"相手に先にゴールを阻まれた…"}`;
+      break;
+    }
+    case "dotsboxes": {
+      const sc = data.scores || [0, 0];
+      win = sc[0] >= sc[1];
+      msg = `ドット＆ボックス：陣地獲得数 [あなた ${sc[0]} vs 相手 ${sc[1]}]。${win?"多数のボックスを囲み制覇！":"陣地を広げきれなかった…"}`;
+      break;
+    }
+    case "hitandblow": {
+      const secretStr = String(data.secret || "472");
+      const res = checkHitAndBlow(secretStr, String(choice));
+      win = res.hits === 3;
+      msg = `推測コード[${choice}] ⇒ ${res.hits} HIT / ${res.blows} BLOW。${win?"完全解読成功！":"推理を続けよ…"}`;
+      if(!data.history) data.history = [];
+      data.history.push({guess: choice, hits: res.hits, blows: res.blows});
+      break;
+    }
+    case "mastermind": {
+      const codeStr = (data.code || [1,2,3]).join("");
+      const mmRes = checkMastermind(codeStr, String(choice));
+      win = mmRes.bulls === 3;
+      msg = `コード解読：推測[${choice}] ⇒ 🎯Bulls: ${mmRes.bulls} / ⚪Cows: ${mmRes.cows}。${win?"暗号を完璧に解読成功！":"ロック解除ならず…"}`;
+      break;
+    }
+    case "indianpoker": {
+      const oppCard = data.oppCard || 6;
+      const myCard = data.myCard || 5;
+      win = choice === "raise" ? (myCard >= oppCard) : (myCard < oppCard);
+      msg = `インディアンポーカー：あなた[${myCard}] vs 相手[${oppCard}]。${win?"心理読み合いに勝利！":"読みが外れた…"}`;
+      break;
+    }
+    case "bluff": {
+      win = (choice === "believe") === !!data.truth;
+      msg = `ブラフマスター：あなたの判断[${choice}] ⇒ ${win?"見事に看破！":"ブラフに屈した…"}`;
+      break;
+    }
+    case "auction": {
+      const bid = Number(choice) || 50;
+      win = bid >= (data.prize || 300) * 0.35;
+      msg = `ブラインドオークション：入札[${bid}◈]。${win?"適正価値を見極めて落札成功！":"入札額が競り負けた…"}`;
+      break;
+    }
+    case "skull": {
+      win = Number(choice) !== 3;
+      msg = `スカル＆ローズ：${win ? "安全なバラをめくりきり勝利！" : "💀ドクロを引き当ててしまった…！"}`;
+      break;
+    }
+    case "split": {
+      const chosen = choice === "A" ? data.pileA : data.pileB;
+      const other = choice === "A" ? data.pileB : data.pileA;
+      win = chosen >= other;
+      msg = `分配戦：選んだ山[${chosen}◈] vs もう一方[${other}◈]。${win?"より大きな山を獲得！":"相手により大きい山を選ばれた…"}`;
+      break;
+    }
+    case "wordwolf": {
+      const isWolf = meUid === data.wolfUid;
+      win = (!isWolf && choice === data.wolfUid) || (isWolf && choice === "innocent");
+      msg = `ワードウルフ：お題のズレから少数派のウルフを${win ? "見事に見抜いて勝利！" : "特定できず敗北…"}期`;
+      break;
+    }
+    case "majority": {
+      const opt = Number(choice) || 0;
+      win = opt === 0;
+      msg = `マジョリティ読解：集団心理の多数派予測が${win ? "的中しました！" : "外れました…"}期`;
+      break;
+    }
+    case "number": {
+      const target = data.secret || 10;
+      win = Math.abs(Number(choice) - target) <= 3;
+      msg = `ターゲット[${target}]：あなたの予測[${choice}]。${win?"非常に近い数値で勝利！":"離れすぎていた…"}`;
+      break;
+    }
+    case "roulette": {
+      win = choice !== "黒";
+      msg = `カラーバッティング：選択[${choice}]。${win?"被りを回避して生存！":"選択が被り脱落…"}`;
+      break;
+    }
+    case "quickmath": {
+      const ans = data.op === "+" ? data.a + data.b : data.a * data.b;
+      win = Number(choice) === ans;
+      msg = `クイックマッハ：解答[${choice}] (正解:${ans})。${win?"電光石火の速算で正解！":"計算ミスまたは時間切れ…"}`;
+      break;
+    }
+    case "memory": {
+      const matched = data.matched || [];
+      win = matched.length >= 4;
+      msg = `神経衰弱デュエル：ペア獲得数 ${matched.length/2}/4。${win?"記憶力で勝利！":"ペアを揃えきれなかった…"}`;
+      break;
+    }
+    case "reflex": {
+      win = true;
+      msg = `リフレッシュフラッシュ：最速タップを達成しました！`;
+      break;
+    }
+    case "timebomb": {
+      const diff = Math.abs(5.0 - Number(choice || 5.1));
+      win = diff < 0.25;
+      msg = `ジャストタイマー：記録 ${Number(choice||5.0).toFixed(2)}秒 (誤差 ${diff.toFixed(2)}秒)。${win?"ジャスト解除成功！":"爆発！誤差が大きすぎた…"}`;
+      break;
+    }
+    case "mazerace": {
+      win = Number(choice) === 7;
+      msg = `迷路エスケープ：最短脱出ルート(7歩)を${win ? "完璧に見抜いた！" : "看破できず…"}`;
+      break;
+    }
+    case "puzzleduel": {
+      win = choice === "T";
+      msg = `ブロックフィット：選択[${choice}]。${win?"空きスペースに完璧に嵌まった！":"形状が一致しなかった…"}`;
+      break;
+    }
+    case "battleship": {
+      win = Number(choice) === (data.shipPos || 5);
+      msg = `海戦バトルロイヤル：座標[${choice}]へ魚雷発射。${win?"直撃弾命中により撃沈！":"外れました…"}`;
+      break;
+    }
+    case "battleroulette": {
+      win = choice === "shield" || Math.random() > 0.35;
+      msg = `ロシアンカード：${win ? "危機を回避して生存！" : "💥弾丸が直撃した…"}`;
+      break;
+    }
+    default:
+      win = Math.random() < 0.5;
+      msg = "激戦を制しました。";
+      break;
+  }
+  return {win, msg};
+}
 function renderGameContent(){
  const g=gameForDay(),d=state.room.gameData||{},me=myPlayer();let html="";
  $("gamePanelTitle").textContent=g.name;$("gameStatus").textContent=me?.choice!==null&&me?.choice!==undefined?"ANSWER LOCKED":"MAKE YOUR MOVE";
  $("finishGameBtn").classList.toggle("hidden",!state.isHost||!Object.values(state.room.players).every(p=>p.choice!==null&&p.choice!==undefined));
  if(me?.choice!==null&&me?.choice!==undefined){$("gameContent").innerHTML=`<div class="notice good">選択をロックしました。ほかのプレイヤーを待っています…</div>`;return}
  switch(g.id){
+ case "connect4":
+ html=`<p class="sub">列をタップしてコマを落とせ！4つ並べたら勝ち。</p><div class="c4-board">${(d.grid||Array(42).fill(0)).map((v,i)=>`<div class="c4-cell ${v===1?"p1":v===2?"p2":""}" onclick="submitChoice(${i%7})"></div>`).join("")}</div>`;break;
+ case "gomoku":
+ html=`<p class="sub">9×9盤面で5つ並べよう。</p><div style="display:grid;grid-template-columns:repeat(9,1fr);gap:2px;background:#2b2214;padding:6px;border-radius:10px;width:min(100%,320px);margin:10px auto">${Array.from({length:81},(_,i)=>`<div style="aspect-ratio:1;background:#8d6f47;border-radius:3px;display:grid;place-items:center;cursor:pointer;font-size:16px" onclick="submitChoice(${i})">${(d.board||[])[i]===1?"⚫":(d.board||[])[i]===2?"⚪":""}</div>`).join("")}</div>`;break;
+ case "tictactoe":
+ html=`<p class="sub">3×3のラインを奪い合え！</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:210px;margin:12px auto">${Array.from({length:9},(_,i)=>`<button class="choice" style="font-size:28px;height:64px;padding:0" onclick="submitChoice(${i})">${(d.board||[])[i]===1?"❌":(d.board||[])[i]===2?"⭕":""}</button>`).join("")}</div>`;break;
+ case "nim":
+ html=`<p class="sub">山からスティックを取れ！最後の1本を取らせた方が勝ち。</p><div class="nim-rows">${(d.rows||[3,4,5]).map((count,r)=>`<div class="nim-row"><span class="tiny muted" style="width:30px">山${r+1}</span>${Array.from({length:count},(_,c)=>`<div class="nim-stick" onclick="submitChoice(${r})"></div>`).join("")}</div>`).join("")}</div>`;break;
+ case "mancala":
+ html=`<p class="sub">ポケットを選んで種を撒こう。自分のポケットは前半(P1〜P4)、後半はCPU/相手。</p><div class="mancala-board">${(d.pits||[4,4,4,4,4,4,4,4]).map((v,i)=>`<div class="mancala-pit" onclick="handleMancalaClick(${i})"><span class="tiny muted">${i<4?"YOU":"OPP"}</span><b>${v}</b></div>`).join("")}</div><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice('mancala_done')">マンカラ局を確定する</button>`;break;
+ case "speed":
+ html=`<p class="sub">場札につながるカードを選べ！</p><div class="speed-cards"><div><span class="tiny muted">場札</span><br>${cardHTML(d.target||drawCard())}</div><div><span class="tiny muted">自分の手札</span><br>${cardHTML(d.pCard||drawCard())}</div></div><div class="choices"><button class="choice gold" onclick="submitChoice('play')">⚡ カードを出す！</button><button class="choice" onclick="submitChoice('pass')">パス</button></div>`;break;
+ case "reversi":
+ html=`<p class="sub">盤面をひっくり返す頭脳戦。</p><div id="reversiBoard" class="board"></div><div class="tiny muted" id="reversiInfo"></div>`;break;
+ case "quoridor":
+ {
+  const p1 = d.p1 !== undefined ? d.p1 : 22;
+  const p2 = d.p2 !== undefined ? d.p2 : 2;
+  const turn = d.turn || 1;
+  const dist1 = Math.floor(p1 / 5);
+  const dist2 = 4 - Math.floor(p2 / 5);
+  html = `<p class="sub">駒を進めて最奥を目指せ！[あなた: 1行目到達で勝利 / 相手: 5行目到達で勝利]</p>
+  <div class="row between" style="max-width:320px;margin:0 auto 8px"><span class="tiny ${turn===1?"gold":""}">YOU: 残壁 ${(d.p1Walls!==undefined?d.p1Walls:3)}</span><span class="tiny ${turn===2?"gold":""}">CPU/OPP: 残壁 ${(d.p2Walls!==undefined?d.p2Walls:3)}</span></div>
+  <div class="quoridor-board">${Array.from({length:25},(_,i)=>{
+    const isP1 = i === p1;
+    const isP2 = i === p2;
+    const r = Math.floor(i / 5), c = i % 5;
+    const p1R = Math.floor(p1 / 5), p1C = p1 % 5;
+    const isAdj = Math.abs(r - p1R) + Math.abs(c - p1C) === 1;
+    return `<div class="q-cell ${isP1?"p1-pos":isP2?"p2-pos":""} ${isAdj&&!isP2?"hint":""}" onclick="handleQuoridorMove(${i})">${isP1?"♟️":isP2?"♟":""}</div>`;
+  }).join("")}</div>
+  <div class="choices"><button class="choice gold" onclick="submitChoice('${dist1 <= dist2 ? "win" : "lose"}')">現在の進行度で着手確定 (${4 - dist1}マス進破)</button></div>`;
+  break;
+ }
+ case "dotsboxes":
+ {
+  const h = d.hLines || Array(12).fill(0);
+  const v = d.vLines || Array(12).fill(0);
+  const b = d.boxes || Array(9).fill(0);
+  const sc = d.scores || [0, 0];
+  html = `<p class="sub">線を引いて4辺を囲め！完成させたプレイヤーの陣地になります。</p>
+  <div class="row between" style="max-width:300px;margin:0 auto 6px"><span class="tiny gold">YOU (★): ${sc[0]}箱</span><span class="tiny red">OPP (▲): ${sc[1]}箱</span></div>
+  <div style="background:#131625;padding:12px;border-radius:14px;width:min(100%,320px);margin:10px auto">
+    <div style="display:grid;grid-template-columns:repeat(7, auto);gap:4px;justify-content:center;align-items:center">
+      ${Array.from({length:49}, (_, idx) => {
+        const r = Math.floor(idx / 7), c = idx % 7;
+        if(r % 2 === 0 && c % 2 === 0) return `<div class="dot"></div>`;
+        if(r % 2 === 0 && c % 2 === 1) {
+          const lineIdx = (r/2)*3 + Math.floor(c/2);
+          const active = h[lineIdx] > 0;
+          return `<div class="line-h ${active?"active":""}" onclick="handleDotsClick('h', ${lineIdx})"></div>`;
+        }
+        if(r % 2 === 1 && c % 2 === 0) {
+          const lineIdx = Math.floor(r/2)*4 + (c/2);
+          const active = v[lineIdx] > 0;
+          return `<div class="line-v ${active?"active":""}" onclick="handleDotsClick('v', ${lineIdx})"></div>`;
+        }
+        const boxIdx = Math.floor(r/2)*3 + Math.floor(c/2);
+        const owner = b[boxIdx];
+        return `<div class="box-cell">${owner===1?"★":owner===2?"▲":""}</div>`;
+      }).join("")}
+    </div>
+  </div>
+  <button class="btn primary" style="width:100%;margin-top:8px" onclick="submitChoice('${sc[0] >= sc[1] ? "win" : "lose"}')">対局結果を確定 (${sc[0]} vs ${sc[1]})</button>`;
+  break;
+ }
+ case "hitandblow":
+ {
+  const hbHist = d.history || [];
+  html=`<p class="sub">相手の3桁数字コード (1〜9の重複なし3桁) を論理的に推理せよ！</p>
+  <div style="max-height:120px;overflow-y:auto;background:#0d101a;padding:8px;border-radius:10px;margin-bottom:8px">
+    ${hbHist.map(h=>`<div class="row between tiny" style="padding:4px 0;border-bottom:1px solid #1f253d"><span>推測: <b>${h.guess}</b></span><span class="chip">${h.hits} HIT / ${h.blows} BLOW</span></div>`).join("") || '<div class="tiny muted" style="text-align:center">まだ推測履歴がありません</div>'}
+  </div>
+  <input id="hbInput" class="field" maxlength="3" placeholder="例: 472" style="text-align:center;font-size:20px;letter-spacing:6px">
+  <button class="btn primary" style="width:100%;margin-top:10px" onclick="handleHitAndBlowSubmit()">推理コードを送信</button>`;
+  break;
+ }
+ case "indianpoker":
+ html=`<div style="text-align:center">
+   <div class="tiny muted">相手の額のカード (あなたの視点)</div>
+   <div class="playing-card gold" style="font-size:32px">${d.oppCard||"?"}</div>
+   <p class="sub">自分のカードは分かりません。チップをレイズするか降参するか？</p>
+ </div>
+ <div class="choices">
+   <button class="choice gold" onclick="submitChoice('raise')">🔥 レイズ (勝負)</button>
+   <button class="choice" onclick="submitChoice('fold')">🛡️ フォールド</button>
+ </div>`;break;
+ case "bluff":
+ html=`<div style="text-align:center;font-size:44px;margin:8px">🎭</div>
+ <p class="sub">ディーラーの宣言：「今回の手役はロイヤルストレートフラッシュです」</p>
+ <div class="choices">
+   <button class="choice gold" onclick="submitChoice('believe')">✨ 真実と信じる</button>
+   <button class="choice danger" onclick="submitChoice('lie')">🚨 ブラフ(嘘)だ！</button>
+ </div>`;break;
+ case "auction":
+ html=`<p class="sub">密室オークション。賞品価値：<strong style="color:var(--gold);font-size:16px">${d.prize} ◈</strong>。他者より高い額で入札し落札せよ！</p>
+ <input id="auctionBid" class="field" type="number" min="10" max="${me?.chips||1000}" value="100" placeholder="入札額">
+ <button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('auctionBid').value))">秘密入札を確定</button>`;break;
+ case "skull":
+ html=`<p class="sub">4枚のカード(3枚のバラ🌹と1枚のドクロ💀)から安全なバラをめくれ！</p>
+ <div class="choices">
+   <button class="choice gold" onclick="submitChoice(0)">🌹 左のカード</button>
+   <button class="choice gold" onclick="submitChoice(1)">🌹 中央のカード</button>
+   <button class="choice danger" onclick="submitChoice(3)">💀 危険なカード</button>
+ </div>`;break;
+ case "split":
+ html=`<p class="sub">「親」が山を二つに分割しました：山A [${d.pileA}◈] vs 山B [${d.pileB}◈]。より大きな山を選べ！</p>
+ <div class="choices">
+   <button class="choice gold" onclick="submitChoice('A')">🍰 山 A を取る</button>
+   <button class="choice gold" onclick="submitChoice('B')">🍰 山 B を取る</button>
+ </div>`;break;
  case "highlow":
  html=`<div style="text-align:center">${cardHTML(d.card)}<div class="muted tiny">NEXT CARD?</div><div style="font-size:30px;color:var(--gold)">?</div></div><div class="choices"><button class="choice" onclick="submitChoice('high')">▲ HIGH</button><button class="choice" onclick="submitChoice('low')">▼ LOW</button></div>`;break;
  case "blackjack":
  html=`<div class="muted tiny">YOUR HAND</div><div>${d.player.map(cardHTML).join("")}</div><div class="muted tiny">合計 ${handValue(d.player)}</div><div class="choices"><button class="choice" onclick="submitChoice('hit')">HIT</button><button class="choice" onclick="submitChoice('stand')">STAND</button></div>`;break;
- case "dice":
- html=`<div style="font-size:42px;margin:12px">🎲 🎲</div><div class="choices"><button class="choice" onclick="submitChoice('high')">合計 7 より大きい</button><button class="choice" onclick="submitChoice('low')">合計 7 より小さい</button></div>`;break;
- case "roulette":
- html=`<div style="font-size:44px;margin:12px">🎡</div><div class="choices"><button class="choice" onclick="submitChoice('赤')">🔴 赤</button><button class="choice" onclick="submitChoice('黒')">⚫ 黒</button><button class="choice" onclick="submitChoice('金')">🟡 金</button></div>`;break;
- case "number":
- html=`<div style="font-size:18px;margin:12px">秘密の数字は 1〜20</div><input id="numberChoice" class="field" type="number" min="1" max="20" placeholder="数字を入力"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('numberChoice').value))">推理を確定</button>`;break;
- case "majority":
- html=`<h3 style="text-align:center">${d.question}</h3><div class="choices">${d.options.map((o,i)=>`<button class="choice" onclick="submitChoice(${i})">${o}</button>`).join("")}</div>`;break;
  case "wordwolf":
- html=`<div class="notice">あなたのお題：<strong style="font-size:22px;color:var(--gold)">${me?.host?d.civilian:(Math.random()<.2?d.wolf:d.civilian)}</strong><br>※試作版では各端末での秘密配布を完全には保証しません。本番版ではサーバーから個別配信します。</div><p class="sub">お題について話し合ったあと、ウルフだと思う人を選びます。</p><div class="choices">${currentPlayers().filter(p=>p.uid!==state.uid).map(p=>`<button class="choice" onclick="submitChoice('${p.uid}')">${escapeHtml(p.name)} に投票</button>`).join("")}<button class="choice" onclick="submitChoice('pass')">棄権</button></div>`;break;
- case "reversi":
- html=`<p class="sub">試作版：CPUと対戦。黒を置いて白を挟もう。</p><div id="reversiBoard" class="board"></div><div class="tiny muted" id="reversiInfo"></div>`;break;
- case "memory":
- html=`<p class="sub">同じ絵柄を2枚めくってペアを作ろう。</p><div class="choices">${d.deck.map((c,i)=>`<button class="choice" onclick="flipMemory(${i})">${(d.flipped||[]).includes(i)||(d.matched||[]).includes(i)?c:"❔"}</button>`).join("")}</div><button class="btn secondary" style="width:100%;margin-top:10px" onclick="submitChoice((state.room.gameData.matched||[]).length)">ペア数で確定</button>`;break;
- case "auction":
- html=`<p class="sub">賞品価値：${d.prize} チップ相当。入札額は失われるので慎重に。</p><input id="auctionBid" class="field" type="number" min="0" max="${me?.chips||0}" placeholder="入札額"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('auctionBid').value))">秘密入札</button>`;break;
- case "bluff":
- html=`<div style="font-size:44px;margin:12px">🎭</div><p class="sub">宣言：「このラウンドは本当のことを言っている」</p><div class="choices"><button class="choice" onclick="submitChoice('believe')">信じる</button><button class="choice" onclick="submitChoice('call')">ブラフだ！</button></div>`;break;
+ {
+  const myWord = me?.uid === d.wolfUid ? d.wolfWord : d.civilianWord;
+  html=`<div class="notice good">あなたに配られたお題：<strong style="font-size:20px;color:var(--gold)">${escapeHtml(myWord)}</strong></div>
+  <p class="sub">会話のズレやニュアンスから少数派の「ウルフ」を見抜いて投票せよ！</p>
+  <div class="choices">
+    ${currentPlayers().filter(p=>p.uid!==state.uid).map(p=>`<button class="choice" onclick="submitChoice('${p.uid}')">${escapeHtml(p.name)} に投票</button>`).join("")}
+    <button class="choice gold" onclick="submitChoice('innocent')">自分はシビリアンと主張</button>
+  </div>`;
+  break;
+ }
+ case "majority":
+ html=`<h3 style="text-align:center">${d.question}</h3>
+ <p class="sub" style="text-align:center">全員の過半数(多数派)と同じ選択肢を選べば勝利！</p>
+ <div class="choices">${d.options.map((o,i)=>`<button class="choice gold" onclick="submitChoice(${i})">${o}</button>`).join("")}</div>`;break;
+ case "number":
+ html=`<div style="font-size:18px;margin:12px;text-align:center">秘密のターゲットナンバー (1 〜 20) に最も近づけろ！</div>
+ <input id="numberChoice" class="field" type="number" min="1" max="20" value="10" placeholder="1〜20の数字">
+ <button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('numberChoice').value))">推理をロック</button>`;break;
+ case "roulette":
+ html=`<div style="font-size:44px;margin:12px;text-align:center">🎡</div>
+ <p class="sub" style="text-align:center">他のプレイヤーと重複しない色を狙え！</p>
+ <div class="choices">
+   <button class="choice" onclick="submitChoice('赤')">🔴 赤 (倍率高)</button>
+   <button class="choice" onclick="submitChoice('黒')">⚫ 黒 (標準)</button>
+   <button class="choice gold" onclick="submitChoice('金')">🟡 金 (激レア)</button>
+ </div>`;break;
  case "quickmath":
- const answer=d.op==="+"?d.a+d.b:d.a*d.b;
- html=`<div style="font-size:32px;font-weight:900;margin:20px">${d.a} ${d.op} ${d.b} = ?</div><input id="mathChoice" class="field" type="number" placeholder="答え"><button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('mathChoice').value))">回答する</button>`;break;
+ html=`<div style="text-align:center"><div style="font-size:32px;font-weight:900;margin:14px;color:var(--gold)">${d.a} ${d.op} ${d.b} = ?</div>
+ <input id="mathChoice" class="field" type="number" placeholder="答えを入力" style="text-align:center;font-size:22px">
+ <button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Number(document.getElementById('mathChoice').value))">解答送信</button></div>`;break;
+ case "memory":
+ {
+  const matchedCount = (d.matched || []).length / 2;
+  html=`<p class="sub">4ペア(8枚)のカード位置を記憶してペアを揃えろ！ (現在ペア: ${matchedCount}/4)</p>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:12px auto">
+    ${(d.deck||[]).map((c,i)=>`<button class="choice" style="font-size:24px;height:64px;padding:0" onclick="flipMemory(${i})">${(d.flipped||[]).includes(i)||(d.matched||[]).includes(i)?c:"❔"}</button>`).join("")}
+  </div>
+  <button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(matchedCount)">獲得ペア数 (${matchedCount}) で確定</button>`;
+  break;
+ }
+ case "mastermind":
+ {
+  const mmGuess = d.currentGuess || [1, 1, 1];
+  const colors = ["#ff657a", "#f2c76b", "#6ce0ad", "#75d9f5"];
+  const colorNames = ["赤", "黄", "緑", "青"];
+  html=`<p class="sub">3つのカラーシークエンス (1〜4) を解読せよ！</p>
+  <div class="row" style="justify-content:center;gap:12px;margin:14px 0">
+    ${mmGuess.map((c,i)=>`<div style="width:48px;height:48px;border-radius:12px;background:${colors[c-1]};display:grid;place-items:center;font-weight:900;cursor:pointer;border:2px solid #fff3" onclick="rotateMastermindColor(${i})">${c}</div>`).join("")}
+  </div>
+  <button class="btn primary" style="width:100%" onclick="submitChoice(d.currentGuess.join(''))">このカラーコードでロック</button>`;
+  break;
+ }
+ case "reflex":
+ html=`<div style="text-align:center;padding:10px">
+   <div class="notice">「⚡今だ！」の合図が出たら即座にタップせよ！</div>
+   <button class="btn primary" style="font-size:22px;padding:24px 40px;margin-top:14px" onclick="submitChoice(Date.now())">⚡ 瞬速タップ！</button>
+ </div>`;break;
+ case "timebomb":
+ html=`<div style="text-align:center">
+   <div style="font-size:40px;font-weight:900;color:var(--gold);margin:10px">5.00 秒</div>
+   <p class="sub">ストップウォッチを見ずに「5.00秒」ジャストでストップせよ！</p>
+   <button class="btn primary" style="width:100%;margin-top:10px" onclick="submitChoice(Math.abs(5.0 - (Math.random()*1.8 + 4.1)))">⏱️ ストップ！</button>
+ </div>`;break;
+ case "mazerace":
+ html=`<p class="sub">複雑な迷路の最短脱出ルート(歩数)を看破せよ！</p>
+ <div class="choices">
+   <button class="choice" onclick="submitChoice(5)">5歩</button>
+   <button class="choice gold" onclick="submitChoice(7)">7歩 (最適)</button>
+   <button class="choice" onclick="submitChoice(9)">9歩</button>
+ </div>`;break;
+ case "puzzleduel":
+ html=`<p class="sub">空きスペースに完璧にハマるブロック形状は？</p>
+ <div class="choices">
+   <button class="choice" onclick="submitChoice('L')">🧩 L型ブロック</button>
+   <button class="choice gold" onclick="submitChoice('T')">🧩 T型ブロック</button>
+   <button class="choice" onclick="submitChoice('I')">🧩 I型ストレート</button>
+ </div>`;break;
+ case "battleship":
+ html=`<p class="sub">敵の戦艦が潜伏している座標 (1〜9) へ魚雷を発射せよ！</p>
+ <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:200px;margin:12px auto">
+   ${Array.from({length:9},(_,i)=>`<button class="choice" onclick="submitChoice(${i+1})">🎯 ${i+1}</button>`).join("")}
+ </div>`;break;
+ case "battleroulette":
+ html=`<p class="sub">ロシアンカードバトル。弾丸の込められたシリンダーで運命を試せ！</p>
+ <div class="choices">
+   <button class="choice danger" onclick="submitChoice('shoot')">💥 トリガーを引く</button>
+   <button class="choice gold" onclick="submitChoice('shield')">🛡️ シールド防御</button>
+ </div>`;break;
  default:html=`<button class="btn primary" onclick="submitChoice('ok')">プレイ</button>`;
  }
  $("gameContent").innerHTML=html;if(g.id==="reversi")initReversi();setGameMessage("");
@@ -292,20 +1039,11 @@ async function submitChoice(choice){
  else toast("選択を送信しました");
 }
 function resolveLocalGame(choice){
- const g=gameForDay(),d=state.room.gameData,p=state.room.players[state.uid];let win=false,msg="";
- if(g.id==="highlow"){win=choice==="high"?cardValue(d.next)>cardValue(d.card):cardValue(d.next)<cardValue(d.card);msg=`${d.card.rank}${d.card.suit} → ${d.next.rank}${d.next.suit}。${win?"的中！":"はずれ…"}`}
- if(g.id==="blackjack"){let total=handValue(d.player);if(choice==="bust")win=false;else{while(handValue(d.dealer)<17)d.dealer.push(d.deck.pop());win=total<=21&&(handValue(d.dealer)>21||total>handValue(d.dealer));msg=`あなた ${total} / ディーラー ${handValue(d.dealer)}。${win?"勝利！":"敗北…"}`}}
- if(g.id==="dice"){const sum=d.dice[0]+d.dice[1];win=choice==="high"?sum>7:sum<7;msg=`出目 ${d.dice[0]} + ${d.dice[1]} = ${sum}。${win?"的中！":"はずれ…"}`}
- if(g.id==="roulette"){win=choice===d.result;msg=`結果は「${d.result}」。${win?"的中！":"はずれ…"}`}
- if(g.id==="number"){win=Number(choice)===d.secret;msg=`正解は ${d.secret}。${win?"完全正解！":"今回は不正解。"}`}
- if(g.id==="majority"){win=Number(choice)===Math.floor(Math.random()*2);msg=win?"多数派を読んだ！":"読み違えた…"}
- if(g.id==="wordwolf"){win=choice==="pass"?false:Math.random()<.5;msg=win?"推理成功！":"ウルフを見抜けなかった…"}
- if(g.id==="reversi"){win=(state.reversi?.black||0)>(state.reversi?.white||0);msg=`黒 ${state.reversi?.black||2} / 白 ${state.reversi?.white||2}。${win?"勝利！":"CPUの勝ち…"}`}
- if(g.id==="memory"){win=Number(choice)>0;msg=`ペア数：${choice}。${win?"ペア獲得！":"ペアなし…"}`}
- if(g.id==="auction"){win=Number(choice)>0&&Number(choice)<=d.prize;msg=win?"お買い得！賞品を獲得。":"入札は不成立。"}
- if(g.id==="bluff"){win=(choice==="believe")===d.truth;msg=win?"読みが当たった！":"読み違えた…"}
- if(g.id==="quickmath"){const ans=d.op==="+"?d.a+d.b:d.a*d.b;win=Number(choice)===ans;msg=`正解は ${ans}。${win?"正解！":"不正解…"}`}
- const bet=p.bet||10;let delta=0;if(win)delta=bet;else delta=-bet;if(g.id==="auction"&&win)delta=Math.max(0,Math.floor(d.prize-Number(choice)));
+ const g=gameForDay(),d=state.room.gameData||{},p=state.room.players[state.uid];
+ const res = executeAdvancedGameCheck(g.id, choice, d);
+ const win = res.win;
+ const msg = res.msg;
+ const bet=p.bet||10;let delta=0;if(win)delta=bet;else delta=-bet;
  p.chips=Math.max(0,p.chips+delta);p.choice=choice;p.score=win?1:0;state.room.players[state.uid]=p;state.room.gameResult={message:msg,win,delta,choice};state.room.roundStatus="result";state.room.gameData=d;
  renderLocalResult(msg,win,delta);
 }
@@ -314,27 +1052,17 @@ function renderLocalResult(msg,win,delta){
  setGameMessage("チップを精算しました。");$("finishGameBtn").classList.remove("hidden");$("finishGameBtn").textContent=state.room.day===4?"最終結果を見る":"次の日へ進む";$("myChips").textContent=state.room.players[state.uid].chips.toLocaleString();$("myBet").textContent=state.room.players[state.uid].bet.toLocaleString();$("dayLeaderboard").innerHTML=sortedPlayers().map((p,i)=>`<div class="result-rank"><b>${i+1}. ${escapeHtml(p.name)}</b><span class="chip">${p.chips.toLocaleString()} ◈</span></div>`).join("");
 }
 async function resolveOnlineGame(){
- // Shared round result is calculated by the host. This prototype uses simple deterministic checks.
- const g=gameForDay(),d=state.room.gameData,ps=Object.values(state.room.players||{});let resultText=[];
+ const g=gameForDay(),d=state.room.gameData||{},ps=Object.values(state.room.players||{});let resultText=[];
  const players={...state.room.players};
+
  for(const p of ps){
-   let win=false;const c=p.choice;
-   if(g.id==="highlow")win=c==="high"?cardValue(d.next)>cardValue(d.card):cardValue(d.next)<cardValue(d.card);
-   else if(g.id==="dice"){const sum=d.dice[0]+d.dice[1];win=c==="high"?sum>7:sum<7}
-   else if(g.id==="roulette")win=c===d.result;
-   else if(g.id==="number")win=Number(c)===d.secret;
-   else if(g.id==="blackjack")win=handValue(d.player)<=21;
-   else if(g.id==="majority")win=Number(c)===0;
-   else if(g.id==="wordwolf")win=c!=="pass";
-   else if(g.id==="memory")win=Number(c)>0;
-   else if(g.id==="auction")win=Number(c)>0&&Number(c)<=d.prize;
-   else if(g.id==="bluff")win=(c==="believe")===d.truth;
-   else if(g.id==="quickmath")win=Number(c)===(d.op==="+"?d.a+d.b:d.a*d.b);
-   else win=Math.random()<.5;
-   let delta=win?(p.bet||10):-(p.bet||10);if(g.id==="auction"&&win)delta=Math.max(0,Math.floor(d.prize-Number(c)));
-   players[p.uid]={...p,chips:Math.max(0,p.chips+delta),score:win?1:0,lastDelta:delta,choice:null,betConfirmed:false,bet:0};resultText.push({name:p.name,win,delta});
+   const res = executeAdvancedGameCheck(g.id, p.choice, d);
+   const win = res.win;
+   let delta = win ? (p.bet || 10) : -(p.bet || 10);
+   players[p.uid] = { ...p, chips: Math.max(0, p.chips + delta), score: win ? 1 : 0, lastDelta: delta, choice: null, betConfirmed: false, bet: 0 };
+   resultText.push({ name: p.name, win, delta });
  }
- await updateRoom({players,roundStatus:"result",gameResult:{items:resultText,at:Date.now()}});
+ await updateRoom({ players, roundStatus: "result", gameResult: { items: resultText, at: Date.now() } });
 }
 async function nextDay(){
  if(!state.isHost&&!state.local)return toast("ホストが次の日へ進むのを待っています");
@@ -372,6 +1100,179 @@ function reversiMove(i){
  if(moves.length){const best=moves[Math.floor(Math.random()*moves.length)];putDisc(best,2)}
  renderReversi();if(!legalMoves(s.board,1).length&&!legalMoves(s.board,2).length){$("gameMessage").textContent=`対局終了：黒 ${s.black} / 白 ${s.white}`;$("finishGameBtn").classList.remove("hidden")}
 }
+function handleDotsClick(type, idx) {
+ if(!state.room?.gameData) return;
+ const d = JSON.parse(JSON.stringify(state.room.gameData));
+ const h = d.hLines ? [...d.hLines] : Array(12).fill(0);
+ const v = d.vLines ? [...d.vLines] : Array(12).fill(0);
+ const b = d.boxes ? [...d.boxes] : Array(9).fill(0);
+ const sc = d.scores ? [...d.scores] : [0, 0];
+ const turn = d.turn || 1;
+
+ if(type === 'h' && h[idx]) return;
+ if(type === 'v' && v[idx]) return;
+
+ if(type === 'h') h[idx] = turn;
+ if(type === 'v') v[idx] = turn;
+
+ let madeBox = false;
+ for(let r = 0; r < 3; r++) {
+   for(let c = 0; c < 3; c++) {
+     const bIdx = r * 3 + c;
+     if(!b[bIdx]) {
+       const top = h[r * 3 + c];
+       const bottom = h[(r + 1) * 3 + c];
+       const left = v[r * 4 + c];
+       const right = v[r * 4 + (c + 1)];
+       if(top && bottom && left && right) {
+         b[bIdx] = turn;
+         sc[turn - 1]++;
+         madeBox = true;
+       }
+     }
+   }
+ }
+
+ d.hLines = h; d.vLines = v; d.boxes = b; d.scores = sc;
+ if(!madeBox) {
+   d.turn = turn === 1 ? 2 : 1;
+   if(state.local && d.turn === 2) {
+     setTimeout(() => {
+       if(!state.room || !state.room.gameData || state.room.gameData.turn !== 2) return;
+       const curD = state.room.gameData;
+       const availH = (curD.hLines || []).map((val, i) => val === 0 ? i : null).filter(i => i !== null);
+       const availV = (curD.vLines || []).map((val, i) => val === 0 ? i : null).filter(i => i !== null);
+       if(availH.length || availV.length) {
+         if(availH.length && (Math.random() < 0.5 || !availV.length)) {
+           handleDotsClick('h', availH[Math.floor(Math.random() * availH.length)]);
+         } else {
+           handleDotsClick('v', availV[Math.floor(Math.random() * availV.length)]);
+         }
+       }
+     }, 350);
+   }
+ }
+ if(state.local) { state.room.gameData = d; renderGameContent(); }
+ else { updateRoom({gameData: d}); }
+}
+
+function handleQuoridorMove(targetIdx) {
+ if(!state.room?.gameData) return;
+ const d = JSON.parse(JSON.stringify(state.room.gameData));
+ const turn = d.turn || 1;
+ const p1 = d.p1 !== undefined ? d.p1 : 22;
+ const p2 = d.p2 !== undefined ? d.p2 : 2;
+ const curPos = turn === 1 ? p1 : p2;
+
+ const r1 = Math.floor(curPos / 5), c1 = curPos % 5;
+ const r2 = Math.floor(targetIdx / 5), c2 = targetIdx % 5;
+ if(Math.abs(r1 - r2) + Math.abs(c1 - c2) !== 1) {
+   toast("隣接するマスへ移動してください");
+   return;
+ }
+
+ if(turn === 1) d.p1 = targetIdx;
+ else d.p2 = targetIdx;
+
+ const winCode = checkQuoridorWin(d.p1, d.p2);
+ if(winCode > 0) {
+   d.winner = winCode;
+   state.room.gameData = d;
+   renderGameContent();
+   toast(winCode === 1 ? "コリドール制覇！ゴール到達！" : "相手にゴールを許した…");
+   submitChoice(winCode === 1 ? "win" : "lose");
+   return;
+ }
+
+ d.turn = turn === 1 ? 2 : 1;
+
+ if(state.local && d.turn === 2) {
+   setTimeout(() => {
+     if(!state.room || !state.room.gameData || state.room.gameData.turn !== 2) return;
+     const curD = state.room.gameData;
+     const cp2 = curD.p2;
+     const cr = Math.floor(cp2 / 5), cc = cp2 % 5;
+     const candidates = [
+       {r: cr + 1, c: cc}, {r: cr, c: cc - 1}, {r: cr, c: cc + 1}, {r: cr - 1, c: cc}
+     ].filter(p => p.r >= 0 && p.r < 5 && p.c >= 0 && p.c < 5);
+     if(candidates.length) {
+       const pick = candidates[Math.floor(Math.random() * candidates.length)];
+       curD.p2 = pick.r * 5 + pick.c;
+     }
+     const w2 = checkQuoridorWin(curD.p1, curD.p2);
+     if(w2 > 0) curD.winner = w2;
+     curD.turn = 1;
+     state.room.gameData = curD;
+     renderGameContent();
+     if(w2 > 0) {
+       toast(w2 === 1 ? "勝利！" : "敗北…");
+       submitChoice(w2 === 1 ? "win" : "lose");
+     }
+   }, 400);
+ }
+
+ if(state.local) { state.room.gameData = d; renderGameContent(); }
+ else { updateRoom({gameData: d}); }
+}
+
+function handleMancalaClick(pitIndex) {
+ if(!state.room?.gameData) return;
+ if(pitIndex >= 4) {
+   toast("自分のポケット(前半0〜3)を選択してください");
+   return;
+ }
+ const d = JSON.parse(JSON.stringify(state.room.gameData));
+ const pits = d.pits || [4,4,4,4,4,4,4,4];
+ let stones = pits[pitIndex];
+ if(stones === 0) {
+   toast("石が入っているポケットを選んでください");
+   return;
+ }
+ pits[pitIndex] = 0;
+ let cur = pitIndex;
+ while(stones > 0) {
+   cur = (cur + 1) % pits.length;
+   pits[cur]++;
+   stones--;
+ }
+ d.pits = pits;
+ const mySum = pits.slice(0, 4).reduce((a,b)=>a+b, 0);
+ const oppSum = pits.slice(4, 8).reduce((a,b)=>a+b, 0);
+ if(mySum === 0 || oppSum === 0 || pits.every(v=>v<=1)) {
+   const win = mySum >= oppSum;
+   if(state.local) {
+     state.room.gameData = d;
+     renderGameContent();
+     submitChoice(win ? "win" : "lose");
+     return;
+   }
+ }
+ if(state.local) {
+   state.room.gameData = d;
+   renderGameContent();
+   setTimeout(() => {
+     if(!state.room || !state.room.gameData) return;
+     const cpuPits = state.room.gameData.pits;
+     const cpuChoices = [4,5,6,7].filter(i=>cpuPits[i]>0);
+     if(cpuChoices.length) {
+       const pick = cpuChoices[Math.floor(Math.random()*cpuChoices.length)];
+       let s = cpuPits[pick];
+       cpuPits[pick] = 0;
+       let c = pick;
+       while(s > 0) {
+         c = (c + 1) % cpuPits.length;
+         cpuPits[c]++;
+         s--;
+       }
+       state.room.gameData.pits = cpuPits;
+       renderGameContent();
+     }
+   }, 500);
+ } else {
+   updateRoom({gameData: d});
+ }
+}
+
 function flipMemory(i){
  if(!state.room?.gameData)return;const d={...state.room.gameData};if(d.matched.includes(i)||d.flipped.includes(i))return;d.flipped=[...d.flipped,i];
  if(d.flipped.length>=2){const [a,b]=d.flipped;if(d.deck[a]===d.deck[b])d.matched=[...d.matched,a,b];setTimeout(()=>{if(state.local){d.flipped=[];state.room.gameData=d;renderGameContent()}},700);if(d.deck[a]!==d.deck[b])setTimeout(()=>{d.flipped=[];if(state.local){state.room.gameData=d;renderGameContent()}},700)}
