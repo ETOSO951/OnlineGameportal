@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Deep Sea Battle - 4P Arena Edition</title>
+  <title>Deep Sea Battle - Sync & Custom Arena Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { margin: 0; overflow: hidden; background: #000428; font-family: 'Verdana', sans-serif; touch-action: none; user-select: none; }
-    canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
     
-    .hud-val { font-size: 20px; font-weight: bold; color: #00f2ff; text-shadow: 0 0 8px #000; }
-    .hud-sub { font-size: 11px; color: #aaa; }
+    .hud-val { font-size: 19px; font-weight: bold; color: #00f2ff; text-shadow: 0 0 8px #000; }
+    .hud-sub { font-size: 10px; color: #cbd5e1; font-weight: bold; }
     
     #resultModal {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -19,18 +19,22 @@
       justify-content: center; align-items: center; color: white; text-align: center; z-index: 50;
     }
     .btn-action {
-      padding: 12px 36px; background: #00f2ff; color: #000; font-weight: bold;
+      padding: 12px 32px; background: #00f2ff; color: #000; font-weight: bold;
       border-radius: 30px; box-shadow: 0 0 18px #00f2ff; transition: 0.2s;
     }
     .btn-action:active { transform: scale(0.95); }
 
-    .emote-bubble { position: absolute; animation: emoteFly 1.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; pointer-events: none; z-index: 40; }
+    .emote-bubble { position: absolute; animation: emoteFly 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; pointer-events: none; z-index: 40; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); }
     @keyframes emoteFly {
-      0% { transform: translateY(0) scale(0.6); opacity: 0; }
-      25% { transform: translateY(-20px) scale(1.3); opacity: 1; }
-      80% { transform: translateY(-70px) scale(1.1); opacity: 1; }
-      100% { transform: translateY(-110px) scale(0.8); opacity: 0; }
+      0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+      20% { transform: translate(-50%, -25px) scale(1.25); opacity: 1; }
+      80% { transform: translate(-50%, -85px) scale(1.05); opacity: 1; }
+      100% { transform: translate(-50%, -120px) scale(0.8); opacity: 0; }
     }
+
+    /* スクロールバー非表示 */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="w-full h-[100dvh] relative overflow-hidden bg-slate-950">
@@ -41,40 +45,42 @@
 
   <!-- Realtime Battle UI -->
   <div id="battleHUD" class="absolute top-2.5 left-0 w-full px-3 z-30 pointer-events-none flex flex-col gap-1 hidden">
-    <div class="flex items-center justify-around max-w-xl mx-auto w-full text-center">
+    <div class="flex items-center justify-around max-w-xl mx-auto w-full text-center bg-slate-950/60 backdrop-blur-md py-1.5 px-2 rounded-2xl border border-slate-800/80">
       <div id="hudP1" class="transition-all">
         <div class="hud-sub" id="labelP1">YOU</div>
         <div id="scoreP1" class="hud-val">0</div>
-        <div id="hpP1" class="text-xs text-emerald-400">❤️❤️❤️</div>
+        <div id="hpP1" class="text-[10px] text-emerald-400">❤️❤️❤️</div>
       </div>
       <div id="hudP2" class="transition-all">
         <div class="hud-sub" id="labelP2">P2</div>
         <div id="scoreP2" class="hud-val" style="color:#ff007f;">0</div>
-        <div id="hpP2" class="text-xs text-emerald-400">❤️❤️❤️</div>
+        <div id="hpP2" class="text-[10px] text-emerald-400">❤️❤️❤️</div>
       </div>
-      <div class="px-2">
-        <div class="hud-sub" id="hudModeBadge">STD</div>
+      <div class="px-2 border-x border-slate-800">
+        <div class="text-[9px] font-black text-cyan-300 tracking-wider" id="hudModeBadge">STD</div>
         <div class="hud-val" style="color:#ffeb3b;"><span id="hudTimer">60</span>s</div>
+        <div id="hudMultBadge" class="text-[9px] text-amber-400 font-bold">x1.0</div>
       </div>
       <div id="hudP3" class="transition-all hidden">
         <div class="hud-sub" id="labelP3">P3</div>
         <div id="scoreP3" class="hud-val" style="color:#10b981;">0</div>
-        <div id="hpP3" class="text-xs text-emerald-400">❤️❤️❤️</div>
+        <div id="hpP3" class="text-[10px] text-emerald-400">❤️❤️❤️</div>
       </div>
       <div id="hudP4" class="transition-all hidden">
         <div class="hud-sub" id="labelP4">P4</div>
         <div id="scoreP4" class="hud-val" style="color:#f59e0b;">0</div>
-        <div id="hpP4" class="text-xs text-emerald-400">❤️❤️❤️</div>
+        <div id="hpP4" class="text-[10px] text-emerald-400">❤️❤️❤️</div>
       </div>
     </div>
   </div>
 
   <!-- Floating Emote Controls -->
-  <div id="emoteBar" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700 shadow-xl hidden">
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="🎣">🎣</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="🦈">🦈</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="👑">👑</button>
-    <button class="emote-btn text-xl active:scale-125 transition" data-emote="😱">😱</button>
+  <div id="emoteBar" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-slate-900/85 backdrop-blur-md px-4 py-1.5 rounded-full border border-slate-700 shadow-xl hidden">
+    <button class="emote-btn text-xl hover:scale-110 active:scale-125 transition" data-emote="🎣">🎣</button>
+    <button class="emote-btn text-xl hover:scale-110 active:scale-125 transition" data-emote="🦈">🦈</button>
+    <button class="emote-btn text-xl hover:scale-110 active:scale-125 transition" data-emote="👑">👑</button>
+    <button class="emote-btn text-xl hover:scale-110 active:scale-125 transition" data-emote="💥">💥</button>
+    <button class="emote-btn text-xl hover:scale-110 active:scale-125 transition" data-emote="😱">😱</button>
   </div>
   <div id="emoteZone" class="absolute inset-0 pointer-events-none z-30"></div>
 
@@ -98,6 +104,9 @@
         <div id="waitingRoomCode" class="text-3xl font-black text-yellow-300 tracking-widest mt-1">----</div>
       </div>
       <div id="waitingPlayerCount" class="text-xs text-cyan-400">参加中: 1 / 2 人</div>
+      <button id="btnStartEarlyWithBots" class="w-full py-2 rounded-xl bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold text-xs active:scale-95 transition">
+        空き枠にBOTを入れて今すぐ開始
+      </button>
       <button id="btnCancelWaiting" class="w-full py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs active:scale-95 transition">
         キャンセル
       </button>
@@ -107,106 +116,173 @@
   <!-- COUNTDOWN OVERLAY -->
   <div id="countdownOverlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex flex-col justify-center items-center pointer-events-none hidden">
     <div id="countdownText" class="text-7xl font-bold text-yellow-300 animate-pulse">3</div>
-    <div class="text-xs text-cyan-300 tracking-widest mt-2 uppercase">GET READY!</div>
+    <div class="text-xs text-cyan-300 tracking-widest mt-2 uppercase">SYNCING SEA ARENA...</div>
   </div>
 
   <!-- LOBBY SCREEN -->
-  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-40 flex flex-col justify-between p-4 overflow-y-auto">
-    <div class="text-center pt-2 space-y-1">
-      <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-pink-500 tracking-wider">
-        DEEP SEA BATTLE
-      </h1>
-      <p class="text-xs text-slate-300">魚の位置完全同期。終盤2倍スコアで大逆転を狙え！</p>
-    </div>
-
-    <!-- Player Settings -->
-    <div class="max-w-sm mx-auto w-full bg-slate-900/80 border border-cyan-500/40 rounded-xl p-2.5 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 flex-1">
-        <span>🪪</span>
-        <div class="flex-1">
-          <div class="text-[9px] text-cyan-400 font-bold">PLAYER NAME</div>
-          <input id="inputPlayerName" type="text" maxlength="8" placeholder="プレイヤー名" value="ANGLER" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-400">
-        </div>
+  <div id="lobbyScreen" class="absolute inset-0 bg-slate-950/92 backdrop-blur-md z-40 flex flex-col justify-between p-3 overflow-y-auto no-scrollbar">
+    <div class="max-w-md mx-auto w-full space-y-2.5 my-auto py-1">
+      <div class="text-center space-y-0.5">
+        <h1 class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-pink-500 tracking-wider">
+          DEEP SEA BATTLE
+        </h1>
+        <p class="text-[10px] text-cyan-300/80 font-bold">完全座標同期エンジン搭載・カスタムアリーナ</p>
       </div>
-      <button id="btnSaveName" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold text-[10px] active:scale-95 transition">
-        保存
-      </button>
-    </div>
 
-    <!-- Rule Select (全5種) -->
-    <div class="max-w-sm mx-auto w-full space-y-1.5">
-      <div class="text-xs text-slate-400 font-bold">SELECT GAME RULE</div>
-      <div class="grid grid-cols-5 gap-1">
-        <button class="rule-btn p-1.5 rounded-xl border border-cyan-400 bg-cyan-950/40 text-center transition" data-rule="standard">
-          <div class="text-sm">⏱️</div>
-          <div class="text-[8px] font-bold text-cyan-300">STD</div>
-        </button>
-        <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="bomb">
-          <div class="text-sm">💣</div>
-          <div class="text-[8px] font-bold text-slate-300">SURVIVAL</div>
-        </button>
-        <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="speed">
-          <div class="text-sm">⚡</div>
-          <div class="text-[8px] font-bold text-slate-300">SPEED</div>
-        </button>
-        <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="chaos">
-          <div class="text-sm">💥</div>
-          <div class="text-[8px] font-bold text-slate-300">CHAOS</div>
-        </button>
-        <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="blind">
-          <div class="text-sm">🌑</div>
-          <div class="text-[8px] font-bold text-slate-300">BLIND</div>
-        </button>
-      </div>
-    </div>
-
-    <!-- Matchmaking Mode Cards -->
-    <div class="max-w-sm mx-auto w-full space-y-2">
-      <button id="btnQuickMatch" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-700/20 border border-cyan-400/60 flex items-center justify-between text-left active:scale-95 transition">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 text-lg">⚡</div>
-          <div>
-            <div class="font-bold text-cyan-300 text-xs">QUICK MATCH (ONLINE)</div>
-            <div class="text-[9px] text-slate-400">オンライン対戦</div>
+      <!-- Player Settings -->
+      <div class="bg-slate-900/90 border border-cyan-500/40 rounded-xl p-2 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-1">
+          <span>🪪</span>
+          <div class="flex-1">
+            <div class="text-[8px] text-cyan-400 font-bold">PLAYER NAME</div>
+            <input id="inputPlayerName" type="text" maxlength="8" placeholder="プレイヤー名" value="ANGLER" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-0.5 text-xs text-white focus:outline-none focus:border-cyan-400">
           </div>
         </div>
-        <i class="fa-solid fa-chevron-right text-cyan-400 text-xs"></i>
-      </button>
-
-      <button id="btnFriendMatch" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-pink-600/30 to-purple-700/20 border border-pink-500/60 flex items-center justify-between text-left active:scale-95 transition">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-pink-500/20 border border-pink-400 flex items-center justify-center text-pink-300 text-lg">🔑</div>
-          <div>
-            <div class="font-bold text-pink-300 text-xs">CUSTOM ROOM (合言葉)</div>
-            <div class="text-[9px] text-slate-400">部屋を作って友達と対戦</div>
-          </div>
-        </div>
-        <i class="fa-solid fa-chevron-right text-pink-400 text-xs"></i>
-      </button>
-
-      <!-- BOT Matches -->
-      <div class="flex gap-2">
-        <button id="btnPracticeSolo2P" class="flex-1 p-2 rounded-xl bg-slate-900 border border-cyan-500/40 text-left flex items-center gap-2 active:scale-95 transition">
-          <span class="text-base">🤖</span>
-          <div>
-            <div class="font-bold text-cyan-300 text-[10px]">VS PRO BOT (1v1)</div>
-            <div class="text-[8px] text-slate-400">強力CPUと対決</div>
-          </div>
-        </button>
-        <button id="btnPracticeSolo4P" class="flex-1 p-2 rounded-xl bg-slate-900 border border-amber-500/40 text-left flex items-center gap-2 active:scale-95 transition">
-          <span class="text-base">👥</span>
-          <div>
-            <div class="font-bold text-amber-300 text-[10px]">VS BOT (4P)</div>
-            <div class="text-[8px] text-slate-400">CPU3体と乱戦</div>
-          </div>
+        <button id="btnSaveName" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold text-[10px] active:scale-95 transition">
+          保存
         </button>
       </div>
-    </div>
 
-    <!-- Status -->
-    <div class="text-center py-1 text-[10px] flex items-center justify-center gap-2">
-      <span id="connDot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-      <span id="connStatusLabel" class="text-slate-400 font-bold">Connecting...</span>
+      <!-- Custom Gear & Hook Skin -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-amber-300 font-bold"><i class="fa-solid fa-wrench mr-1"></i>CUSTOM LOADOUT (装備・針スキン)</span>
+          <span id="gearDescLabel" class="text-[9px] text-slate-400">標準バランス装備</span>
+        </div>
+        <!-- Hook Skin -->
+        <div class="grid grid-cols-4 gap-1">
+          <button class="skin-btn py-1 rounded-lg border border-cyan-400 bg-cyan-950/40 text-[9px] text-cyan-300 font-bold" data-skin="circle">🔵 丸針</button>
+          <button class="skin-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-skin="trident">🔱 三又槍</button>
+          <button class="skin-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-skin="anchor">⚓ イカリ</button>
+          <button class="skin-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-skin="star">⭐ スター</button>
+        </div>
+        <!-- Passive Gear -->
+        <div class="grid grid-cols-4 gap-1">
+          <button class="gear-btn py-1 rounded-lg border border-amber-400 bg-amber-950/40 text-[9px] text-amber-300 font-bold" data-gear="balanced" data-desc="標準バランス装備">⚖️ 標準</button>
+          <button class="gear-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-gear="quick" data-desc="フック投下速度+25%">🚀 高速針</button>
+          <button class="gear-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-gear="deep" data-desc="深海スコア倍率+20%">🌊 深海特化</button>
+          <button class="gear-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold" data-gear="shield" data-desc="機雷を1回だけ無効化">🛡️ シールド</button>
+        </div>
+      </div>
+
+      <!-- Rule Select (全8種) -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="text-[10px] text-slate-400 font-bold">SELECT GAME MODE (全8種)</span>
+          <span id="ruleDescText" class="text-[9px] text-cyan-300">基本の60秒スコアアタック</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <button class="rule-btn p-1.5 rounded-xl border border-cyan-400 bg-cyan-950/40 text-center transition" data-rule="standard" data-desc="基本のスコアアタック">
+            <div class="text-xs">⏱️</div>
+            <div class="text-[8px] font-bold text-cyan-300">STD</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="bomb" data-desc="ライフ3個！機雷で脱落サバイバル">
+            <div class="text-xs">💣</div>
+            <div class="text-[8px] font-bold text-slate-300">SURVIVAL</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="speed" data-desc="魚もフックも超高速！">
+            <div class="text-xs">⚡</div>
+            <div class="text-[8px] font-bold text-slate-300">SPEED</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="chaos" data-desc="機雷60%の超危険海域！">
+            <div class="text-xs">💥</div>
+            <div class="text-[8px] font-bold text-slate-300">CHAOS</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="blind" data-desc="フック周囲しか見えない暗闇戦">
+            <div class="text-xs">🌑</div>
+            <div class="text-[8px] font-bold text-slate-300">BLIND</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="goldrush" data-desc="黄金魚とサメ大量のインフレ戦！">
+            <div class="text-xs">👑</div>
+            <div class="text-[8px] font-bold text-slate-300">GOLD</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="giant" data-desc="巨大生物＆巨大機雷が出現！">
+            <div class="text-xs">🐋</div>
+            <div class="text-[8px] font-bold text-slate-300">GIANT</div>
+          </button>
+          <button class="rule-btn p-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center transition" data-rule="vortex" data-desc="魚も機雷も上下に波打つ海流戦">
+            <div class="text-xs">🌀</div>
+            <div class="text-[8px] font-bold text-slate-300">VORTEX</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Match Parameters (時間・速度・機雷量) -->
+      <div class="bg-slate-900/75 border border-slate-800 rounded-xl p-2 grid grid-cols-3 gap-2 text-[9px]">
+        <div>
+          <div class="text-slate-400 font-bold mb-0.5">⏱️ 制限時間</div>
+          <select id="selectCustomDuration" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-white focus:outline-none">
+            <option value="45">45秒 (短期)</option>
+            <option value="60" selected>60秒 (標準)</option>
+            <option value="90">90秒 (長期)</option>
+          </select>
+        </div>
+        <div>
+          <div class="text-slate-400 font-bold mb-0.5">🐟 魚スピード</div>
+          <select id="selectCustomSpeed" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-white focus:outline-none">
+            <option value="1.0" selected>1.0x (標準)</option>
+            <option value="1.35">1.35x (速い)</option>
+            <option value="1.75">1.75x (超速)</option>
+          </select>
+        </div>
+        <div>
+          <div class="text-slate-400 font-bold mb-0.5">💣 トゲ(機雷)率</div>
+          <select id="selectCustomMine" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-white focus:outline-none">
+            <option value="0.5">少なめ</option>
+            <option value="1.0" selected>標準</option>
+            <option value="1.6">多め (危険)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Matchmaking Mode Cards -->
+      <div class="space-y-1.5">
+        <button id="btnQuickMatch" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-700/20 border border-cyan-400/60 flex items-center justify-between text-left active:scale-95 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 text-lg">⚡</div>
+            <div>
+              <div class="font-bold text-cyan-300 text-xs">QUICK MATCH (ONLINE)</div>
+              <div class="text-[9px] text-slate-400">魚・トゲ完全同期オンライン対戦</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-cyan-400 text-xs"></i>
+        </button>
+
+        <button id="btnFriendMatch" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-pink-600/30 to-purple-700/20 border border-pink-500/60 flex items-center justify-between text-left active:scale-95 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-pink-500/20 border border-pink-400 flex items-center justify-center text-pink-300 text-lg">🔑</div>
+            <div>
+              <div class="font-bold text-pink-300 text-xs">CUSTOM ROOM (合言葉・設定同期)</div>
+              <div class="text-[9px] text-slate-400">カスタムルールで友達と対戦 (2〜4人)</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-pink-400 text-xs"></i>
+        </button>
+
+        <!-- BOT Matches -->
+        <div class="flex gap-2">
+          <button id="btnPracticeSolo2P" class="flex-1 p-2 rounded-xl bg-slate-900 border border-cyan-500/40 text-left flex items-center gap-2 active:scale-95 transition">
+            <span class="text-base">🤖</span>
+            <div>
+              <div class="font-bold text-cyan-300 text-[10px]">VS PRO BOT (1v1)</div>
+              <div class="text-[8px] text-slate-400">偏差射撃CPUと対決</div>
+            </div>
+          </button>
+          <button id="btnPracticeSolo4P" class="flex-1 p-2 rounded-xl bg-slate-900 border border-amber-500/40 text-left flex items-center gap-2 active:scale-95 transition">
+            <span class="text-base">👥</span>
+            <div>
+              <div class="font-bold text-amber-300 text-[10px]">VS BOT (4P乱戦)</div>
+              <div class="text-[8px] text-slate-400">CPU3体とカスタム戦</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="text-center pt-1 text-[10px] flex items-center justify-center gap-2">
+        <span id="connDot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+        <span id="connStatusLabel" class="text-slate-400 font-bold">Connecting...</span>
+      </div>
     </div>
   </div>
 
@@ -215,18 +291,19 @@
     <div class="w-full max-w-sm bg-slate-900 border border-pink-500/60 rounded-2xl p-5 shadow-2xl relative text-left">
       <button id="btnCloseRoomModal" class="absolute top-4 right-4 text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
       <h3 class="text-base font-bold text-pink-400 mb-1">CUSTOM ROOM</h3>
+      <p class="text-[10px] text-slate-400">ロビーで選択中のモード＆カスタム設定が同期されます</p>
       <div class="space-y-3 mt-3">
         <div class="grid grid-cols-3 gap-2" id="roomCapacitySelector">
           <button class="cap-btn py-1.5 rounded-xl border border-pink-500 bg-pink-950/40 text-xs text-pink-300 font-bold" data-cap="2">2 Players</button>
           <button class="cap-btn py-1.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-slate-300" data-cap="3">3 Players</button>
           <button class="cap-btn py-1.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-slate-300" data-cap="4">4 Players</button>
         </div>
-        <button id="btnCreateRoomSubmit" class="w-full py-2 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs active:scale-95 transition">
-          ルームを作成
+        <button id="btnCreateRoomSubmit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs active:scale-95 transition">
+          この設定でルームを作成
         </button>
-        <div class="flex gap-2 pt-2 border-t border-slate-800">
-          <input id="inputRoomCode" type="text" maxlength="6" placeholder="合言葉" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1 text-center text-sm text-white uppercase focus:outline-none">
-          <button id="btnJoinRoomSubmit" class="px-4 py-1 rounded-xl bg-pink-500 text-white font-bold text-xs whitespace-nowrap active:scale-95 transition">
+        <div class="flex gap-2 pt-3 border-t border-slate-800">
+          <input id="inputRoomCode" type="text" maxlength="6" placeholder="合言葉(4桁)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-center text-sm text-white uppercase focus:outline-none">
+          <button id="btnJoinRoomSubmit" class="px-5 py-1.5 rounded-xl bg-pink-500 text-white font-bold text-xs whitespace-nowrap active:scale-95 transition">
             参加
           </button>
         </div>
@@ -236,14 +313,14 @@
 
   <!-- RESULT SCREEN -->
   <div id="resultModal">
-    <h1 style="color:#ffeb3b; font-size:48px; margin-bottom:5px; font-weight:bold;">TIME UP!</h1>
-    <p id="resSubtitle" style="font-size:14px; color:#aaa; margin-bottom:15px;">MATCH RESULT</p>
+    <h1 style="color:#ffeb3b; font-size:42px; margin-bottom:2px; font-weight:900;">FINISH!</h1>
+    <p id="resSubtitle" style="font-size:12px; color:#94a3b8; margin-bottom:14px;">MATCH RESULT</p>
     
-    <div id="resLeaderboard" class="w-full max-w-xs space-y-2 mb-6"></div>
+    <div id="resLeaderboard" class="w-full max-w-xs space-y-2 mb-6 px-3"></div>
 
     <div class="flex gap-3">
-      <div id="btnRematch" class="btn-action cursor-pointer">RETRY</div>
-      <div id="btnExitLobby" class="btn-action cursor-pointer" style="background:#334155; color:#fff; box-shadow:none;">LOBBY</div>
+      <div id="btnRematch" class="btn-action cursor-pointer text-sm">RETRY</div>
+      <div id="btnExitLobby" class="btn-action cursor-pointer text-sm" style="background:#334155; color:#fff; box-shadow:none;">LOBBY</div>
     </div>
   </div>
 
@@ -266,12 +343,12 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.frequency.setValueAtTime(620, now);
+          osc.frequency.exponentialRampToValueAtTime(210, now + 0.14);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
           osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(now); osc.stop(now + 0.15);
+          osc.start(now); osc.stop(now + 0.14);
         } catch (e) {}
       }
       playCatch() {
@@ -283,7 +360,7 @@
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(440, now);
           osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.setValueAtTime(0.28, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
           osc.connect(gain); gain.connect(this.ctx.destination);
           osc.start(now); osc.stop(now + 0.1);
@@ -303,6 +380,21 @@
             osc.start(this.ctx.currentTime + idx * 0.05);
             osc.stop(this.ctx.currentTime + idx * 0.05 + 0.15);
           });
+        } catch (e) {}
+      }
+      playShield() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.linearRampToValueAtTime(640, now + 0.2);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.2);
         } catch (e) {}
       }
       playBomb() {
@@ -359,53 +451,69 @@
 
     const PLAYER_COLORS = ["#00f2ff", "#ff007f", "#10b981", "#f59e0b"];
 
-    let myPlayerName = localStorage.getItem('deepSeaBattle_playerName') || 'YOU';
+    let myPlayerName = localStorage.getItem('deepSeaBattle_playerName') || 'ANGLER';
+    let myHookSkin = localStorage.getItem('deepSeaBattle_skin') || 'circle';
+    let myGear = localStorage.getItem('deepSeaBattle_gear') || 'balanced';
+
     let playerNames = ["YOU", "P2", "P3", "P4"];
+    let playerSkins = ["circle", "circle", "circle", "circle"];
+    let playerGears = ["balanced", "balanced", "balanced", "balanced"];
 
     let selectedRule = 'standard';
+    let customConfig = {
+      duration: 60,
+      speedMul: 1.0,
+      mineMul: 1.0
+    };
+
     let currentCapacity = 2;
     let totalPlayers = 2;
     let mySlot = 1;
 
-    // フックデータ
+    // フックデータ（xRatio: 0.0〜1.0、yRatio: 0.0〜1.0 で画面サイズ差を完全吸収）
     const hooks = [
-      { x: 0, y: -50, active: false, speed: 1250 },
-      { x: 0, y: -50, active: false, speed: 1250 },
-      { x: 0, y: -50, active: false, speed: 1250 },
-      { x: 0, y: -50, active: false, speed: 1250 }
+      { xRatio: 0.2, yRatio: -0.05, active: false, speedRatio: 1.45, lastT: 0 },
+      { xRatio: 0.4, yRatio: -0.05, active: false, speedRatio: 1.45, lastT: 0 },
+      { xRatio: 0.6, yRatio: -0.05, active: false, speedRatio: 1.45, lastT: 0 },
+      { xRatio: 0.8, yRatio: -0.05, active: false, speedRatio: 1.45, lastT: 0 }
     ];
 
     const playersData = [
-      { score: 0, hp: 3, alive: true },
-      { score: 0, hp: 3, alive: true },
-      { score: 0, hp: 3, alive: true },
-      { score: 0, hp: 3, alive: true }
+      { score: 0, hp: 3, alive: true, shield: false },
+      { score: 0, hp: 3, alive: true, shield: false },
+      { score: 0, hp: 3, alive: true, shield: false },
+      { score: 0, hp: 3, alive: true, shield: false }
     ];
 
+    let matchDuration = 60;
     let timeLeft = 60;
     let gameOver = true;
     let matchInterval = null;
     let isAIMode = false;
+    let botSlots = [false, false, false, false];
     let currentRoomId = null;
     let roomUnsubscribe = null;
     let isMatchStarted = false;
     let matchStartTime = 0;
 
-    // 魚・トゲ定義（フィーバー廃止・原点回帰）
-    const types = [
-      { color: "#4fc3f7", speed: 160, score: 50, size: 22, type: 'fish' },    // 普通
-      { color: "#ff7043", speed: 280, score: 100, size: 28, type: 'fish' },   // 速い
-      { color: "#fdd835", speed: 140, score: 80, size: 24, type: 'fish' },    // 中堅
-      { color: "#ffff00", speed: 360, score: 500, size: 14, type: 'fish' },   // 黄金
-      { color: "#546e7a", speed: 300, score: 300, size: 45, type: 'fish' },   // サメ
-      { color: "#ff3300", speed: 130, score: -250, size: 30, type: 'mine' }   // 機雷
+    // 魚・トゲ基本定義（speedRatio は1秒間に画面横幅の何割進むか）
+    const BASE_TYPES = [
+      { color: "#38bdf8", speedRatio: 0.16, score: 50, size: 22, type: 'fish', name: 'cyan' },
+      { color: "#fb923c", speedRatio: 0.27, score: 100, size: 27, type: 'fish', name: 'orange' },
+      { color: "#facc15", speedRatio: 0.14, score: 80, size: 24, type: 'fish', name: 'yellow' },
+      { color: "#fef08a", speedRatio: 0.35, score: 500, size: 15, type: 'fish', name: 'gold' },
+      { color: "#64748b", speedRatio: 0.29, score: 300, size: 44, type: 'fish', name: 'shark' },
+      { color: "#ef4444", speedRatio: 0.13, score: -250, size: 29, type: 'mine', name: 'mine' },
+      { color: "#a855f7", speedRatio: 0.20, score: 420, size: 58, type: 'fish', name: 'leviathan' } // GIANT用
     ];
 
     let shake = 0, flash = 0;
-    let entities = [], particles = [];
+    let syncedEntities = []; // シードから決定論的に生成された全魚・トゲリスト
+    let caughtIds = new Set(); // 捕獲・爆発済みIDセット（全端末完全同期）
+    let particles = [];
+    let floatingTexts = [];
     let lastFrameTime = performance.now();
-    let scheduledWaves = [];
-    let lastCatchTimestamp = 0;
+    let lastEmoteTime = 0;
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -422,7 +530,26 @@
       setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', '-translate-y-4');
-      }, 3500);
+      }, 3200);
+    }
+
+    function addFloatingText(x, y, text, color) {
+      floatingTexts.push({ x, y, text, color, life: 1.0 });
+    }
+
+    function spawnEmoteBubble(slotIdx, emoji) {
+      const zone = document.getElementById('emoteZone');
+      const el = document.createElement('div');
+      el.className = 'emote-bubble flex flex-col items-center';
+      const xPercent = ((slotIdx + 0.5) / totalPlayers) * 80 + 10;
+      el.style.left = `${xPercent}%`;
+      el.style.bottom = `70px`;
+      el.innerHTML = `
+        <div class="text-3xl">${emoji}</div>
+        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700" style="color:${PLAYER_COLORS[slotIdx]}">${playerNames[slotIdx]}</span>
+      `;
+      zone.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
     }
 
     async function initFirebase() {
@@ -431,19 +558,15 @@
 
       try {
         const firebaseConfig = {
-  apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
-  authDomain: "sakana-online.firebaseapp.com",
-  databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
-  projectId: "sakana-online",
-  storageBucket: "sakana-online.firebasestorage.app",
-  messagingSenderId: "389239928158",
-  appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
-  measurementId: "G-V166BQY0Q1"
-};
-
-        if (firebaseConfig.apiKey.includes("YOUR_ACTUAL_API_KEY")) {
-          throw new Error("APIキーが初期値です（BOT戦は即座に遊べます）");
-        }
+          apiKey: "AIzaSyAd-pw1i2X1uGAgqR0kEzthoNfA67B10ZY",
+          authDomain: "sakana-online.firebaseapp.com",
+          databaseURL: "https://sakana-online-default-rtdb.firebaseio.com",
+          projectId: "sakana-online",
+          storageBucket: "sakana-online.firebasestorage.app",
+          messagingSenderId: "389239928158",
+          appId: "1:389239928158:web:9f4577b62ce27404b08bcf",
+          measurementId: "G-V166BQY0Q1"
+        };
 
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
@@ -453,116 +576,131 @@
         currentUser = cred.user;
 
         connDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        statusLabel.innerText = "ONLINE READY";
+        statusLabel.innerText = "ONLINE SYNC READY";
         statusLabel.className = "text-emerald-400 font-bold";
       } catch (err) {
         connDot.className = "w-2 h-2 rounded-full bg-amber-500";
-        statusLabel.innerText = "OFFLINE (BOT MODE)";
+        statusLabel.innerText = "OFFLINE (BOT MODE READY)";
         statusLabel.className = "text-amber-400 font-bold";
       }
     }
 
-    // ==========================================
-    // 全端末完全同期：確定出現タイムライン生成
-    // ==========================================
-    function generateSynchronizedWaves(seed, rule) {
-      let s = seed;
+    // ========================================================
+    // 全端末完全同期：決定論的軌道ジェネレーター
+    // 同じ seed・rule・config なら 100% 同じ時間・同じ比率位置を泳ぐ
+    // ========================================================
+    function generateDeterministicWaves(seed, rule, cfg) {
+      let s = seed || 123456;
       function nextR() {
         s = (s * 9301 + 49297) % 233280;
         return s / 233280;
       }
 
-      const waves = [];
-      // 初期出現（ゲーム開始時に泳いでいる魚 5匹）
-      for (let i = 0; i < 5; i++) {
-        const r = nextR();
-        let tIdx = 0;
-        if (rule === 'chaos') {
-          tIdx = r < 0.55 ? 5 : (r < 0.70 ? 3 : Math.floor(nextR() * 3));
-        } else if (rule === 'bomb') {
-          tIdx = r < 0.45 ? 5 : (r < 0.60 ? 3 : Math.floor(nextR() * 3));
-        } else {
-          tIdx = r < 0.12 ? 3 : (r < 0.25 ? 5 : (r < 0.40 ? 4 : Math.floor(nextR() * 3)));
-        }
+      const duration = cfg?.duration || 60;
+      const customSpeedMul = cfg?.speedMul || 1.0;
+      const customMineMul = cfg?.mineMul || 1.0;
 
-        waves.push({
-          id: `f_init_${i}`,
+      const modeSpeedMul = (rule === 'speed' ? 1.65 : 1.0) * customSpeedMul;
+      const sizeScale = (rule === 'giant' ? 1.55 : 1.0);
+
+      function pickTypeIndex() {
+        const r = nextR();
+        // 機雷の基本確率を計算
+        let mineProb = 0.16 * customMineMul;
+        if (rule === 'chaos') mineProb = Math.min(0.75, 0.58 * customMineMul);
+        else if (rule === 'bomb') mineProb = Math.min(0.65, 0.42 * customMineMul);
+        else if (rule === 'goldrush') mineProb = Math.min(0.55, 0.30 * customMineMul);
+
+        if (r < mineProb) return 5; // 機雷 (トゲ)
+
+        const rf = nextR();
+        if (rule === 'goldrush') {
+          return rf < 0.55 ? 3 : (rf < 0.85 ? 4 : 1);
+        }
+        if (rule === 'giant') {
+          return rf < 0.40 ? 6 : (rf < 0.70 ? 4 : (rf < 0.85 ? 3 : 1));
+        }
+        return rf < 0.12 ? 3 : (rf < 0.28 ? 4 : Math.floor(nextR() * 3));
+      }
+
+      const list = [];
+
+      // 1. 開始時点で画面内にいる初期配置（6匹）
+      for (let i = 0; i < 6; i++) {
+        const tIdx = pickTypeIndex();
+        const base = BASE_TYPES[tIdx];
+        const dir = nextR() > 0.5 ? 1 : -1;
+        list.push({
+          id: `init_${i}`,
           spawnSec: 0,
-          initialXRatio: (i + 0.5) / 5, // 画面全体に等間隔配置
-          yRatio: 0.2 + nextR() * 0.6,
-          dir: nextR() > 0.5 ? 1 : -1,
-          typeIdx: tIdx,
-          spawned: false
+          startXRatio: 0.12 + (i / 6) * 0.76,
+          baseYRatio: 0.22 + nextR() * 0.62,
+          dir: dir,
+          speedRatio: base.speedRatio * modeSpeedMul * (0.9 + nextR() * 0.25),
+          waveAmpRatio: rule === 'vortex' ? (0.06 + nextR() * 0.07) : (base.type === 'mine' ? 0.015 : 0.008),
+          waveFreq: rule === 'vortex' ? (2.2 + nextR() * 2.0) : (1.0 + nextR() * 1.2),
+          wavePhase: nextR() * Math.PI * 2,
+          score: base.score,
+          size: base.size * sizeScale,
+          color: base.color,
+          type: base.type
         });
       }
 
-      // 60秒間の出現スケジュール（1秒あたり約1.2〜1.8匹）
-      const spawnInterval = rule === 'speed' ? 0.65 : 0.85;
-      let curTime = 0.5;
+      // 2. 試合終了まで出現し続けるタイムライン生成
+      const baseInterval = rule === 'speed' ? 0.50 : (rule === 'goldrush' || rule === 'chaos' ? 0.55 : 0.70);
+      let curTime = 0.35;
       let count = 0;
-      while (curTime < 65) {
-        curTime += spawnInterval + (nextR() * 0.4);
-        const r = nextR();
-        let tIdx = 0;
-        if (rule === 'chaos') {
-          // 機雷ストーム: 約60%が機雷
-          tIdx = r < 0.60 ? 5 : (r < 0.75 ? 3 : Math.floor(nextR() * 3));
-        } else if (rule === 'bomb') {
-          tIdx = r < 0.45 ? 5 : (r < 0.60 ? 3 : Math.floor(nextR() * 3));
-        } else if (rule === 'speed') {
-          tIdx = r < 0.15 ? 3 : (r < 0.30 ? 5 : (r < 0.45 ? 4 : Math.floor(nextR() * 3)));
-        } else {
-          tIdx = r < 0.10 ? 3 : (r < 0.22 ? 5 : (r < 0.38 ? 4 : Math.floor(nextR() * 3)));
-        }
 
-        waves.push({
-          id: `f_wave_${count++}`,
+      while (curTime < duration + 5) {
+        curTime += baseInterval * (0.65 + nextR() * 0.7);
+        const tIdx = pickTypeIndex();
+        const base = BASE_TYPES[tIdx];
+        const dir = nextR() > 0.5 ? 1 : -1;
+
+        list.push({
+          id: `w_${count++}`,
           spawnSec: curTime,
-          initialXRatio: null,
-          yRatio: 0.18 + nextR() * 0.65,
-          dir: nextR() > 0.5 ? 1 : -1,
-          typeIdx: tIdx,
-          spawned: false
+          startXRatio: dir === 1 ? -0.08 : 1.08,
+          baseYRatio: 0.20 + nextR() * 0.66,
+          dir: dir,
+          speedRatio: base.speedRatio * modeSpeedMul * (0.88 + nextR() * 0.28),
+          waveAmpRatio: rule === 'vortex' ? (0.06 + nextR() * 0.08) : (base.type === 'mine' ? 0.018 : 0.01),
+          waveFreq: rule === 'vortex' ? (2.4 + nextR() * 2.0) : (1.1 + nextR() * 1.2),
+          wavePhase: nextR() * Math.PI * 2,
+          score: base.score,
+          size: base.size * sizeScale,
+          color: base.color,
+          type: base.type
         });
       }
 
-      return waves;
+      return list;
     }
 
-    function checkAndSpawnWaves(elapsedSec) {
-      if (gameOver) return;
-      for (let w of scheduledWaves) {
-        if (!w.spawned && elapsedSec >= w.spawnSec) {
-          w.spawned = true;
-          const t = types[w.typeIdx];
-          const dir = w.dir;
-          
-          let startX = dir === 1 ? -120 : canvas.width + 120;
-          if (w.initialXRatio !== null) {
-            startX = w.initialXRatio * canvas.width;
-          }
-
-          // SPEEDモードでは遊泳速度1.8倍
-          const speedMul = selectedRule === 'speed' ? 1.8 : 1.0;
-
-          entities.push({
-            id: w.id,
-            x: startX,
-            y: w.yRatio * (canvas.height - 280) + 160,
-            dir: dir,
-            angle: 0,
-            caught: false,
-            speed: t.speed * speedMul,
-            score: t.score,
-            size: t.size,
-            color: t.color,
-            type: t.type
-          });
-        }
-      }
+    // 経過時間 elapsedSec から魚・トゲの現在の正規化座標 (rx, ry) を決定論的に計算
+    function computeEntityPosition(ent, elapsedSec) {
+      const life = elapsedSec - ent.spawnSec;
+      if (life < 0) return null;
+      const rx = ent.startXRatio + ent.dir * ent.speedRatio * life;
+      if (rx < -0.15 || rx > 1.15) return null; // 画面外へ通過済み
+      const ry = Math.max(0.16, Math.min(0.92, ent.baseYRatio + Math.sin(life * ent.waveFreq + ent.wavePhase) * ent.waveAmpRatio));
+      return {
+        rx,
+        ry,
+        x: rx * canvas.width,
+        y: ry * canvas.height,
+        life
+      };
     }
 
-    function startCountdownAndPlay() {
+    function readLobbyCustomConfig() {
+      customConfig.duration = parseInt(document.getElementById('selectCustomDuration').value) || 60;
+      customConfig.speedMul = parseFloat(document.getElementById('selectCustomSpeed').value) || 1.0;
+      customConfig.mineMul = parseFloat(document.getElementById('selectCustomMine').value) || 1.0;
+    }
+
+    function startCountdownAndPlay(targetStartTimestamp = null) {
       document.getElementById('waitingOverlay').classList.add('hidden');
       document.getElementById('lobbyScreen').classList.add('hidden');
       document.getElementById('roomModal').classList.add('hidden');
@@ -587,62 +725,63 @@
         } else {
           clearInterval(timer);
           cdOverlay.classList.add('hidden');
-          executeGameStart();
+          executeGameStart(targetStartTimestamp);
         }
-      }, 800);
+      }, 750);
     }
 
-    function executeGameStart() {
-      document.getElementById('lobbyScreen').classList.add('hidden');
-      document.getElementById('roomModal').classList.add('hidden');
-      document.getElementById('waitingOverlay').classList.add('hidden');
-      document.getElementById('resultModal').style.display = 'none';
-
+    function executeGameStart(targetStartTimestamp = null) {
       isMatchStarted = true;
-      timeLeft = 60;
+      matchDuration = customConfig.duration || 60;
+      timeLeft = matchDuration;
       gameOver = false;
       lastFrameTime = performance.now();
-      matchStartTime = performance.now();
-      lastCatchTimestamp = Date.now();
+      matchStartTime = targetStartTimestamp ? targetStartTimestamp : Date.now();
+      caughtIds.clear();
 
-      // フック速度設定（SPEEDモードは1.8倍）
-      const hookBaseSpeed = selectedRule === 'speed' ? 2200 : 1250;
       for (let i = 0; i < 4; i++) {
+        const gear = playerGears[i] || 'balanced';
+        const baseHookSpeedRatio = selectedRule === 'speed' ? 2.2 : 1.45;
         hooks[i].active = false;
-        hooks[i].y = -50;
-        hooks[i].speed = hookBaseSpeed;
+        hooks[i].yRatio = -0.05;
+        hooks[i].speedRatio = baseHookSpeedRatio * (gear === 'quick' ? 1.25 : 1.0);
+
         playersData[i].score = 0;
         playersData[i].hp = 3;
         playersData[i].alive = true;
+        playersData[i].shield = (gear === 'shield');
       }
 
-      entities = [];
       particles = [];
+      floatingTexts = [];
       setupHUDForPlayers();
       updateHUD();
 
       document.getElementById('battleHUD').classList.remove('hidden');
       document.getElementById('emoteBar').classList.remove('hidden');
 
-      const modeBadge = document.getElementById('hudModeBadge');
-      if (selectedRule === 'bomb') modeBadge.innerText = 'SURVIVAL';
-      else if (selectedRule === 'speed') modeBadge.innerText = 'SPEED';
-      else if (selectedRule === 'chaos') modeBadge.innerText = 'CHAOS';
-      else if (selectedRule === 'blind') modeBadge.innerText = 'BLIND';
-      else modeBadge.innerText = 'STD';
+      const modeMap = {
+        standard: 'STD', bomb: 'SURVIVAL', speed: 'SPEED', chaos: 'CHAOS',
+        blind: 'BLIND', goldrush: 'GOLD RUSH', giant: 'GIANT', vortex: 'VORTEX'
+      };
+      document.getElementById('hudModeBadge').innerText = modeMap[selectedRule] || 'STD';
+      document.getElementById('hudTimer').innerText = timeLeft;
 
       if (matchInterval) clearInterval(matchInterval);
       matchInterval = setInterval(() => {
         if (!gameOver) {
-          timeLeft--;
+          const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
+          timeLeft = Math.max(0, matchDuration - elapsed);
           document.getElementById('hudTimer').innerText = timeLeft;
 
-          // PRO BOTの知能射撃
-          if (isAIMode) {
-            for (let i = 1; i < totalPlayers; i++) {
-              if (playersData[i].alive && !hooks[i].active) {
-                smartBotCast(i);
-              }
+          const timeProgress = Math.max(0, Math.min(1, elapsed / matchDuration));
+          const mult = (1.0 + timeProgress).toFixed(1);
+          document.getElementById('hudMultBadge').innerText = `x${mult}`;
+
+          // BOT制御（ソロ戦またはオンライン空き枠BOT）
+          for (let i = 0; i < totalPlayers; i++) {
+            if (botSlots[i] && playersData[i].alive && !hooks[i].active) {
+              smartBotCast(i);
             }
           }
 
@@ -661,44 +800,54 @@
           if (timeLeft <= 0) {
             if (!isAIMode && currentRoomId && db && mySlot === 1) {
               updateDoc(doc(db, 'rooms', currentRoomId), { status: 'finished' }).catch(()=>{});
-            } else if (isAIMode) {
+            } else {
               finishMatch();
             }
           }
         }
-      }, 1000);
+      }, 250);
     }
 
     // ==========================================
-    // AIの精密偏差射撃＆位置重複防止
+    // AIの精密偏差射撃（決定論的軌道に対応）
     // ==========================================
     function smartBotCast(slotIndex) {
-      if (Math.random() > 0.88) return;
+      if (Math.random() > 0.65) return;
 
-      const candidates = entities.filter(e => {
-        if (e.caught || e.type === 'mine') return false;
-        // 付近の機雷スキャン
-        const nearMine = entities.some(m => !m.caught && m.type === 'mine' && Math.hypot(m.x - e.x, m.y - e.y) < 75);
-        return !nearMine;
-      });
+      const elapsedNow = (Date.now() - matchStartTime) / 1000;
+      const candidates = [];
 
-      if (candidates.length === 0) return;
-      candidates.sort((a, b) => b.score - a.score);
+      for (let ent of syncedEntities) {
+        if (caughtIds.has(ent.id) || ent.type === 'mine') continue;
+        const pos = computeEntityPosition(ent, elapsedNow);
+        if (!pos) continue;
 
-      for (let target of candidates) {
-        const reachTime = target.y / hooks[slotIndex].speed;
-        const predictedX = target.x + (target.speed * target.dir * reachTime);
+        // フック到達時刻の予測
+        const reachSec = pos.ry / hooks[slotIndex].speedRatio;
+        const futurePos = computeEntityPosition(ent, elapsedNow + reachSec);
+        if (!futurePos || futurePos.rx < 0.06 || futurePos.rx > 0.94) continue;
 
-        if (predictedX < 40 || predictedX > canvas.width - 40) continue;
-
-        // 重なり防止
-        const isOverlapping = hooks.some((h, idx) => {
-          return idx !== slotIndex && h.active && Math.abs(h.x - predictedX) < 60;
+        // 未来位置の周囲にトゲ(機雷)がないかチェック
+        const hitMine = syncedEntities.some(m => {
+          if (m.type !== 'mine' || caughtIds.has(m.id)) return false;
+          const mPos = computeEntityPosition(m, elapsedNow + reachSec);
+          if (!mPos) return false;
+          return Math.hypot(mPos.rx - futurePos.rx, mPos.ry - futurePos.ry) < 0.08;
         });
 
+        if (!hitMine) {
+          candidates.push({ ent, futureRx: futurePos.rx });
+        }
+      }
+
+      if (candidates.length === 0) return;
+      candidates.sort((a, b) => b.ent.score - a.ent.score);
+
+      for (let c of candidates) {
+        const isOverlapping = hooks.some((h, idx) => idx !== slotIndex && h.active && Math.abs(h.xRatio - c.futureRx) < 0.06);
         if (!isOverlapping) {
-          hooks[slotIndex].x = predictedX;
-          hooks[slotIndex].y = 0;
+          hooks[slotIndex].xRatio = c.futureRx;
+          hooks[slotIndex].yRatio = 0;
           hooks[slotIndex].active = true;
           break;
         }
@@ -707,18 +856,29 @@
 
     function startSoloBotMatch(playerCount) {
       sound.init();
+      readLobbyCustomConfig();
       isAIMode = true;
       mySlot = 1;
       totalPlayers = playerCount;
       currentRoomId = null;
 
-      const localSeed = Math.floor(Math.random() * 999999);
-      scheduledWaves = generateSynchronizedWaves(localSeed, selectedRule);
-
+      botSlots = [false, true, true, true];
       playerNames[0] = myPlayerName;
-      for (let i = 1; i < 4; i++) playerNames[i] = `BOT ${i + 1}`;
+      playerSkins[0] = myHookSkin;
+      playerGears[0] = myGear;
 
-      startCountdownAndPlay();
+      const botSkins = ['trident', 'anchor', 'star'];
+      const botGears = ['quick', 'deep', 'shield'];
+      for (let i = 1; i < 4; i++) {
+        playerNames[i] = `BOT ${i + 1}`;
+        playerSkins[i] = botSkins[(i - 1) % 3];
+        playerGears[i] = botGears[(i - 1) % 3];
+      }
+
+      const localSeed = Math.floor(Math.random() * 999999);
+      syncedEntities = generateDeterministicWaves(localSeed, selectedRule, customConfig);
+
+      startCountdownAndPlay(Date.now() + 2250);
     }
 
     function setupHUDForPlayers() {
@@ -730,8 +890,11 @@
         if (i <= totalPlayers) {
           hud.classList.remove('hidden');
           label.innerText = playerNames[i - 1];
-          if (selectedRule === 'bomb') hpElem.classList.remove('hidden');
-          else hpElem.classList.add('hidden');
+          if (selectedRule === 'bomb' || playersData[i - 1].shield) {
+            hpElem.classList.remove('hidden');
+          } else {
+            hpElem.classList.add('hidden');
+          }
         } else {
           hud.classList.add('hidden');
         }
@@ -747,13 +910,18 @@
 
         if (scoreElem) scoreElem.innerText = playersData[i].score;
 
-        if (hpElem && selectedRule === 'bomb') {
-          if (!playersData[i].alive) {
-            hpElem.innerHTML = '<span class="text-rose-500 font-bold">DEAD</span>';
-            if (hud) hud.style.opacity = '0.35';
+        if (hpElem) {
+          const shieldIcon = playersData[i].shield ? '🛡️' : '';
+          if (selectedRule === 'bomb') {
+            if (!playersData[i].alive) {
+              hpElem.innerHTML = '<span class="text-rose-500 font-bold">DEAD</span>';
+              if (hud) hud.style.opacity = '0.35';
+            } else {
+              hpElem.innerText = shieldIcon + '❤️'.repeat(Math.max(0, playersData[i].hp)) + '🖤'.repeat(Math.max(0, 3 - playersData[i].hp));
+              if (hud) hud.style.opacity = '1.0';
+            }
           } else {
-            hpElem.innerText = '❤️'.repeat(Math.max(0, playersData[i].hp)) + '🖤'.repeat(Math.max(0, 3 - playersData[i].hp));
-            if (hud) hud.style.opacity = '1.0';
+            hpElem.innerText = shieldIcon;
           }
         }
       }
@@ -793,7 +961,7 @@
       boardContainer.innerHTML = '';
       leaderboard.forEach((item, idx) => {
         const row = document.createElement('div');
-        row.className = `flex items-center justify-between p-2 rounded-xl ${item.isMe ? 'bg-cyan-950/70 border border-cyan-400' : 'bg-slate-900 border border-slate-800'}`;
+        row.className = `flex items-center justify-between p-2.5 rounded-xl ${item.isMe ? 'bg-cyan-950/80 border border-cyan-400' : 'bg-slate-900 border border-slate-800'}`;
         row.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="font-bold text-sm ${idx === 0 ? 'text-yellow-400' : 'text-slate-400'}">#${idx + 1}</span>
@@ -808,9 +976,9 @@
       document.getElementById('resultModal').style.display = 'flex';
     }
 
-    // タッチ発射
-    window.addEventListener('touchstart', (e) => {
-      if (e.target.closest('#lobbyScreen') || e.target.closest('#roomModal') || e.target.closest('#resultModal') || e.target.closest('#waitingOverlay') || e.target.closest('#emoteBar')) {
+    // タッチ＆マウスクリック両対応の発射処理
+    function handleCastInput(clientX, targetElem) {
+      if (targetElem.closest('#lobbyScreen') || targetElem.closest('#roomModal') || targetElem.closest('#resultModal') || targetElem.closest('#waitingOverlay') || targetElem.closest('#emoteBar')) {
         return;
       }
       if (gameOver || !isMatchStarted) return;
@@ -820,45 +988,54 @@
 
       if (!myHook.active) {
         sound.init();
-        const touchX = e.touches[0].clientX;
-        myHook.x = touchX;
-        myHook.y = 0;
+        const xRatio = Math.max(0.03, Math.min(0.97, clientX / canvas.width));
+        myHook.xRatio = xRatio;
+        myHook.yRatio = 0;
         myHook.active = true;
         sound.playCast();
 
-        syncMyHookOnline(touchX, true);
+        syncMyHookOnline(xRatio, true);
       }
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+      handleCastInput(e.clientX, e.target);
     });
 
-    async function syncMyHookOnline(posX, isActive) {
+    async function syncMyHookOnline(xRatio, isActive) {
       if (isAIMode || !currentRoomId || !db) return;
       try {
         const roomRef = doc(db, 'rooms', currentRoomId);
         await updateDoc(roomRef, {
-          [`hooks.p${mySlot}`]: { x: posX, active: isActive, t: Date.now() }
+          [`hooks.p${mySlot}`]: { xRatio: Number(xRatio.toFixed(4)), active: isActive, t: Date.now() }
         });
       } catch (err) {}
     }
 
-    async function syncMyStateOnline() {
+    // 魚または機雷の接触・スコア・HP変化を1回のアトミック更新で全端末へ同期
+    async function syncEntityHitOnline(entityId, pSlot) {
       if (isAIMode || !currentRoomId || !db) return;
       try {
+        const pIdx = pSlot - 1;
         const roomRef = doc(db, 'rooms', currentRoomId);
         await updateDoc(roomRef, {
-          [`scores.p${mySlot}`]: playersData[mySlot - 1].score,
-          [`hp.p${mySlot}`]: playersData[mySlot - 1].hp,
-          [`alive.p${mySlot}`]: playersData[mySlot - 1].alive
+          [`caughtMap.${entityId}`]: pSlot,
+          [`scores.p${pSlot}`]: playersData[pIdx].score,
+          [`hp.p${pSlot}`]: playersData[pIdx].hp,
+          [`alive.p${pSlot}`]: playersData[pIdx].alive,
+          [`shield.p${pSlot}`]: playersData[pIdx].shield,
+          [`hooks.p${pSlot}.active`]: false
         });
       } catch (err) {}
     }
 
-    // ★魚捕獲の全体同期通知★
-    async function syncFishCatchOnline(fishId, slot, score) {
+    async function sendEmote(emoji) {
+      spawnEmoteBubble(mySlot - 1, emoji);
       if (isAIMode || !currentRoomId || !db) return;
       try {
         const roomRef = doc(db, 'rooms', currentRoomId);
         await updateDoc(roomRef, {
-          lastCatch: { id: fishId, slot: slot, score: score, t: Date.now() }
+          lastEmote: { slot: mySlot, emoji, t: Date.now() }
         });
       } catch (err) {}
     }
@@ -879,17 +1056,24 @@
         document.getElementById('waitingPlayerCount').innerText = `参加中: ${currentCount} / ${totalPlayers} 人`;
 
         if (data.names) {
-          for (let i = 1; i <= totalPlayers; i++) {
+          for (let i = 1; i <= 4; i++) {
             if (data.names[`p${i}`]) playerNames[i - 1] = data.names[`p${i}`];
+            if (data.skins && data.skins[`p${i}`]) playerSkins[i - 1] = data.skins[`p${i}`];
+            if (data.gears && data.gears[`p${i}`]) playerGears[i - 1] = data.gears[`p${i}`];
           }
           setupHUDForPlayers();
         }
 
-        // 開始同期（確定出現波を生成）
+        if (data.botFlags) {
+          for (let i = 0; i < 4; i++) botSlots[i] = !!data.botFlags[i];
+        }
+
+        // 試合開始の同期（シード・ルール・カスタム設定から全端末同一の魚＆トゲ配列を生成）
         if (data.status === 'playing' && !isMatchStarted) {
           selectedRule = data.rule || 'standard';
-          scheduledWaves = generateSynchronizedWaves(data.seed || 12345, selectedRule);
-          startCountdownAndPlay();
+          if (data.customConfig) customConfig = data.customConfig;
+          syncedEntities = generateDeterministicWaves(data.seed || 12345, selectedRule, customConfig);
+          startCountdownAndPlay(data.matchStartAt || (Date.now() + 2250));
         }
 
         if (data.status === 'finished' && isMatchStarted) {
@@ -897,29 +1081,34 @@
           return;
         }
 
-        // 魚の捕獲を全端末で同期（対象の魚を即時消滅）
-        if (data.lastCatch && data.lastCatch.t > lastCatchTimestamp) {
-          lastCatchTimestamp = data.lastCatch.t;
-          const targetFish = entities.find(e => e.id === data.lastCatch.id);
-          if (targetFish) {
-            targetFish.caught = true;
-            // 他プレイヤーが釣った場合のエフェクト生成
-            if (data.lastCatch.slot !== mySlot) {
-              const depthFactor = Math.pow((targetFish.y / canvas.height), 2) * 4 + 0.1;
-              const pCount = Math.floor(8 * depthFactor);
-              for (let j = 0; j < pCount; j++) {
-                particles.push({
-                  x: targetFish.x, y: targetFish.y,
-                  vx: (Math.random()-0.5)*12*depthFactor,
-                  vy: (Math.random()-0.5)*12*depthFactor,
-                  life: 1, c: targetFish.color
-                });
+        // 捕獲・機雷爆発済みIDの完全同期（複数同時ヒットでも漏れない）
+        if (data.caughtMap && isMatchStarted) {
+          const elapsedNow = (Date.now() - matchStartTime) / 1000;
+          for (const [entId, catcherSlot] of Object.entries(data.caughtMap)) {
+            if (!caughtIds.has(entId)) {
+              caughtIds.add(entId);
+              // 他プレイヤーが捕獲・爆発させた場合のエフェクト表示
+              if (catcherSlot !== mySlot) {
+                const ent = syncedEntities.find(e => e.id === entId);
+                if (ent) {
+                  const pos = computeEntityPosition(ent, elapsedNow);
+                  if (pos) {
+                    for (let j = 0; j < 10; j++) {
+                      particles.push({
+                        x: pos.x, y: pos.y,
+                        vx: (Math.random() - 0.5) * 14,
+                        vy: (Math.random() - 0.5) * 14,
+                        life: 1, c: ent.color
+                      });
+                    }
+                  }
+                }
               }
             }
           }
         }
 
-        // フック位置同期
+        // フック位置同期（正規化座標 xRatio で受信）
         if (data.hooks && isMatchStarted) {
           for (let i = 1; i <= totalPlayers; i++) {
             if (i === mySlot) continue;
@@ -927,42 +1116,49 @@
             if (remoteHook && remoteHook.t > (hooks[i - 1].lastT || 0)) {
               hooks[i - 1].lastT = remoteHook.t;
               if (remoteHook.active && !hooks[i - 1].active) {
-                hooks[i - 1].x = remoteHook.x;
-                hooks[i - 1].y = 0;
+                hooks[i - 1].xRatio = remoteHook.xRatio ?? 0.5;
+                hooks[i - 1].yRatio = 0;
                 hooks[i - 1].active = true;
                 sound.playCast();
+              } else if (!remoteHook.active) {
+                hooks[i - 1].active = false;
               }
             }
           }
         }
 
-        // スコア同期
+        // スコア・HP・シールド同期
         if (data.scores && isMatchStarted) {
           for (let i = 1; i <= totalPlayers; i++) {
             if (i === mySlot) continue;
             if (typeof data.scores[`p${i}`] === 'number') playersData[i - 1].score = data.scores[`p${i}`];
-          }
-        }
-        if (data.hp && isMatchStarted) {
-          for (let i = 1; i <= totalPlayers; i++) {
-            if (i === mySlot) continue;
-            if (typeof data.hp[`p${i}`] === 'number') playersData[i - 1].hp = data.hp[`p${i}`];
+            if (data.hp && typeof data.hp[`p${i}`] === 'number') playersData[i - 1].hp = data.hp[`p${i}`];
             if (data.alive && typeof data.alive[`p${i}`] === 'boolean') playersData[i - 1].alive = data.alive[`p${i}`];
+            if (data.shield && typeof data.shield[`p${i}`] === 'boolean') playersData[i - 1].shield = data.shield[`p${i}`];
+          }
+          updateHUD();
+        }
+
+        // エモート同期
+        if (data.lastEmote && data.lastEmote.t > lastEmoteTime) {
+          lastEmoteTime = data.lastEmote.t;
+          if (data.lastEmote.slot !== mySlot) {
+            spawnEmoteBubble(data.lastEmote.slot - 1, data.lastEmote.emoji);
           }
         }
-        if (isMatchStarted) updateHUD();
-      }, (e) => {});
+      }, () => {});
     }
 
     async function startQuickMatch() {
       sound.init();
+      readLobbyCustomConfig();
       if (!db || !currentUser) {
         showToast('オフラインのためBOT戦を開始します');
         startSoloBotMatch(2);
         return;
       }
 
-      showToast('待機部屋を検索中...');
+      showToast('オンライン待機部屋を検索中...');
       try {
         const roomsRef = collection(db, 'rooms');
         const q = query(roomsRef, where('status', '==', 'waiting'), limit(10));
@@ -984,10 +1180,14 @@
           currentRoomId = targetRoom.id;
           totalPlayers = 2;
           isAIMode = false;
+          botSlots = [false, false, false, false];
 
           await updateDoc(roomRef, {
             players: players,
             [`names.p${mySlot}`]: myPlayerName,
+            [`skins.p${mySlot}`]: myHookSkin,
+            [`gears.p${mySlot}`]: myGear,
+            matchStartAt: Date.now() + 2250,
             status: 'playing'
           });
 
@@ -995,6 +1195,7 @@
         } else {
           mySlot = 1;
           isAIMode = false;
+          botSlots = [false, false, false, false];
           totalPlayers = 2;
           const newRoomId = 'quick_' + Math.random().toString(36).substring(2, 9);
           currentRoomId = newRoomId;
@@ -1003,36 +1204,43 @@
           await setDoc(roomRef, {
             type: 'quick',
             rule: selectedRule,
+            customConfig: customConfig,
             seed: Math.floor(Math.random() * 999999),
             status: 'waiting',
             capacity: 2,
             players: [currentUser.uid],
             names: { p1: myPlayerName, p2: 'P2' },
+            skins: { p1: myHookSkin, p2: 'circle' },
+            gears: { p1: myGear, p2: 'balanced' },
             scores: { p1: 0, p2: 0 },
             hp: { p1: 3, p2: 3 },
             alive: { p1: true, p2: true },
+            shield: { p1: myGear === 'shield', p2: false },
+            caughtMap: {},
             createdAt: Date.now()
           });
 
           document.getElementById('waitingRoomCodeBox').classList.add('hidden');
-          document.getElementById('waitingSubText').innerText = '相手を探しています...';
+          document.getElementById('waitingSubText').innerText = 'オンライン対戦相手を探しています...';
           document.getElementById('waitingOverlay').classList.remove('hidden');
 
           listenToDuelRoom(newRoomId);
         }
       } catch (err) {
-        showToast('マッチング失敗。BOT戦を推奨します');
+        showToast('接続エラーのためBOT戦を開始します');
+        startSoloBotMatch(2);
       }
     }
 
     async function createFriendRoom() {
       sound.init();
+      readLobbyCustomConfig();
       if (!db || !currentUser) {
         showToast('サーバー未接続です');
         return;
       }
 
-      showToast('ルーム作成中...');
+      showToast('カスタムルームを作成中...');
       const code = Math.floor(1000 + Math.random() * 9000).toString();
       const roomId = 'room_' + code;
       currentRoomId = roomId;
@@ -1040,6 +1248,7 @@
 
       mySlot = 1;
       isAIMode = false;
+      botSlots = [false, false, false, false];
       totalPlayers = currentCapacity;
 
       try {
@@ -1048,25 +1257,30 @@
           code: code,
           capacity: currentCapacity,
           rule: selectedRule,
+          customConfig: customConfig,
           seed: Math.floor(Math.random() * 999999),
           status: 'waiting',
           players: [currentUser.uid],
           names: { p1: myPlayerName, p2: 'P2', p3: 'P3', p4: 'P4' },
+          skins: { p1: myHookSkin, p2: 'circle', p3: 'circle', p4: 'circle' },
+          gears: { p1: myGear, p2: 'balanced', p3: 'balanced', p4: 'balanced' },
           scores: { p1: 0, p2: 0, p3: 0, p4: 0 },
           hp: { p1: 3, p2: 3, p3: 3, p4: 3 },
           alive: { p1: true, p2: true, p3: true, p4: true },
+          shield: { p1: myGear === 'shield', p2: false, p3: false, p4: false },
+          caughtMap: {},
           createdAt: Date.now()
         });
 
         document.getElementById('roomModal').classList.add('hidden');
         document.getElementById('waitingRoomCodeBox').classList.remove('hidden');
         document.getElementById('waitingRoomCode').innerText = code;
-        document.getElementById('waitingSubText').innerText = '合言葉を教えてください';
+        document.getElementById('waitingSubText').innerText = '友達に合言葉を共有してください';
         document.getElementById('waitingOverlay').classList.remove('hidden');
 
         listenToDuelRoom(roomId);
       } catch (e) {
-        showToast('作成に失敗しました');
+        showToast('ルーム作成に失敗しました');
       }
     }
 
@@ -1079,14 +1293,14 @@
       const clean = code.trim();
       if (!clean) return;
 
-      showToast('部屋を検索中...');
+      showToast('ルームを検索中...');
       try {
         const roomsRef = collection(db, 'rooms');
         const q = query(roomsRef, where('code', '==', clean), limit(1));
         const snap = await getDocs(q);
 
         if (snap.empty) {
-          showToast('部屋が見つかりません');
+          showToast('該当する合言葉の部屋が見つかりません');
           return;
         }
 
@@ -1099,18 +1313,25 @@
         mySlot = existingPlayers.length;
         currentRoomId = roomId;
         isAIMode = false;
+        botSlots = [false, false, false, false];
         totalPlayers = target.capacity || 2;
         selectedRule = target.rule || 'standard';
+        if (target.customConfig) customConfig = target.customConfig;
 
         const isFull = existingPlayers.length >= target.capacity;
         const roomRef = doc(db, 'rooms', roomId);
 
-        await updateDoc(roomRef, {
+        const updatePayload = {
           players: existingPlayers,
           [`names.p${mySlot}`]: myPlayerName,
+          [`skins.p${mySlot}`]: myHookSkin,
+          [`gears.p${mySlot}`]: myGear,
+          [`shield.p${mySlot}`]: myGear === 'shield',
           status: isFull ? 'playing' : 'waiting'
-        });
+        };
+        if (isFull) updatePayload.matchStartAt = Date.now() + 2250;
 
+        await updateDoc(roomRef, updatePayload);
         document.getElementById('roomModal').classList.add('hidden');
 
         if (!isFull) {
@@ -1122,6 +1343,25 @@
         listenToDuelRoom(roomId);
       } catch (e) {
         showToast('参加に失敗しました');
+      }
+    }
+
+    // 待機中に空き枠をBOTで埋めて即時開始
+    async function startWaitingRoomWithBots() {
+      if (!currentRoomId || !db) {
+        startSoloBotMatch(totalPlayers);
+        return;
+      }
+      try {
+        const roomRef = doc(db, 'rooms', currentRoomId);
+        const flags = [false, true, true, true];
+        await updateDoc(roomRef, {
+          botFlags: flags,
+          matchStartAt: Date.now() + 2250,
+          status: 'playing'
+        });
+      } catch (e) {
+        startSoloBotMatch(totalPlayers);
       }
     }
 
@@ -1151,38 +1391,120 @@
       document.getElementById('lobbyScreen').classList.remove('hidden');
     }
 
-    function drawMine(e) {
-      ctx.save(); ctx.translate(e.x, e.y); e.angle += 0.15; ctx.rotate(e.angle);
-      ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(0, 0, e.size, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = "#ff3300";
-      for(let i=0; i<8; i++) {
-        ctx.rotate(Math.PI/4); ctx.beginPath();
-        ctx.moveTo(e.size, -5); ctx.lineTo(e.size+18, 0); ctx.lineTo(e.size, 5); ctx.fill();
+    // トゲ（機雷）描画（経過時間から回転角も同期）
+    function drawMine(x, y, size, lifeSec) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(lifeSec * 2.8);
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.arc(0, 0, size, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ef4444";
+      for (let i = 0; i < 8; i++) {
+        ctx.rotate(Math.PI / 4);
+        ctx.beginPath();
+        ctx.moveTo(size - 2, -5);
+        ctx.lineTo(size + 15, 0);
+        ctx.lineTo(size - 2, 5);
+        ctx.fill();
       }
+      ctx.fillStyle = "#fca5a5";
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     }
 
-    function drawFish(e) {
-      ctx.save(); ctx.translate(e.x, e.y); if(e.dir === -1) ctx.scale(-1, 1);
-      e.angle += 0.25; ctx.fillStyle = e.color;
-      ctx.beginPath(); ctx.ellipse(0, 0, e.size, e.size/1.7, 0, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(-e.size, 0);
-      ctx.lineTo(-e.size-18, -12 + Math.sin(e.angle)*12);
-      ctx.lineTo(-e.size-18, 12 + Math.sin(e.angle)*12); ctx.fill();
-      if (e.score === 500) { ctx.shadowBlur = 15; ctx.shadowColor = "gold"; }
+    // 魚描画（尾びれの動きも経過時間から完全同期）
+    function drawFish(x, y, ent, lifeSec) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (ent.dir === -1) ctx.scale(-1, 1);
+
+      const tailSwing = Math.sin(lifeSec * 14) * 11;
+      ctx.fillStyle = ent.color;
+      if (ent.score >= 400) {
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = ent.color;
+      }
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, ent.size, ent.size / 1.65, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 尾びれ
+      ctx.beginPath();
+      ctx.moveTo(-ent.size + 2, 0);
+      ctx.lineTo(-ent.size - 16, -12 + tailSwing);
+      ctx.lineTo(-ent.size - 16, 12 + tailSwing);
+      ctx.fill();
+
+      // 目
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(ent.size * 0.45, -ent.size * 0.15, Math.max(2.5, ent.size * 0.12), 0, Math.PI * 2);
+      ctx.fill();
+
       ctx.restore();
     }
 
+    // カスタムフックスキン対応描画
     function drawHook(hookObj, playerIndex) {
       if (!hookObj.active) return;
+      const hx = hookObj.xRatio * canvas.width;
+      const hy = hookObj.yRatio * canvas.height;
       const color = PLAYER_COLORS[playerIndex];
-      ctx.save(); ctx.lineWidth = 2.5; ctx.strokeStyle = color;
-      ctx.beginPath(); ctx.moveTo(hookObj.x, 0); ctx.lineTo(hookObj.x, hookObj.y); ctx.stroke();
-      ctx.fillStyle = color; ctx.beginPath(); ctx.arc(hookObj.x, hookObj.y, 6, 0, Math.PI * 2); ctx.fill();
+      const skin = playerSkins[playerIndex] || 'circle';
+
+      ctx.save();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(hx, 0);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.translate(hx, hy);
+
+      if (skin === 'trident') {
+        // 三又槍スキン
+        ctx.beginPath();
+        ctx.moveTo(-9, -6); ctx.lineTo(-9, 8);
+        ctx.moveTo(0, -8);  ctx.lineTo(0, 12);
+        ctx.moveTo(9, -6);  ctx.lineTo(9, 8);
+        ctx.moveTo(-9, 2);  ctx.lineTo(9, 2);
+        ctx.stroke();
+      } else if (skin === 'anchor') {
+        // イカリスキン
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (skin === 'star') {
+        // スタースキン
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 9, -Math.sin((18 + i * 72) * Math.PI / 180) * 9);
+          ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 4, -Math.sin((54 + i * 72) * Math.PI / 180) * 4);
+        }
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // 標準丸針
+        ctx.beginPath();
+        ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       ctx.restore();
     }
 
-    // ゲームメインループ
+    // メインゲームループ
     function gameLoop(now) {
       const dt = Math.min((now - lastFrameTime) / 1000, 0.1);
       lastFrameTime = now;
@@ -1190,124 +1512,150 @@
       let grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
       if (selectedRule === 'blind') {
         grd.addColorStop(0, "#020617"); grd.addColorStop(1, "#010414");
+      } else if (selectedRule === 'goldrush') {
+        grd.addColorStop(0, "#0e4f6e"); grd.addColorStop(1, "#0c192c");
       } else {
         grd.addColorStop(0, "#005c97"); grd.addColorStop(1, "#000428");
       }
-      ctx.fillStyle = grd; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash})`; ctx.fillRect(0,0,canvas.width,canvas.height); flash *= 0.85; }
-      if (shake > 0) { ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake *= 0.9; }
+      if (flash > 0) {
+        ctx.fillStyle = `rgba(255,255,255,${flash})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        flash *= 0.85;
+      }
+      if (shake > 0) {
+        ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+        shake *= 0.9;
+      }
 
-      if (isMatchStarted) {
-        // 同期出現スケジュールの判定
-        const elapsedSec = (now - matchStartTime) / 1000;
-        checkAndSpawnWaves(elapsedSec);
-
-        // 終盤不可視スコア倍率（1.0倍 → 2.0倍）
-        const timeProgress = Math.max(0, Math.min(1, (60 - timeLeft) / 60));
+      if (isMatchStarted && !gameOver) {
+        const elapsedSec = (Date.now() - matchStartTime) / 1000;
+        const timeProgress = Math.max(0, Math.min(1, elapsedSec / matchDuration));
         const timeMultiplier = 1.0 + timeProgress;
 
-        // 針の移動
+        // 1. フックの移動＆描画
         for (let p = 0; p < totalPlayers; p++) {
           const h = hooks[p];
           if (h.active) {
-            h.y += h.speed * dt;
+            h.yRatio += h.speedRatio * dt;
             drawHook(h, p);
-            if (h.y > canvas.height) {
+            if (h.yRatio > 1.02) {
               h.active = false;
-              if (p === mySlot - 1) syncMyHookOnline(h.x, false);
+              if (p === mySlot - 1) syncMyHookOnline(h.xRatio, false);
             }
           }
         }
 
-        // 魚の移動と判定
-        for (let i = entities.length - 1; i >= 0; i--) {
-          const e = entities[i];
-          if (e.caught) {
-            entities.splice(i, 1);
-            continue;
+        // 2. 決定論的同期エンティティ（魚＆トゲ）の座標算出・描画・当たり判定
+        for (let i = 0; i < syncedEntities.length; i++) {
+          const ent = syncedEntities[i];
+          if (caughtIds.has(ent.id)) continue;
+
+          const pos = computeEntityPosition(ent, elapsedSec);
+          if (!pos) continue;
+
+          if (ent.type === 'mine') {
+            drawMine(pos.x, pos.y, ent.size, pos.life);
+          } else {
+            drawFish(pos.x, pos.y, ent, pos.life);
           }
 
-          e.x += e.speed * e.dir * dt;
-          e.type === 'mine' ? drawMine(e) : drawFish(e);
-
-          let entityCaptured = false;
-
+          // 当たり判定（自分のフック または AIフック）
           for (let p = 0; p < totalPlayers; p++) {
-            const h = hooks[p];
-            if (h.active && Math.hypot(e.x - h.x, e.y - h.y) < e.size + 18) {
-              let depthFactor = Math.pow((e.y / canvas.height), 2) * 4 + 0.1;
+            const isLocalResponsible = (p === mySlot - 1) || (botSlots[p] && (isAIMode || mySlot === 1));
+            if (!isLocalResponsible) continue;
 
-              if (e.type === 'fish') {
-                const added = Math.floor(e.score * depthFactor * timeMultiplier);
+            const h = hooks[p];
+            if (!h.active) continue;
+
+            const hx = h.xRatio * canvas.width;
+            const hy = h.yRatio * canvas.height;
+
+            if (Math.hypot(pos.x - hx, pos.y - hy) < ent.size + 18) {
+              caughtIds.add(ent.id);
+              h.active = false;
+
+              let depthFactor = Math.pow(pos.ry, 2) * 4 + 0.1;
+              if (playerGears[p] === 'deep' && pos.ry > 0.55) {
+                depthFactor *= 1.2; // 深海特化ギアボーナス
+              }
+
+              if (ent.type === 'fish') {
+                const added = Math.floor(ent.score * depthFactor * timeMultiplier);
                 playersData[p].score += added;
 
                 if (p === mySlot - 1) {
-                  shake = 12 * depthFactor;
-                  flash = 0.1 * depthFactor;
-                  if (e.score === 500) sound.playGold();
+                  shake = 10 * Math.min(2.5, depthFactor);
+                  flash = 0.08 * Math.min(2.5, depthFactor);
+                  if (ent.score >= 400) sound.playGold();
                   else sound.playCatch();
+                  addFloatingText(pos.x, pos.y, `+${added}`, ent.score >= 400 ? "#fde047" : "#38bdf8");
                 }
-              } else { // 機雷
-                playersData[p].score = Math.max(0, playersData[p].score - 300);
-                if (selectedRule === 'bomb') {
-                  playersData[p].hp = Math.max(0, playersData[p].hp - 1);
-                  if (playersData[p].hp <= 0) {
-                    playersData[p].alive = false;
-                    h.active = false;
-                    if (p === mySlot - 1) showToast("大破！ 脱落しました 💀");
+              } else {
+                // トゲ（機雷）ヒット時
+                if (playersData[p].shield) {
+                  playersData[p].shield = false;
+                  if (p === mySlot - 1) {
+                    sound.playShield();
+                    showToast("🛡️ シールドが機雷を防いだ！");
+                    addFloatingText(pos.x, pos.y, "SHIELD BLOCK!", "#34d399");
                   }
-                }
-                if (p === mySlot - 1) {
-                  flash = 0.9; shake = 50;
-                  sound.playBomb();
-                  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                } else {
+                  playersData[p].score = Math.max(0, playersData[p].score - 300);
+                  if (selectedRule === 'bomb') {
+                    playersData[p].hp = Math.max(0, playersData[p].hp - 1);
+                    if (playersData[p].hp <= 0) {
+                      playersData[p].alive = false;
+                      if (p === mySlot - 1) showToast("大破！ 脱落しました 💀");
+                    }
+                  }
+                  if (p === mySlot - 1) {
+                    flash = 0.85;
+                    shake = 42;
+                    sound.playBomb();
+                    addFloatingText(pos.x, pos.y, "-300 💥", "#f87171");
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                  }
                 }
               }
 
               updateHUD();
-              if (p === mySlot - 1) {
-                syncMyStateOnline();
-                syncMyHookOnline(h.x, false);
-                syncFishCatchOnline(e.id, mySlot, playersData[p].score);
-              }
+              syncEntityHitOnline(ent.id, p + 1);
 
-              let pCount = Math.floor(10 * depthFactor);
+              const pCount = Math.min(28, Math.floor(10 * depthFactor));
               for (let j = 0; j < pCount; j++) {
                 particles.push({
-                  x: e.x, y: e.y,
-                  vx: (Math.random()-0.5)*15*depthFactor,
-                  vy: (Math.random()-0.5)*15*depthFactor,
-                  life: 1, c: e.color
+                  x: pos.x, y: pos.y,
+                  vx: (Math.random() - 0.5) * 15,
+                  vy: (Math.random() - 0.5) * 15,
+                  life: 1, c: ent.color
                 });
               }
-
-              h.active = false;
-              entities.splice(i, 1);
-              entityCaptured = true;
               break;
             }
           }
-
-          if (!entityCaptured && (e.x < -200 || e.x > canvas.width + 200)) {
-            entities.splice(i, 1);
-          }
         }
 
-        // 暗闇ルール
+        // 3. 暗闇モード（BLIND）のソナーライト処理
         if (selectedRule === 'blind') {
           ctx.save();
-          ctx.fillStyle = "rgba(0, 4, 18, 0.78)";
+          ctx.fillStyle = "rgba(0, 4, 18, 0.84)";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.globalCompositeOperation = 'destination-out';
           for (let p = 0; p < totalPlayers; p++) {
             const h = hooks[p];
             if (h.active) {
-              const rad = ctx.createRadialGradient(h.x, h.y, 15, h.x, h.y, 160);
+              const hx = h.xRatio * canvas.width;
+              const hy = h.yRatio * canvas.height;
+              const rad = ctx.createRadialGradient(hx, hy, 15, hx, hy, 165);
               rad.addColorStop(0, "rgba(0,0,0,1)");
               rad.addColorStop(1, "rgba(0,0,0,0)");
               ctx.fillStyle = rad;
-              ctx.beginPath(); ctx.arc(h.x, h.y, 160, 0, Math.PI * 2); ctx.fill();
+              ctx.beginPath();
+              ctx.arc(hx, hy, 165, 0, Math.PI * 2);
+              ctx.fill();
             }
           }
           ctx.restore();
@@ -1317,13 +1665,32 @@
       // パーティクル描画
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx; p.y += p.vy; p.life -= 0.025;
-        ctx.globalAlpha = p.life; ctx.fillStyle = p.c;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.028;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.c;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
         if (p.life <= 0) particles.splice(i, 1);
       }
 
-      ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // フローティングスコア表示
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y -= 1.5;
+        ft.life -= 0.025;
+        ctx.globalAlpha = Math.max(0, ft.life);
+        ctx.font = "bold 16px Verdana";
+        ctx.fillStyle = ft.color;
+        ctx.textAlign = "center";
+        ctx.fillText(ft.text, ft.x, ft.y);
+        if (ft.life <= 0) floatingTexts.splice(i, 1);
+      }
+
+      ctx.globalAlpha = 1;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       requestAnimationFrame(gameLoop);
     }
 
@@ -1335,14 +1702,50 @@
         if (val) {
           myPlayerName = val;
           localStorage.setItem('deepSeaBattle_playerName', myPlayerName);
-          showToast(`プレイヤー名を保存しました`);
+          showToast(`プレイヤー名「${myPlayerName}」を保存しました`);
         }
       };
 
       initFirebase();
       requestAnimationFrame(gameLoop);
 
-      // モード切替（全5モード）
+      // フックスキン選択
+      document.querySelectorAll('.skin-btn').forEach(btn => {
+        if (btn.dataset.skin === myHookSkin) {
+          btn.className = 'skin-btn py-1 rounded-lg border border-cyan-400 bg-cyan-950/40 text-[9px] text-cyan-300 font-bold';
+        } else {
+          btn.className = 'skin-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold';
+        }
+        btn.onclick = () => {
+          document.querySelectorAll('.skin-btn').forEach(b => {
+            b.className = 'skin-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold';
+          });
+          btn.className = 'skin-btn py-1 rounded-lg border border-cyan-400 bg-cyan-950/40 text-[9px] text-cyan-300 font-bold';
+          myHookSkin = btn.dataset.skin;
+          localStorage.setItem('deepSeaBattle_skin', myHookSkin);
+        };
+      });
+
+      // ギア選択
+      document.querySelectorAll('.gear-btn').forEach(btn => {
+        if (btn.dataset.gear === myGear) {
+          btn.className = 'gear-btn py-1 rounded-lg border border-amber-400 bg-amber-950/40 text-[9px] text-amber-300 font-bold';
+          document.getElementById('gearDescLabel').innerText = btn.dataset.desc;
+        } else {
+          btn.className = 'gear-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold';
+        }
+        btn.onclick = () => {
+          document.querySelectorAll('.gear-btn').forEach(b => {
+            b.className = 'gear-btn py-1 rounded-lg border border-slate-800 bg-slate-950 text-[9px] text-slate-400 font-bold';
+          });
+          btn.className = 'gear-btn py-1 rounded-lg border border-amber-400 bg-amber-950/40 text-[9px] text-amber-300 font-bold';
+          myGear = btn.dataset.gear;
+          document.getElementById('gearDescLabel').innerText = btn.dataset.desc;
+          localStorage.setItem('deepSeaBattle_gear', myGear);
+        };
+      });
+
+      // モード切替（全8モード）
       document.querySelectorAll('.rule-btn').forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll('.rule-btn').forEach(b => {
@@ -1352,6 +1755,15 @@
           btn.className = 'rule-btn p-1.5 rounded-xl border border-cyan-400 bg-cyan-950/40 text-center transition';
           btn.querySelector('div:last-child').className = 'text-[8px] font-bold text-cyan-300';
           selectedRule = btn.dataset.rule;
+          document.getElementById('ruleDescText').innerText = btn.dataset.desc || '';
+        };
+      });
+
+      // エモートボタン
+      document.querySelectorAll('.emote-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          sendEmote(btn.dataset.emote);
         };
       });
 
@@ -1371,7 +1783,8 @@
       document.getElementById('btnQuickMatch').onclick = startQuickMatch;
 
       document.getElementById('btnFriendMatch').onclick = () => {
-        sound.init(); document.getElementById('roomModal').classList.remove('hidden');
+        sound.init();
+        document.getElementById('roomModal').classList.remove('hidden');
       };
       document.getElementById('btnCloseRoomModal').onclick = () => {
         document.getElementById('roomModal').classList.add('hidden');
@@ -1383,6 +1796,7 @@
         joinFriendRoom(val);
       };
 
+      document.getElementById('btnStartEarlyWithBots').onclick = startWaitingRoomWithBots;
       document.getElementById('btnCancelWaiting').onclick = cancelWaiting;
 
       document.getElementById('btnExitLobby').onclick = exitToLobby;
