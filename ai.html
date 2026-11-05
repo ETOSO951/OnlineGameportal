@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>超大規模・日本語トークンAIラボ Extreme v2 (爆速MinGRU搭載)</title>
+    <title>完全自動収集・連想クローラー＆ターボモード搭載 AIラボ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -19,16 +19,16 @@
     <!-- Header -->
     <header class="bg-slate-900 border-b border-slate-800 px-3 sm:px-5 py-2.5 flex items-center justify-between shrink-0 shadow-lg z-10">
         <div class="flex items-center space-x-2.5 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-500 to-emerald-500 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-violet-600 to-emerald-500 flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
                 </svg>
             </div>
             <div class="min-w-0">
-                <h1 class="font-bold text-sm sm:text-base tracking-tight bg-gradient-to-r from-violet-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent truncate">
-                    超大規模・日本語トークンAIラボ Extreme v2
+                <h1 class="font-bold text-sm sm:text-base tracking-tight bg-gradient-to-r from-amber-400 via-violet-300 to-emerald-400 bg-clip-text text-transparent truncate">
+                    連想クローラー＆ターボモード AIラボ
                 </h1>
-                <p class="text-[10px] text-slate-400 truncate">爆速MinGRUエンジン・進捗バー・大容量バイナリ保存対応</p>
+                <p class="text-[10px] text-slate-400 truncate">専門用語自動抽出・省電力ターボ・完全自律型学習</p>
             </div>
         </div>
         <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
@@ -42,43 +42,92 @@
     <!-- Mobile Tab Bar -->
     <div class="flex bg-slate-900 border-b border-slate-800 shrink-0 lg:hidden">
         <button onclick="switchTab('chat')" id="tab-btn-chat" class="flex-1 py-2.5 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500 transition-all flex items-center justify-center gap-1.5">
-            💬 AI対話・長文生成
+            💬 AI対話・生成テスト
         </button>
         <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2.5 text-xs font-semibold text-slate-400 border-b-2 border-transparent transition-all flex items-center justify-center gap-1.5">
-            🧠 学習コントロール・進捗・保存
+            🤖 クローラー・学習・保存
         </button>
     </div>
 
     <!-- Main Workspace -->
     <main class="flex-1 flex flex-col lg:flex-row overflow-hidden p-2.5 sm:p-4 gap-4 max-w-7xl mx-auto w-full">
 
-        <!-- Left Column: Corpus, Fast Architecture Config, Progress, Persistence -->
+        <!-- Left Column: Crawler Auto-Pilot, Corpus, Controls, Persistence -->
         <div id="panel-config" class="w-full lg:w-6/12 flex-col gap-3 overflow-y-auto smooth-scroll pr-0 lg:pr-1 flex h-full pb-16 lg:pb-0">
+
+            <!-- 0. Autonomous Crawler & Turbo Mode Card -->
+            <div class="bg-gradient-to-br from-slate-900 via-violet-950/30 to-slate-900 border border-violet-500/40 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🕷️</span>
+                        <h2 class="text-xs sm:text-sm font-bold text-violet-300">専門用語連想クローラー ＆ 省電力ターボ</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center gap-1 text-[11px] text-amber-300 bg-amber-950/80 border border-amber-700/60 px-2.5 py-0.5 rounded-full cursor-pointer shadow">
+                            <input type="checkbox" id="turbo-mode-check" class="accent-amber-500 rounded">
+                            <span>⚡ ターボモード (描画カット)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="sm:col-span-2">
+                        <span class="text-[10px] text-slate-400 block mb-1">データ収集ソース</span>
+                        <select id="autopilot-source" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-slate-200 focus:outline-none focus:border-violet-400">
+                            <option value="crawler" selected>🕷️ 専門用語連想クローラー（抽出キーワードで自動連鎖）</option>
+                            <option value="wiki_keyword">🔍 Wikipedia指定キーワード巡回</option>
+                            <option value="builtin">📚 内蔵知識ベース（オフライン対応）</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block mb-1">次記事への移行条件</span>
+                        <div class="flex items-center gap-1 bg-slate-950 border border-slate-700 rounded-xl p-1.5">
+                            <input type="number" id="autopilot-epochs" value="2" min="1" max="20" class="w-10 bg-transparent text-center text-xs font-mono text-emerald-400 focus:outline-none">
+                            <span class="text-[10px] text-slate-400">周 または Loss</span>
+                            <input type="number" id="autopilot-target-loss" value="1.6" step="0.1" min="0.1" max="5.0" class="w-12 bg-transparent text-center text-xs font-mono text-amber-400 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                        <span>連想キーワードキュー（抽出された専門用語がここに自動蓄積されます）</span>
+                        <button onclick="clearCrawlerQueue()" class="text-rose-400 hover:underline">キューをリセット</button>
+                    </div>
+                    <input type="text" id="autopilot-keywords" value="人工知能, 宇宙, 機械学習, 量子力学, 歴史, 脳科学" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-400 font-mono">
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <button onclick="toggleAutoPilot()" id="btn-autopilot" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <span>🕷️ 連想クローラー稼働 ON（全自動学習）</span>
+                    </button>
+                    <button onclick="fetchNextAutonomousData(true)" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-semibold transition shrink-0" title="今すぐ新しい記事を取得">
+                        📥 すぐ収集
+                    </button>
+                </div>
+
+                <div id="autopilot-log" class="text-[11px] font-mono text-violet-200 bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 truncate">
+                    待機中: クローラーをONにすると、専門用語を抽出しながら自律的に知識を広げます。
+                </div>
+            </div>
 
             <!-- 1. Corpus Manager -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2">
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <h2 class="text-xs sm:text-sm font-semibold text-slate-200 flex items-center gap-1.5">
-                        <span>1. 学習データ（超長文・大容量ファイル対応）</span>
+                        <span>1. 現在の学習データ</span>
                         <span id="corpus-size-badge" class="text-[11px] font-mono bg-slate-800 text-emerald-400 px-2 py-0.5 rounded-md">0 トークン</span>
                     </h2>
                     <div class="flex items-center gap-1.5">
-                        <button onclick="loadDefaultCorpus()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-400 px-2 py-1 rounded-lg border border-slate-700 transition">サンプル追加</button>
+                        <button onclick="loadDefaultCorpus()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-400 px-2 py-1 rounded-lg border border-slate-700 transition">サンプル</button>
                         <label class="text-[11px] bg-indigo-950/90 hover:bg-indigo-900 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-700/60 cursor-pointer transition">
-                            📂 .txt読込(複数可)
-                            <input type="file" id="file-input" accept=".txt,.csv,.md,.json,.log" multiple class="hidden" onchange="handleFileUpload(event)">
+                            📂 .txt読込
+                            <input type="file" id="file-input" accept=".txt,.csv,.md,.json" multiple class="hidden" onchange="handleFileUpload(event)">
                         </label>
-                        <button onclick="clearCorpus()" class="text-[11px] text-slate-400 hover:text-rose-400 px-1.5 py-1">全消去</button>
+                        <button onclick="clearCorpus()" class="text-[11px] text-slate-400 hover:text-rose-400 px-1.5 py-1">消去</button>
                     </div>
                 </div>
 
-                <!-- Virtual Memory Status Bar -->
-                <div id="virtual-mem-bar" class="hidden bg-indigo-950/40 border border-indigo-800/50 rounded-xl px-3 py-1.5 text-[11px] text-indigo-200 flex justify-between items-center">
-                    <span id="virtual-mem-text">📦 仮想メモリ保持中: 0 ファイル</span>
-                    <button onclick="clearVirtualFiles()" class="text-rose-400 hover:underline text-[10px]">ファイル分を破棄</button>
-                </div>
-
-                <!-- Tokenizer Selector -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800/80">
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] text-slate-400 shrink-0">分割:</span>
@@ -91,10 +140,9 @@
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] text-slate-400 shrink-0">最大語彙:</span>
                         <select id="param-max-vocab" onchange="scheduleTokenUpdate()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="8000">8,000語 (高速)</option>
-                            <option value="25000" selected>25,000語 (標準)</option>
-                            <option value="60000">60,000語 (大規模)</option>
-                            <option value="200000">無制限</option>
+                            <option value="10000">10,000語</option>
+                            <option value="30000" selected>30,000語 (標準)</option>
+                            <option value="80000">80,000語 (大規模)</option>
                         </select>
                     </div>
                     <button onclick="toggleTokenPreview()" class="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-cyan-300 border border-slate-700 transition flex items-center justify-center gap-1">
@@ -102,9 +150,8 @@
                     </button>
                 </div>
 
-                <textarea id="corpus-input" rows="3" oninput="scheduleTokenUpdate()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-all resize-y leading-relaxed font-mono" placeholder="ここに学習させたい文章を入力・貼り付け（大容量ファイルは上の「.txt読込」から何MBでも高速に読み込めます）..."></textarea>
+                <textarea id="corpus-input" rows="3" oninput="scheduleTokenUpdate()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-all resize-y leading-relaxed font-mono" placeholder="クローラーが自動収集したテキストがここに格納されます..."></textarea>
 
-                <!-- Token Preview Area -->
                 <div id="token-preview-box" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex-col gap-1.5">
                     <div class="flex justify-between items-center text-[10px] text-slate-400">
                         <span>トークン分割プレビュー（先頭80トークン）</span>
@@ -114,12 +161,12 @@
                 </div>
             </div>
 
-            <!-- 2. Fast MinGRU Architecture & Controls -->
+            <!-- 2. MinGRU Controls -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5">
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <div class="flex items-center gap-2">
-                        <h2 class="text-xs sm:text-sm font-semibold text-slate-200">2. 爆速MinGRUネットワーク設定</h2>
-                        <button onclick="boostLearningRate()" class="text-[11px] bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-md transition" title="Lossが下がりにくくなった時に学習率を引き上げます">
+                        <h2 class="text-xs sm:text-sm font-semibold text-slate-200">2. MinGRUネットワーク設定</h2>
+                        <button onclick="boostLearningRate()" class="text-[11px] bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-md transition">
                             ⚡ LR再加速
                         </button>
                     </div>
@@ -128,15 +175,15 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                        <span class="text-[10px] text-slate-400 block mb-1">隠れ層サイズ (最大4096)</span>
+                        <span class="text-[10px] text-slate-400 block mb-1">隠れ層サイズ</span>
                         <input type="number" id="param-hidden" value="512" step="128" min="64" max="4096" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <span class="text-[10px] text-slate-400 block mb-1">ボトルネック次元 (Embed)</span>
+                        <span class="text-[10px] text-slate-400 block mb-1">ボトルネック次元</span>
                         <input type="number" id="param-embed" value="128" step="32" min="32" max="1024" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <span class="text-[10px] text-slate-400 block mb-1">文脈トークン長 (最大512)</span>
+                        <span class="text-[10px] text-slate-400 block mb-1">文脈長 (BPTT)</span>
                         <input type="number" id="param-seq" value="48" step="16" min="16" max="512" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
@@ -146,67 +193,66 @@
                 </div>
 
                 <div class="flex gap-2.5 pt-1">
-                    <button onclick="startTraining()" id="btn-train" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 transition-all active:scale-95">
-                        🚀 爆速学習 / 追加学習スタート
+                    <button onclick="startTraining()" id="btn-train" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition-all active:scale-95">
+                        ▶️ 現在のデータのみ手動学習
                     </button>
-                    <button onclick="stopTraining()" id="btn-stop" class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold text-xs sm:text-sm transition-all active:scale-95 disabled:opacity-40" disabled>
+                    <button onclick="stopAllTraining()" id="btn-stop" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold text-xs sm:text-sm transition-all active:scale-95 disabled:opacity-40" disabled>
                         一時停止
                     </button>
                 </div>
             </div>
 
-            <!-- 3. Real-Time Progress Bar & Loss Graph -->
+            <!-- 3. Progress & Graph -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2">
-                <!-- Epoch & Corpus Progress Bar -->
                 <div class="flex flex-col gap-1">
                     <div class="flex justify-between items-center text-[11px]">
-                        <span class="text-slate-300 font-medium">現在の文章データの学習進捗:</span>
+                        <span id="current-article-title" class="text-slate-300 font-medium truncate max-w-[60%]">現在のデータ進捗:</span>
                         <span id="epoch-progress-text" class="font-mono text-emerald-400 font-bold">Epoch 1 (0.0%)</span>
                     </div>
                     <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                        <div id="epoch-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 via-teal-400 to-emerald-400 transition-all duration-150" style="width: 0%"></div>
+                        <div id="epoch-progress-bar" class="h-full bg-gradient-to-r from-violet-500 via-teal-400 to-emerald-400 transition-all duration-150" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-4 gap-2 text-center mt-1">
                     <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-2">
-                        <span class="text-[10px] text-slate-400 block">総ステップ数</span>
+                        <span class="text-[10px] text-slate-400 block">ステップ数</span>
                         <span id="step-display" class="font-mono text-xs sm:text-sm font-bold text-emerald-400">0</span>
                     </div>
                     <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-2">
-                        <span class="text-[10px] text-slate-400 block">累計学習トークン</span>
+                        <span class="text-[10px] text-slate-400 block">累計トークン</span>
                         <span id="tokens-trained-display" class="font-mono text-xs sm:text-sm font-bold text-cyan-400">0</span>
                     </div>
                     <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-2">
-                        <span class="text-[10px] text-slate-400 block">データ周回数</span>
-                        <span id="epoch-display" class="font-mono text-xs sm:text-sm font-bold text-violet-400">0 周</span>
+                        <span class="text-[10px] text-slate-400 block">読破記事数</span>
+                        <span id="articles-display" class="font-mono text-xs sm:text-sm font-bold text-violet-400">0 件</span>
                     </div>
                     <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-2">
                         <span class="text-[10px] text-slate-400 block">平滑誤差 (Loss)</span>
                         <span id="loss-display" class="font-mono text-xs sm:text-sm font-bold text-amber-400">---</span>
                     </div>
                 </div>
-                <canvas id="loss-canvas" height="64" class="w-full bg-slate-950 border border-slate-800 rounded-xl mt-0.5"></canvas>
+                <canvas id="loss-canvas" height="60" class="w-full bg-slate-950 border border-slate-800 rounded-xl mt-0.5"></canvas>
             </div>
 
-            <!-- 4. Save / Load & Persistence -->
+            <!-- 4. Persistence -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xs sm:text-sm font-semibold text-slate-200">3. 学習結果の保存・復元（バイナリ高速対応）</h2>
+                    <h2 class="text-xs sm:text-sm font-semibold text-slate-200">3. 保存・復元</h2>
                     <span id="save-status" class="text-[11px] text-emerald-400"></span>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <button onclick="saveToIndexedDB()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-emerald-300 transition flex items-center justify-center gap-1">
+                    <button onclick="saveToIndexedDB(false)" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-emerald-300 transition flex items-center justify-center gap-1">
                         💾 ブラウザ保存
                     </button>
-                    <button onclick="loadFromIndexedDB()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-cyan-300 transition flex items-center justify-center gap-1">
+                    <button onclick="loadFromIndexedDB(false)" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-cyan-300 transition flex items-center justify-center gap-1">
                         🔄 ブラウザ復元
                     </button>
                     <button onclick="exportModelBinary()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-violet-300 transition flex items-center justify-center gap-1">
-                        ⬇️ .bin ファイル出力
+                        ⬇️ .bin 出力
                     </button>
                     <label class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition flex items-center justify-center gap-1 cursor-pointer">
-                        ⬆️ モデル読込
+                        ⬆️ 読込
                         <input type="file" accept=".bin,.json" class="hidden" onchange="importModelFile(event)">
                     </label>
                 </div>
@@ -219,7 +265,7 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xl flex flex-col flex-1 overflow-hidden">
                 <div class="flex justify-between items-center mb-2.5">
                     <div class="flex items-center gap-3">
-                        <h2 class="text-xs sm:text-sm font-semibold text-slate-200 uppercase tracking-wider">4. AI対話・リアルタイム生成テスト</h2>
+                        <h2 class="text-xs sm:text-sm font-semibold text-slate-200 uppercase tracking-wider">4. AI対話・生成テスト</h2>
                         <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
                             <input type="checkbox" id="show-token-borders" class="accent-emerald-500 rounded">
                             <span>トークン区切り表示</span>
@@ -228,18 +274,16 @@
                     <button onclick="clearChat()" class="text-[11px] text-slate-400 hover:text-slate-200">履歴クリア</button>
                 </div>
 
-                <!-- Chat Output Log -->
                 <div id="chat-log" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 sm:p-4 overflow-y-auto smooth-scroll flex flex-col gap-3 mb-3 text-sm leading-relaxed">
                     <div class="text-slate-500 text-center my-auto p-4 text-xs sm:text-sm">
-                        左パネルで「🚀 爆速学習スタート」を押すと、進捗バーとステップ数が高速に進み始めます。学習を止めずにいつでもここから文章生成を試せます！
+                        「🕷️ 連想クローラー稼働 ON」を押すと、専門用語を自動抽出しながら無限に自動学習します。ターボモードをONにすると描画がカットされ学習速度がさらに跳ね上がります！
                     </div>
                 </div>
 
-                <!-- Generation Controls -->
                 <div class="flex flex-col gap-2.5 shrink-0">
                     <div class="flex gap-2">
-                        <input type="text" id="prompt-input" placeholder="開始文を入力（空欄でランダム開始 / 例: こんにちは、人工知能は）" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-all" disabled>
-                        <button onclick="generateText()" id="btn-generate" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-600/25 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0" disabled>
+                        <input type="text" id="prompt-input" placeholder="開始文を入力（空欄でランダム開始 / 例: 人工知能は、宇宙は）" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-all" disabled>
+                        <button onclick="generateText()" id="btn-generate" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500 text-white font-semibold text-sm shadow-lg shadow-violet-600/25 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0" disabled>
                             生成 ✨
                         </button>
                     </div>
@@ -270,7 +314,7 @@
 
     <script>
         // ============================================================================
-        // 1. Mobile Tab & UI Controls
+        // 1. UI & Layout Management
         // ============================================================================
         let currentTab = 'config';
         function switchTab(tab) {
@@ -308,7 +352,7 @@
         tempInput.addEventListener('input', (e) => valTemp.textContent = e.target.value);
 
         // ============================================================================
-        // 2. High-Speed Japanese Tokenizer
+        // 2. Tokenizer & Crawler Term Extractor
         // ============================================================================
         class JapaneseTokenizer {
             constructor(mode = 'word') {
@@ -324,69 +368,8 @@
                 return text.match(pattern) || [];
             }
 
-            learnBPEMerges(text, numMerges = 200) {
-                const sample = Array.from(text.slice(0, 30000));
-                this.bpeMerges = [];
-                if (sample.length < 10) return;
-
-                for (let step = 0; step < numMerges; step++) {
-                    const pairCounts = new Map();
-                    let bestPair = null;
-                    let maxCount = 2;
-
-                    for (let i = 0; i < sample.length - 1; i++) {
-                        const a = sample[i];
-                        const b = sample[i + 1];
-                        if (a === '\n' || b === '\n') continue;
-                        const key = a + '\u0000' + b;
-                        const c = (pairCounts.get(key) || 0) + 1;
-                        pairCounts.set(key, c);
-                        if (c > maxCount) {
-                            maxCount = c;
-                            bestPair = [a, b];
-                        }
-                    }
-
-                    if (!bestPair) break;
-                    const [first, second] = bestPair;
-                    const merged = first + second;
-                    this.bpeMerges.push([first, second]);
-
-                    const nextSample = [];
-                    for (let i = 0; i < sample.length; i++) {
-                        if (i < sample.length - 1 && sample[i] === first && sample[i + 1] === second) {
-                            nextSample.push(merged);
-                            i++;
-                        } else {
-                            nextSample.push(sample[i]);
-                        }
-                    }
-                    sample.length = 0;
-                    for (let i = 0; i < nextSample.length; i++) sample.push(nextSample[i]);
-                }
-            }
-
-            applyBPEMerges(text) {
-                let tokens = Array.from(text);
-                for (const [first, second] of this.bpeMerges) {
-                    const merged = first + second;
-                    const next = [];
-                    for (let i = 0; i < tokens.length; i++) {
-                        if (i < tokens.length - 1 && tokens[i] === first && tokens[i + 1] === second) {
-                            next.push(merged);
-                            i++;
-                        } else {
-                            next.push(tokens[i]);
-                        }
-                    }
-                    tokens = next;
-                }
-                return tokens;
-            }
-
             tokenize(text, rebuildBPE = false) {
                 if (!text) return [];
-                // If text is huge (>300,000 chars) and mode is 'word', use regexChunk after 300k for instant responsiveness
                 if (this.mode === 'word') {
                     if (this.segmenter && text.length <= 300000) {
                         const out = [];
@@ -396,20 +379,26 @@
                         return out;
                     }
                     return this.regexChunk(text);
-                } else if (this.mode === 'bpe') {
-                    if (rebuildBPE || this.bpeMerges.length === 0) {
-                        this.learnBPEMerges(text, 200);
-                    }
-                    return this.applyBPEMerges(text);
-                } else {
-                    return this.regexChunk(text);
                 }
+                return this.regexChunk(text);
             }
         }
 
+        // Extract technical / compound terms (Kanji sequences of length >= 2) for crawler association
+        function extractImportantTerms(text) {
+            const matches = text.match(/[一-龠々〆ヵヶ]{2,}/g) || [];
+            const freq = {};
+            matches.forEach(m => {
+                if (m.length >= 2 && m.length <= 6) {
+                    freq[m] = (freq[m] || 0) + 1;
+                }
+            });
+            const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+            return sorted.slice(0, 5).map(item => item[0]);
+        }
+
         // ============================================================================
-        // 3. Ultra-Fast Diagonal MinGRU + Bottleneck Projection Engine
-        //    Eliminates O(H^2) and O(V*H) bottlenecks -> 100x faster even at H=4096!
+        // 3. FastMinGRUTokenRNN Engine
         // ============================================================================
         class FastMinGRUTokenRNN {
             constructor(uniqueTokens, hiddenSize, embedSize, tokenizerMode = 'word', bpeMerges = []) {
@@ -430,6 +419,7 @@
                 this.totalSteps = 0;
                 this.totalTokensTrained = 0;
                 this.completedEpochs = 0;
+                this.articlesMastered = 0;
                 this.smoothLoss = null;
                 this.lossHistory = [];
                 this.adamStep = 0;
@@ -438,24 +428,15 @@
                 const E = this.embedSize;
                 const H = this.hiddenSize;
 
-                // 1. Token Embedding C: (V x E)
                 this.C = this.randomArray(V * E, Math.sqrt(1 / E));
-
-                // 2. Diagonal MinGRU Weights (O(H*E) instead of O(H^2)!)
-                //    z_t = sigmoid(Wxz * e_t + uz * h_{t-1} + bz)
-                //    a_t = tanh(Wxh * e_t + uh * h_{t-1} + bh)
-                //    h_t = (1 - z_t) * h_{t-1} + z_t * a_t
                 this.Wxz = this.randomArray(H * E, Math.sqrt(2 / (E + H)));
                 this.uz = this.randomArray(H, 0.5);
-                this.bz = new Float32Array(H).fill(-0.5); // Favor remembering long context initially
+                this.bz = new Float32Array(H).fill(-0.5);
 
                 this.Wxh = this.randomArray(H * E, Math.sqrt(2 / (E + H)));
                 this.uh = this.randomArray(H, 0.5);
                 this.bh = new Float32Array(H);
 
-                // 3. Bottleneck Output Projection:
-                //    o_t = tanh(Who * h_t + bo)  [E x H]
-                //    logits = Woy * o_t + by     [V x E]
                 this.Who = this.randomArray(E * H, Math.sqrt(2 / (H + E)));
                 this.bo = new Float32Array(E);
                 this.Woy = this.randomArray(V * E, Math.sqrt(1 / E));
@@ -486,20 +467,15 @@
 
             randomArray(size, scale) {
                 const arr = new Float32Array(size);
-                for (let i = 0; i < size; i++) {
-                    arr[i] = (Math.random() * 2 - 1) * scale;
-                }
+                for (let i = 0; i < size; i++) arr[i] = (Math.random() * 2 - 1) * scale;
                 return arr;
             }
 
             getParamCount() {
-                const V = this.vocabSize;
-                const E = this.embedSize;
-                const H = this.hiddenSize;
+                const V = this.vocabSize, E = this.embedSize, H = this.hiddenSize;
                 return (V * E) + 2 * (H * E + H + H) + (E * H + E) + (V * E + V);
             }
 
-            // Dynamic vocabulary expansion preserving all existing weights
             expandVocabulary(newTokens) {
                 const added = [];
                 for (const tok of newTokens) {
@@ -511,9 +487,7 @@
                 }
                 if (added.length === 0) return 0;
 
-                const oldV = this.vocabSize;
-                const newV = this.revVocab.length;
-                const E = this.embedSize;
+                const oldV = this.vocabSize, newV = this.revVocab.length, E = this.embedSize;
                 const scaleE = Math.sqrt(1 / E);
 
                 const newC = new Float32Array(newV * E);
@@ -528,10 +502,8 @@
                 newBy.set(this.by);
 
                 const expandOpt = (oldOpt, newLen) => {
-                    const m = new Float32Array(newLen);
-                    const v = new Float32Array(newLen);
-                    m.set(oldOpt.m);
-                    v.set(oldOpt.v);
+                    const m = new Float32Array(newLen), v = new Float32Array(newLen);
+                    m.set(oldOpt.m); v.set(oldOpt.v);
                     return { m, v };
                 };
 
@@ -539,71 +511,44 @@
                 this.opt.Woy = expandOpt(this.opt.Woy, newV * E);
                 this.opt.by = expandOpt(this.opt.by, newV);
 
-                this.C = newC;
-                this.Woy = newWoy;
-                this.by = newBy;
-                this.vocabSize = newV;
-
+                this.C = newC; this.Woy = newWoy; this.by = newBy; this.vocabSize = newV;
                 return added.length;
             }
 
-            // Fast BPTT + Importance-Sampled Softmax for large V
             trainChunk(dataIndices, startIdx, seqLength, lr, hPrevIn) {
-                const V = this.vocabSize;
-                const E = this.embedSize;
-                const H = this.hiddenSize;
+                const V = this.vocabSize, E = this.embedSize, H = this.hiddenSize;
                 const endIdx = Math.min(startIdx + seqLength, dataIndices.length - 1);
                 const T = endIdx - startIdx;
                 if (T <= 0) return { loss: 0, hLast: hPrevIn };
 
-                // Build active vocabulary subset for this chunk when V is huge (> 600)
-                // Includes all positive targets in chunk + random negative samples
                 const useSampling = V > 600;
-                let activeVocab = null;
-                let negWeight = 1.0;
+                let activeVocab = null, negWeight = 1.0;
 
                 if (useSampling) {
                     const activeSet = new Set();
-                    for (let t = 0; t < T; t++) {
-                        activeSet.add(dataIndices[startIdx + t + 1]);
-                    }
+                    for (let t = 0; t < T; t++) activeSet.add(dataIndices[startIdx + t + 1]);
                     const numPositive = activeSet.size;
                     const numNegSamples = Math.min(350, V - numPositive);
-                    while (activeSet.size < numPositive + numNegSamples) {
-                        activeSet.add(Math.floor(Math.random() * V));
-                    }
+                    while (activeSet.size < numPositive + numNegSamples) activeSet.add(Math.floor(Math.random() * V));
                     activeVocab = Int32Array.from(activeSet);
                     negWeight = (V - numPositive) / Math.max(1, numNegSamples);
                 }
 
-                const xs = new Int32Array(T);
-                const ys = new Int32Array(T);
-                const hs = new Array(T + 1);
-                const zs = new Array(T);
-                const as = new Array(T);
-                const os = new Array(T);
-                const ps = new Array(T);
-
+                const xs = new Int32Array(T), ys = new Int32Array(T);
+                const hs = new Array(T + 1), zs = new Array(T), as = new Array(T), os = new Array(T), ps = new Array(T);
                 hs[0] = hPrevIn ? new Float32Array(hPrevIn) : new Float32Array(H);
                 let totalLoss = 0;
 
-                // --- 1. Forward Pass ---
                 for (let t = 0; t < T; t++) {
-                    const x = dataIndices[startIdx + t];
-                    const y = dataIndices[startIdx + t + 1];
-                    xs[t] = x;
-                    ys[t] = y;
+                    const x = dataIndices[startIdx + t], y = dataIndices[startIdx + t + 1];
+                    xs[t] = x; ys[t] = y;
 
-                    const eOffset = x * E;
-                    const hPrev = hs[t];
-                    const z = new Float32Array(H);
-                    const a = new Float32Array(H);
-                    const hCurr = new Float32Array(H);
+                    const eOffset = x * E, hPrev = hs[t];
+                    const z = new Float32Array(H), a = new Float32Array(H), hCurr = new Float32Array(H);
 
                     for (let i = 0; i < H; i++) {
                         const hp = hPrev[i];
-                        let sumZ = this.bz[i] + this.uz[i] * hp;
-                        let sumA = this.bh[i] + this.uh[i] * hp;
+                        let sumZ = this.bz[i] + this.uz[i] * hp, sumA = this.bh[i] + this.uh[i] * hp;
                         const rowOffset = i * E;
                         for (let k = 0; k < E; k++) {
                             const ck = this.C[eOffset + k];
@@ -612,28 +557,21 @@
                         }
                         const zi = 1.0 / (1.0 + Math.exp(-Math.max(-20, Math.min(20, sumZ))));
                         const ai = Math.tanh(sumA);
-                        z[i] = zi;
-                        a[i] = ai;
+                        z[i] = zi; a[i] = ai;
                         hCurr[i] = (1.0 - zi) * hp + zi * ai;
                     }
 
-                    zs[t] = z;
-                    as[t] = a;
-                    hs[t + 1] = hCurr;
+                    zs[t] = z; as[t] = a; hs[t + 1] = hCurr;
 
-                    // Bottleneck projection H -> E
                     const oCurr = new Float32Array(E);
                     for (let k = 0; k < E; k++) {
                         let sumO = this.bo[k];
                         const rowOffset = k * H;
-                        for (let i = 0; i < H; i++) {
-                            sumO += this.Who[rowOffset + i] * hCurr[i];
-                        }
+                        for (let i = 0; i < H; i++) sumO += this.Who[rowOffset + i] * hCurr[i];
                         oCurr[k] = Math.tanh(sumO);
                     }
                     os[t] = oCurr;
 
-                    // Output logits E -> V (Full or Importance-Sampled)
                     if (!useSampling) {
                         const logits = new Float32Array(V);
                         let maxLogit = -Infinity;
@@ -647,8 +585,7 @@
                         let expsSum = 0;
                         for (let v = 0; v < V; v++) {
                             const e = Math.exp(logits[v] - maxLogit);
-                            logits[v] = e;
-                            expsSum += e;
+                            logits[v] = e; expsSum += e;
                         }
                         const invSum = 1.0 / expsSum;
                         for (let v = 0; v < V; v++) logits[v] *= invSum;
@@ -657,8 +594,7 @@
                     } else {
                         const M = activeVocab.length;
                         const subLogits = new Float32Array(M);
-                        let maxLogit = -Infinity;
-                        let targetSubIdx = 0;
+                        let maxLogit = -Infinity, targetSubIdx = 0;
                         for (let m = 0; m < M; m++) {
                             const v = activeVocab[m];
                             if (v === y) targetSubIdx = m;
@@ -672,8 +608,7 @@
                         for (let m = 0; m < M; m++) {
                             const w = m === targetSubIdx ? 1.0 : negWeight;
                             const e = Math.exp(subLogits[m] - maxLogit) * w;
-                            subLogits[m] = e;
-                            expsSum += e;
+                            subLogits[m] = e; expsSum += e;
                         }
                         const invSum = 1.0 / expsSum;
                         for (let m = 0; m < M; m++) subLogits[m] *= invSum;
@@ -682,31 +617,18 @@
                     }
                 }
 
-                // --- 2. Backward Pass (BPTT) ---
+                // Backward pass
                 const invT = 1.0 / T;
-                const dWxz = new Float32Array(H * E);
-                const duz = new Float32Array(H);
-                const dbz = new Float32Array(H);
-                const dWxh = new Float32Array(H * E);
-                const duh = new Float32Array(H);
-                const dbh = new Float32Array(H);
-                const dWho = new Float32Array(E * H);
-                const dbo = new Float32Array(E);
+                const dWxz = new Float32Array(H * E), duz = new Float32Array(H), dbz = new Float32Array(H);
+                const dWxh = new Float32Array(H * E), duh = new Float32Array(H), dbh = new Float32Array(H);
+                const dWho = new Float32Array(E * H), dbo = new Float32Array(E);
 
-                const touchedEmb = new Map();
-                const touchedOut = new Map();
+                const touchedEmb = new Map(), touchedOut = new Map();
                 const dhNext = new Float32Array(H);
 
                 for (let t = T - 1; t >= 0; t--) {
-                    const hCurr = hs[t + 1];
-                    const hPrev = hs[t];
-                    const z = zs[t];
-                    const a = as[t];
-                    const oCurr = os[t];
-                    const x = xs[t];
-                    const target = ys[t];
-                    const eOffset = x * E;
-
+                    const hCurr = hs[t + 1], hPrev = hs[t], z = zs[t], a = as[t], oCurr = os[t];
+                    const x = xs[t], target = ys[t], eOffset = x * E;
                     const doCurr = new Float32Array(E);
 
                     if (!useSampling) {
@@ -715,10 +637,7 @@
                             const dy = (probs[v] - (v === target ? 1.0 : 0.0)) * invT;
                             if (Math.abs(dy) < 1e-9) continue;
                             let outEntry = touchedOut.get(v);
-                            if (!outEntry) {
-                                outEntry = { dW: new Float32Array(E), db: 0 };
-                                touchedOut.set(v, outEntry);
-                            }
+                            if (!outEntry) { outEntry = { dW: new Float32Array(E), db: 0 }; touchedOut.set(v, outEntry); }
                             outEntry.db += dy;
                             const vOffset = v * E;
                             for (let k = 0; k < E; k++) {
@@ -734,10 +653,7 @@
                             const dy = (subProbs[m] - (m === targetSubIdx ? 1.0 : 0.0)) * invT;
                             if (Math.abs(dy) < 1e-9) continue;
                             let outEntry = touchedOut.get(v);
-                            if (!outEntry) {
-                                outEntry = { dW: new Float32Array(E), db: 0 };
-                                touchedOut.set(v, outEntry);
-                            }
+                            if (!outEntry) { outEntry = { dW: new Float32Array(E), db: 0 }; touchedOut.set(v, outEntry); }
                             outEntry.db += dy;
                             const vOffset = v * E;
                             for (let k = 0; k < E; k++) {
@@ -747,11 +663,9 @@
                         }
                     }
 
-                    // Backprop through o_t = tanh(Who * h_t + bo)
                     const dh = new Float32Array(dhNext);
                     for (let k = 0; k < E; k++) {
-                        const ok = oCurr[k];
-                        const doRaw = (1.0 - ok * ok) * doCurr[k];
+                        const ok = oCurr[k], doRaw = (1.0 - ok * ok) * doCurr[k];
                         dbo[k] += doRaw;
                         const rowOffset = k * H;
                         for (let i = 0; i < H; i++) {
@@ -761,25 +675,15 @@
                     }
 
                     let dEmb = touchedEmb.get(x);
-                    if (!dEmb) {
-                        dEmb = new Float32Array(E);
-                        touchedEmb.set(x, dEmb);
-                    }
+                    if (!dEmb) { dEmb = new Float32Array(E); touchedEmb.set(x, dEmb); }
 
-                    // Backprop through Diagonal MinGRU
                     for (let i = 0; i < H; i++) {
-                        const dhi = dh[i];
-                        const zi = z[i];
-                        const ai = a[i];
-                        const hp = hPrev[i];
-
+                        const dhi = dh[i], zi = z[i], ai = a[i], hp = hPrev[i];
                         const dzi = dhi * (ai - hp) * zi * (1.0 - zi);
                         const dai = dhi * zi * (1.0 - ai * ai);
 
-                        dbz[i] += dzi;
-                        dbh[i] += dai;
-                        duz[i] += dzi * hp;
-                        duh[i] += dai * hp;
+                        dbz[i] += dzi; dbh[i] += dai;
+                        duz[i] += dzi * hp; duh[i] += dai * hp;
 
                         const rowOffset = i * E;
                         for (let k = 0; k < E; k++) {
@@ -788,31 +692,24 @@
                             dWxh[rowOffset + k] += dai * ck;
                             dEmb[k] += this.Wxz[rowOffset + k] * dzi + this.Wxh[rowOffset + k] * dai;
                         }
-
                         dhNext[i] = dhi * (1.0 - zi) + dzi * this.uz[i] + dai * this.uh[i];
                     }
                 }
 
-                // --- 3. Fast AdamW Parameter Update ---
+                // AdamW update
                 this.adamStep++;
-                const beta1 = 0.9;
-                const beta2 = 0.999;
-                const eps = 1e-8;
-                const bc1 = 1.0 - Math.pow(beta1, this.adamStep);
-                const bc2 = 1.0 - Math.pow(beta2, this.adamStep);
+                const beta1 = 0.9, beta2 = 0.999, eps = 1e-8;
+                const bc1 = 1.0 - Math.pow(beta1, this.adamStep), bc2 = 1.0 - Math.pow(beta2, this.adamStep);
                 const stepSize = lr * (Math.sqrt(bc2) / bc1);
 
                 const updateDense = (param, grad, optState) => {
-                    const m = optState.m;
-                    const v = optState.v;
+                    const m = optState.m, v = optState.v;
                     for (let i = 0; i < param.length; i++) {
                         let g = grad[i];
-                        if (g > 3.0) g = 3.0;
-                        else if (g < -3.0) g = -3.0;
+                        if (g > 3.0) g = 3.0; else if (g < -3.0) g = -3.0;
                         const mi = beta1 * m[i] + (1.0 - beta1) * g;
                         const vi = beta2 * v[i] + (1.0 - beta2) * (g * g);
-                        m[i] = mi;
-                        v[i] = vi;
+                        m[i] = mi; v[i] = vi;
                         param[i] -= (stepSize * mi) / (Math.sqrt(vi) + eps);
                     }
                 };
@@ -826,48 +723,36 @@
                 updateDense(this.Who, dWho, this.opt.Who);
                 updateDense(this.bo, dbo, this.opt.bo);
 
-                // Sparse Adam update for active output rows (Woy, by)
-                const mWoy = this.opt.Woy.m;
-                const vWoy = this.opt.Woy.v;
-                const mby = this.opt.by.m;
-                const vby = this.opt.by.v;
+                const mWoy = this.opt.Woy.m, vWoy = this.opt.Woy.v, mby = this.opt.by.m, vby = this.opt.by.v;
                 for (const [vIdx, entry] of touchedOut.entries()) {
                     let gb = entry.db;
-                    if (gb > 3.0) gb = 3.0;
-                    else if (gb < -3.0) gb = -3.0;
+                    if (gb > 3.0) gb = 3.0; else if (gb < -3.0) gb = -3.0;
                     mby[vIdx] = beta1 * mby[vIdx] + (1.0 - beta1) * gb;
                     vby[vIdx] = beta2 * vby[vIdx] + (1.0 - beta2) * (gb * gb);
                     this.by[vIdx] -= (stepSize * mby[vIdx]) / (Math.sqrt(vby[vIdx]) + eps);
 
-                    const vOffset = vIdx * E;
-                    const dW = entry.dW;
+                    const vOffset = vIdx * E, dW = entry.dW;
                     for (let k = 0; k < E; k++) {
                         let g = dW[k];
-                        if (g > 3.0) g = 3.0;
-                        else if (g < -3.0) g = -3.0;
+                        if (g > 3.0) g = 3.0; else if (g < -3.0) g = -3.0;
                         const idx = vOffset + k;
                         const mi = beta1 * mWoy[idx] + (1.0 - beta1) * g;
                         const vi = beta2 * vWoy[idx] + (1.0 - beta2) * (g * g);
-                        mWoy[idx] = mi;
-                        vWoy[idx] = vi;
+                        mWoy[idx] = mi; vWoy[idx] = vi;
                         this.Woy[idx] -= (stepSize * mi) / (Math.sqrt(vi) + eps);
                     }
                 }
 
-                // Sparse Adam update for active embeddings (C)
-                const mC = this.opt.C.m;
-                const vC = this.opt.C.v;
+                const mC = this.opt.C.m, vC = this.opt.C.v;
                 for (const [tokIdx, dEmb] of touchedEmb.entries()) {
                     const offset = tokIdx * E;
                     for (let k = 0; k < E; k++) {
                         let g = dEmb[k];
-                        if (g > 3.0) g = 3.0;
-                        else if (g < -3.0) g = -3.0;
+                        if (g > 3.0) g = 3.0; else if (g < -3.0) g = -3.0;
                         const idx = offset + k;
                         const mi = beta1 * mC[idx] + (1.0 - beta1) * g;
                         const vi = beta2 * vC[idx] + (1.0 - beta2) * (g * g);
-                        mC[idx] = mi;
-                        vC[idx] = vi;
+                        mC[idx] = mi; vC[idx] = vi;
                         this.C[idx] -= (stepSize * mi) / (Math.sqrt(vi) + eps);
                     }
                 }
@@ -881,16 +766,12 @@
             }
 
             stepForward(xIdx, hPrev) {
-                const V = this.vocabSize;
-                const E = this.embedSize;
-                const H = this.hiddenSize;
-                const eOffset = xIdx * E;
-                const h = new Float32Array(H);
+                const V = this.vocabSize, E = this.embedSize, H = this.hiddenSize;
+                const eOffset = xIdx * E, h = new Float32Array(H);
 
                 for (let i = 0; i < H; i++) {
                     const hp = hPrev[i];
-                    let sumZ = this.bz[i] + this.uz[i] * hp;
-                    let sumA = this.bh[i] + this.uh[i] * hp;
+                    let sumZ = this.bz[i] + this.uz[i] * hp, sumA = this.bh[i] + this.uh[i] * hp;
                     const rowOffset = i * E;
                     for (let k = 0; k < E; k++) {
                         const ck = this.C[eOffset + k];
@@ -921,22 +802,14 @@
             }
 
             generateTokens(promptTokens, numTokensToGen, temp = 0.65, topK = 8, repPenalty = 1.15) {
-                const V = this.vocabSize;
-                const H = this.hiddenSize;
+                const V = this.vocabSize, H = this.hiddenSize;
                 let h = new Float32Array(H);
-                const generatedTokens = [...promptTokens];
-                const recentHistory = [];
-
+                const generatedTokens = [...promptTokens], recentHistory = [];
                 let lastIdx = this.vocab['。'] !== undefined ? this.vocab['。'] : 0;
 
                 for (let i = 0; i < promptTokens.length; i++) {
                     const tok = promptTokens[i];
-                    if (this.vocab[tok] !== undefined) {
-                        lastIdx = this.vocab[tok];
-                    } else {
-                        const fallbackIdx = this.revVocab.findIndex(v => v.includes(tok) || tok.includes(v));
-                        lastIdx = fallbackIdx !== -1 ? fallbackIdx : 0;
-                    }
+                    lastIdx = this.vocab[tok] !== undefined ? this.vocab[tok] : 0;
                     recentHistory.push(lastIdx);
                     h = this.stepForward(lastIdx, h).h;
                 }
@@ -950,30 +823,20 @@
                     const startV = V > 1 ? 1 : 0;
                     for (let i = startV; i < V; i++) {
                         let score = logits[i];
-                        if (recentSet.has(i) && repPenalty > 1.0) {
-                            score = score > 0 ? score / repPenalty : score * repPenalty;
-                        }
+                        if (recentSet.has(i) && repPenalty > 1.0) score = score > 0 ? score / repPenalty : score * repPenalty;
                         indexed.push({ idx: i, val: score / Math.max(0.05, temp) });
                     }
 
                     indexed.sort((a, b) => b.val - a.val);
                     const candidates = indexed.slice(0, Math.min(topK, indexed.length));
-
                     const maxVal = candidates[0].val;
                     let sumExp = 0;
-                    for (let c of candidates) {
-                        c.exp = Math.exp(c.val - maxVal);
-                        sumExp += c.exp;
-                    }
+                    for (let c of candidates) { c.exp = Math.exp(c.val - maxVal); sumExp += c.exp; }
 
-                    let r = Math.random() * sumExp;
-                    let chosenIdx = candidates[0].idx;
+                    let r = Math.random() * sumExp, chosenIdx = candidates[0].idx;
                     for (let c of candidates) {
                         r -= c.exp;
-                        if (r <= 0) {
-                            chosenIdx = c.idx;
-                            break;
-                        }
+                        if (r <= 0) { chosenIdx = c.idx; break; }
                     }
 
                     const nextTok = this.revVocab[chosenIdx] || '';
@@ -981,49 +844,27 @@
                     recentHistory.push(chosenIdx);
                     lastIdx = chosenIdx;
                 }
-
                 return generatedTokens;
             }
 
             toRawSnapshot() {
                 return {
-                    version: 5,
-                    tokenizerMode: this.tokenizerMode,
-                    bpeMerges: this.bpeMerges || [],
-                    vocabSize: this.vocabSize,
-                    hiddenSize: this.hiddenSize,
-                    embedSize: this.embedSize,
-                    revVocab: this.revVocab,
-                    totalSteps: this.totalSteps,
-                    totalTokensTrained: this.totalTokensTrained,
-                    completedEpochs: this.completedEpochs,
-                    smoothLoss: this.smoothLoss,
-                    lossHistory: this.lossHistory.slice(-200),
-                    C: this.C,
-                    Wxz: this.Wxz,
-                    uz: this.uz,
-                    bz: this.bz,
-                    Wxh: this.Wxh,
-                    uh: this.uh,
-                    bh: this.bh,
-                    Who: this.Who,
-                    bo: this.bo,
-                    Woy: this.Woy,
-                    by: this.by
+                    version: 7,
+                    vocabSize: this.vocabSize, hiddenSize: this.hiddenSize, embedSize: this.embedSize,
+                    revVocab: this.revVocab, totalSteps: this.totalSteps, totalTokensTrained: this.totalTokensTrained,
+                    completedEpochs: this.completedEpochs, articlesMastered: this.articlesMastered,
+                    smoothLoss: this.smoothLoss, lossHistory: this.lossHistory.slice(-200),
+                    C: this.C, Wxz: this.Wxz, uz: this.uz, bz: this.bz, Wxh: this.Wxh, uh: this.uh,
+                    bh: this.bh, Who: this.Who, bo: this.bo, Woy: this.Woy, by: this.by
                 };
             }
 
             static fromSnapshot(data) {
-                const rnn = new FastMinGRUTokenRNN(
-                    data.revVocab,
-                    data.hiddenSize,
-                    data.embedSize || 128,
-                    data.tokenizerMode || 'word',
-                    data.bpeMerges || []
-                );
+                const rnn = new FastMinGRUTokenRNN(data.revVocab, data.hiddenSize, data.embedSize || 128);
                 rnn.totalSteps = data.totalSteps || 0;
                 rnn.totalTokensTrained = data.totalTokensTrained || 0;
                 rnn.completedEpochs = data.completedEpochs || 0;
+                rnn.articlesMastered = data.articlesMastered || 0;
                 rnn.smoothLoss = data.smoothLoss || null;
                 rnn.lossHistory = data.lossHistory || [];
 
@@ -1044,11 +885,143 @@
         }
 
         // ============================================================================
-        // 4. App State, Corpus Progress & Training Loop
+        // 4. Crawler & Autonomous Loop Manager
+        // ============================================================================
+        let autoPilotActive = false;
+        let isFetchingData = false;
+        let currentArticleTitle = "初期コーパス";
+        let currentArticleEpochs = 0;
+        let visitedTitles = new Set();
+        let crawlerQueue = [];
+
+        const builtinTemplates = [
+            { title: "人工知能とディープラーニング", text: "人工知能は大量のデータからパターンを学習する。ニューラルネットワークやトランスフォーマー、リカレントモデルが代表的である。" },
+            { title: "量子力学と素粒子物理学", text: "量子力学はミクロな世界の物理法則を記述する理論であり、重ね合わせや量子もつれといった直感に反する現象を扱う。" },
+            { title: "宇宙論とブラックホール", text: "宇宙の進化やダークマター、ブラックホールの事象の地平面の研究は現代物理学の最先端テーマである。" }
+        ];
+
+        function getCrawlerQueue() {
+            const raw = document.getElementById('autopilot-keywords').value;
+            return raw.split(/[,、\s]+/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function clearCrawlerQueue() {
+            document.getElementById('autopilot-keywords').value = "人工知能, 宇宙, 機械学習, 量子力学";
+            appendSystemMessage("🧹 クローラーの検索キーワードキューを初期化しました。");
+        }
+
+        async function fetchNextAutonomousData(manualTrigger = false) {
+            if (isFetchingData) return;
+            isFetchingData = true;
+
+            const wasTraining = isTraining;
+            if (wasTraining && animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            const mode = document.getElementById('autopilot-source').value;
+            document.getElementById('autopilot-log').textContent = `🕷️ 連想クローラーが次世代キーワードを探索中...`;
+
+            let queryWord = "科学";
+            let queue = getCrawlerQueue();
+            if (queue.length > 0) {
+                queryWord = queue.shift();
+                document.getElementById('autopilot-keywords').value = queue.join(", ");
+            }
+
+            let fetchedTitle = "";
+            let fetchedText = "";
+
+            if (mode === 'builtin') {
+                const item = builtinTemplates[Math.floor(Math.random() * builtinTemplates.length)];
+                fetchedTitle = item.title;
+                fetchedText = item.text;
+            } else {
+                try {
+                    const searchUrl = `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(queryWord)}&srlimit=10&format=json&origin=*`;
+                    const res = await fetch(searchUrl);
+                    const json = await res.json();
+                    const hits = (json?.query?.search || []).filter(h => !visitedTitles.has(h.title));
+
+                    if (hits.length > 0) {
+                        const chosen = hits[Math.floor(Math.random() * hits.length)];
+                        fetchedTitle = chosen.title;
+                    } else {
+                        const randUrl = `https://ja.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=3&format=json&origin=*`;
+                        const rRes = await fetch(randUrl);
+                        const rJson = await rRes.json();
+                        fetchedTitle = rJson?.query?.random[0]?.title || "情報技術";
+                    }
+
+                    visitedTitles.add(fetchedTitle);
+                    const extUrl = `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(fetchedTitle)}&format=json&origin=*`;
+                    const eRes = await fetch(extUrl);
+                    const eJson = await eRes.json();
+                    const pageObj = Object.values(eJson?.query?.pages || {})[0];
+                    fetchedText = pageObj?.extract || "";
+
+                    if (fetchedText.length < 200) {
+                        fetchedText = builtinTemplates[0].text;
+                    }
+                    if (fetchedText.length > 12000) {
+                        fetchedText = fetchedText.slice(0, 12000);
+                    }
+                } catch (e) {
+                    const backup = builtinTemplates[Math.floor(Math.random() * builtinTemplates.length)];
+                    fetchedTitle = backup.title;
+                    fetchedText = backup.text;
+                }
+            }
+
+            // --- クローラーの真骨頂：専門用語抽出してキューに自動追加！ ---
+            const extractedTerms = extractImportantTerms(fetchedText);
+            let currentQueue = getCrawlerQueue();
+            let addedCount = 0;
+            for (const term of extractedTerms) {
+                if (!currentQueue.includes(term) && term.length >= 2) {
+                    currentQueue.push(term);
+                    addedCount++;
+                }
+            }
+            document.getElementById('autopilot-keywords').value = currentQueue.join(", ");
+            document.getElementById('autopilot-log').textContent = `🕷️ 抽出用語+${addedCount}個をキューに追加しました（次: ${currentQueue[0] || '自動'}）`;
+
+            currentArticleTitle = `🕷️ Wiki: ${fetchedTitle}`;
+            currentArticleEpochs = 0;
+            dataPointer = 0;
+            hCarry = null;
+
+            document.getElementById('corpus-input').value = fetchedText;
+            document.getElementById('current-article-title').textContent = `学習中: ${currentArticleTitle}`;
+            refreshCorpusTokenization(false);
+
+            appendSystemMessage(`🕷️ クローラー収穫: 「${fetchedTitle}」 → 新規専門用語 ${addedCount}個を連想キューに追加しました。`);
+            isFetchingData = false;
+
+            if (autoPilotActive || wasTraining || manualTrigger) {
+                startTraining();
+            }
+        }
+
+        function toggleAutoPilot() {
+            autoPilotActive = !autoPilotActive;
+            const btn = document.getElementById('btn-autopilot');
+
+            if (autoPilotActive) {
+                btn.className = "flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 via-amber-600 to-orange-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-600/30 transition-all active:scale-95 flex items-center justify-center gap-2 animate-pulse";
+                btn.innerHTML = `<span>⏹ 連想クローラー稼働中（クリックで停止）</span>`;
+                appendSystemMessage("🕷️ 連想クローラーが起動しました！学習した記事から専門用語を自動抽出して無限に知識を連鎖させます。");
+                fetchNextAutonomousData(true);
+            } else {
+                btn.className = "flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/30 transition-all active:scale-95 flex items-center justify-center gap-2";
+                btn.innerHTML = `<span>🕷️ 連想クローラー稼働 ON（全自動学習）</span>`;
+                stopAllTraining();
+            }
+        }
+
+        // ============================================================================
+        // 5. Main State & Training Loop (Turbo Mode Supported)
         // ============================================================================
         let tokenizer = new JapaneseTokenizer('word');
         let model = null;
-        let virtualFileTexts = [];
         let currentCorpusTokens = [];
         let encodedCorpusIndices = null;
         let isTraining = false;
@@ -1057,46 +1030,21 @@
         let hCarry = null;
         let tokenUpdateTimer = null;
 
-        // Speed tracking (tokens/sec)
         let lastSpeedCheckTime = performance.now();
         let tokensSinceLastCheck = 0;
         let currentTokPerSec = 0;
 
-        const defaultSamples = [
-            "こんにちは！私は対角ゲート型MinGRUとボトルネック出力層を搭載した超高速・大規模日本語トークンAIです。従来のRNNで問題だった巨大行列の計算ボトルネックを解消したため、隠れ層を最大4096まで拡大してもフリーズせず、毎秒数千トークンの速度でスムーズに学習が進みます。",
-            "人工知能（AI）の学習では、現在の文章データの何パーセントまで学習が進んだかを進捗バーで確認しながら、何周（エポック）も反復して文脈パターンを記憶させることができます。新しい文章を追加しても、これまでの記憶を消さずに語彙を自動拡張して成長し続けます。",
-            "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。吾輩はここで始めて人間というものを見た。"
-        ];
-
         function loadDefaultCorpus() {
             const area = document.getElementById('corpus-input');
-            area.value = (area.value ? area.value + "\n" : "") + defaultSamples.join("\n");
+            area.value = builtinTemplates.map(t => t.text).join("\n\n");
+            currentArticleTitle = "内蔵サンプルコーパス";
+            document.getElementById('current-article-title').textContent = `学習中: ${currentArticleTitle}`;
             refreshCorpusTokenization(true);
         }
 
         function clearCorpus() {
             document.getElementById('corpus-input').value = "";
-            virtualFileTexts = [];
-            updateVirtualMemUI();
             refreshCorpusTokenization(true);
-        }
-
-        function clearVirtualFiles() {
-            virtualFileTexts = [];
-            updateVirtualMemUI();
-            refreshCorpusTokenization(true);
-        }
-
-        function updateVirtualMemUI() {
-            const bar = document.getElementById('virtual-mem-bar');
-            const txt = document.getElementById('virtual-mem-text');
-            if (virtualFileTexts.length === 0) {
-                bar.classList.add('hidden');
-            } else {
-                bar.classList.remove('hidden');
-                const totalChars = virtualFileTexts.reduce((acc, s) => acc + s.length, 0);
-                txt.textContent = `📦 仮想メモリ保持中: ${virtualFileTexts.length} ファイル (${totalChars.toLocaleString()} 文字)`;
-            }
         }
 
         function onTokenizerConfigChange() {
@@ -1109,22 +1057,13 @@
             tokenUpdateTimer = setTimeout(() => refreshCorpusTokenization(false), 200);
         }
 
-        function getCombinedCorpusText() {
-            const editorText = document.getElementById('corpus-input').value;
-            if (virtualFileTexts.length === 0) return editorText;
-            return editorText ? (editorText + "\n" + virtualFileTexts.join("\n")) : virtualFileTexts.join("\n");
-        }
-
         function refreshCorpusTokenization(rebuildBPE = false) {
-            const fullText = getCombinedCorpusText();
+            const fullText = document.getElementById('corpus-input').value;
             const rawTokens = tokenizer.tokenize(fullText, rebuildBPE);
-            const maxVocab = parseInt(document.getElementById('param-max-vocab').value) || 25000;
+            const maxVocab = parseInt(document.getElementById('param-max-vocab').value) || 30000;
 
             const freqMap = new Map();
-            for (let i = 0; i < rawTokens.length; i++) {
-                const t = rawTokens[i];
-                freqMap.set(t, (freqMap.get(t) || 0) + 1);
-            }
+            for (let i = 0; i < rawTokens.length; i++) freqMap.set(rawTokens[i], (freqMap.get(rawTokens[i]) || 0) + 1);
 
             if (freqMap.size > maxVocab) {
                 const sorted = Array.from(freqMap.entries()).sort((a, b) => b[1] - a[1]);
@@ -1135,48 +1074,32 @@
             }
 
             const uniqueCount = new Set(currentCorpusTokens).size;
-            document.getElementById('corpus-size-badge').textContent =
-                `${currentCorpusTokens.length.toLocaleString()} トークン (${fullText.length.toLocaleString()}文字)`;
-            document.getElementById('unique-token-info').textContent =
-                `登録語彙数: ${uniqueCount.toLocaleString()} 個`;
+            document.getElementById('corpus-size-badge').textContent = `${currentCorpusTokens.length.toLocaleString()} トークン`;
+            document.getElementById('unique-token-info').textContent = `語彙数: ${uniqueCount.toLocaleString()} 個`;
 
-            // If currently training or model exists, re-encode seamlessly
             if (model && currentCorpusTokens.length >= 2) {
                 model.expandVocabulary(Array.from(new Set(currentCorpusTokens)));
                 encodedCorpusIndices = new Int32Array(currentCorpusTokens.length);
-                for (let i = 0; i < currentCorpusTokens.length; i++) {
-                    encodedCorpusIndices[i] = model.vocab[currentCorpusTokens[i]] || 0;
-                }
+                for (let i = 0; i < currentCorpusTokens.length; i++) encodedCorpusIndices[i] = model.vocab[currentCorpusTokens[i]] || 0;
             }
-
             renderTokenPreview();
         }
 
         function toggleTokenPreview() {
             const box = document.getElementById('token-preview-box');
-            box.classList.toggle('hidden');
-            box.classList.toggle('flex');
+            box.classList.toggle('hidden'); box.classList.toggle('flex');
             renderTokenPreview();
         }
 
         function renderTokenPreview() {
             const box = document.getElementById('token-preview-box');
             if (box.classList.contains('hidden')) return;
-
             const list = document.getElementById('token-preview-list');
             list.innerHTML = "";
-            const previewSlice = currentCorpusTokens.slice(0, 80);
-
-            previewSlice.forEach((tok, idx) => {
+            currentCorpusTokens.slice(0, 80).forEach((tok, idx) => {
                 const span = document.createElement('span');
-                const displayTok = tok === '\n' ? '↵改行' : (tok.trim() === '' ? '␣空白' : tok);
-                const colors = [
-                    "bg-emerald-950/80 text-emerald-300 border-emerald-800/60",
-                    "bg-indigo-950/80 text-indigo-300 border-indigo-800/60",
-                    "bg-violet-950/80 text-violet-300 border-violet-800/60"
-                ];
-                span.className = `px-1.5 py-0.5 text-[11px] font-mono rounded border ${colors[idx % 3]}`;
-                span.textContent = displayTok;
+                span.className = "px-1.5 py-0.5 text-[11px] font-mono rounded border bg-violet-950/80 text-violet-300 border-violet-800/60";
+                span.textContent = tok === '\n' ? '↵' : tok;
                 list.appendChild(span);
             });
         }
@@ -1184,30 +1107,20 @@
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
-
-            let totalAddedChars = 0;
-            for (const file of files) {
-                const text = await file.text();
-                totalAddedChars += text.length;
-                if (text.length > 25000 || virtualFileTexts.length > 0) {
-                    virtualFileTexts.push(text);
-                } else {
-                    const area = document.getElementById('corpus-input');
-                    area.value = (area.value ? area.value + "\n" : "") + text;
-                }
-            }
-            updateVirtualMemUI();
+            let combined = "";
+            for (const file of files) { combined += (combined ? "\n" : "") + (await file.text()); }
+            document.getElementById('corpus-input').value = combined;
+            currentArticleTitle = `📂 ${files[0].name}`;
+            currentArticleEpochs = 0; dataPointer = 0;
+            document.getElementById('current-article-title').textContent = `学習中: ${currentArticleTitle}`;
             refreshCorpusTokenization(true);
-            appendSystemMessage(`📂 ${files.length}ファイル（計 ${totalAddedChars.toLocaleString()} 文字）を取り込みました！総トークン数: ${currentCorpusTokens.length.toLocaleString()}`);
             event.target.value = "";
         }
 
         function boostLearningRate() {
             const lrInput = document.getElementById('param-lr');
-            const currentLR = parseFloat(lrInput.value) || 0.005;
-            const boosted = Math.min(0.03, +(currentLR * 1.8).toFixed(4));
-            lrInput.value = boosted;
-            appendSystemMessage(`⚡ 学習率（LR）を ${boosted} に再加速しました！`);
+            lrInput.value = Math.min(0.03, +((parseFloat(lrInput.value) || 0.005) * 1.8).toFixed(4));
+            appendSystemMessage(`⚡ 学習率をブーストしました！`);
         }
 
         function updateDashboardUI() {
@@ -1216,40 +1129,36 @@
             document.getElementById('param-badge').textContent = `Params: ${model.getParamCount().toLocaleString()}`;
             document.getElementById('step-display').textContent = model.totalSteps.toLocaleString();
             document.getElementById('tokens-trained-display').textContent = model.totalTokensTrained.toLocaleString();
-            document.getElementById('epoch-display').textContent = `${model.completedEpochs.toLocaleString()} 周`;
+            document.getElementById('articles-display').textContent = `${model.articlesMastered.toLocaleString()} 件`;
             document.getElementById('loss-display').textContent = model.smoothLoss !== null ? model.smoothLoss.toFixed(4) : "---";
             document.getElementById('speed-badge').textContent = `${currentTokPerSec.toLocaleString()} tok/s`;
 
-            // Update progress bar
             const totalLen = encodedCorpusIndices ? encodedCorpusIndices.length : 1;
             const pct = Math.min(100, Math.max(0, (dataPointer / totalLen) * 100));
             document.getElementById('epoch-progress-bar').style.width = `${pct.toFixed(1)}%`;
-            document.getElementById('epoch-progress-text').textContent =
-                `Epoch ${model.completedEpochs + 1} (${pct.toFixed(1)}% - ${dataPointer.toLocaleString()} / ${totalLen.toLocaleString()} tok)`;
+            document.getElementById('epoch-progress-text').textContent = `Epoch ${currentArticleEpochs + 1} (${pct.toFixed(1)}%)`;
 
-            drawLossChart();
+            // If Turbo Mode is OFF, draw loss chart
+            if (!document.getElementById('turbo-mode-check').checked) {
+                drawLossChart();
+            }
         }
 
         function drawLossChart() {
             const canvas = document.getElementById('loss-canvas');
             const ctx = canvas.getContext('2d');
             const w = canvas.width = canvas.clientWidth || 300;
-            const h = canvas.height = 64;
+            const h = canvas.height = 60;
             ctx.clearRect(0, 0, w, h);
-
             if (!model || model.lossHistory.length < 2) return;
             const hist = model.lossHistory;
-            const maxL = Math.max(...hist, 0.5);
-            const minL = Math.max(0, Math.min(...hist) * 0.9);
+            const maxL = Math.max(...hist, 0.5), minL = Math.max(0, Math.min(...hist) * 0.9);
 
-            ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
+            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.beginPath();
             for (let i = 0; i < hist.length; i++) {
                 const x = (i / (hist.length - 1)) * (w - 16) + 8;
                 const y = h - 8 - ((hist[i] - minL) / Math.max(0.001, maxL - minL)) * (h - 16);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             }
             ctx.stroke();
         }
@@ -1257,41 +1166,27 @@
         function startTraining() {
             refreshCorpusTokenization(false);
             if (currentCorpusTokens.length < 5) {
-                alert("学習させる文章をもう少し長く入力してください（最低5トークン以上）。");
+                if (autoPilotActive) fetchNextAutonomousData(true);
+                else alert("文章を入力するか、クローラーをONにしてください。");
                 return;
             }
 
             const uniqueTokens = Array.from(new Set(currentCorpusTokens));
             const selectedHidden = Math.min(4096, Math.max(64, parseInt(document.getElementById('param-hidden').value) || 512));
             const selectedEmbed = Math.min(1024, Math.max(32, parseInt(document.getElementById('param-embed').value) || 128));
-            const selectedMode = document.getElementById('tokenizer-mode').value;
 
             if (!model) {
-                model = new FastMinGRUTokenRNN(uniqueTokens, selectedHidden, selectedEmbed, selectedMode, tokenizer.bpeMerges);
+                model = new FastMinGRUTokenRNN(uniqueTokens, selectedHidden, selectedEmbed, tokenizer.mode);
                 dataPointer = 0;
-                appendSystemMessage(
-                    `🚀 爆速MinGRUモデルを構築しました！（隠れ層: ${selectedHidden}, ボトルネック次元: ${selectedEmbed}, 語彙: ${model.vocabSize.toLocaleString()}, パラメータ数: ${model.getParamCount().toLocaleString()}）`
-                );
             } else {
-                const addedCount = model.expandVocabulary(uniqueTokens);
-                if (addedCount > 0) {
-                    appendSystemMessage(
-                        `📈 既存の知識を保持したまま、新しい語彙トークンを ${addedCount.toLocaleString()} 個追加しました！（総語彙: ${model.vocabSize.toLocaleString()}）`
-                    );
-                }
+                model.expandVocabulary(uniqueTokens);
             }
 
             enableGenerationUI();
-
             encodedCorpusIndices = new Int32Array(currentCorpusTokens.length);
-            for (let i = 0; i < currentCorpusTokens.length; i++) {
-                const idx = model.vocab[currentCorpusTokens[i]];
-                encodedCorpusIndices[i] = idx !== undefined ? idx : 0;
-            }
+            for (let i = 0; i < currentCorpusTokens.length; i++) encodedCorpusIndices[i] = model.vocab[currentCorpusTokens[i]] || 0;
 
-            if (dataPointer >= encodedCorpusIndices.length - 2) {
-                dataPointer = 0;
-            }
+            if (dataPointer >= encodedCorpusIndices.length - 2) dataPointer = 0;
 
             isTraining = true;
             lastSpeedCheckTime = performance.now();
@@ -1301,27 +1196,38 @@
             document.getElementById('btn-stop').disabled = false;
             document.getElementById('param-hidden').disabled = true;
             document.getElementById('param-embed').disabled = true;
-            document.getElementById('tokenizer-mode').disabled = true;
 
             const statusBadge = document.getElementById('status-badge');
-            statusBadge.textContent = "爆速学習中...";
+            statusBadge.textContent = autoPilotActive ? "🕷️ クローラー稼働中" : "学習中...";
             statusBadge.className = "px-2.5 py-1 text-[11px] font-medium rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 animate-pulse";
 
             function trainLoop() {
-                if (!isTraining) return;
+                if (!isTraining || isFetchingData) return;
 
                 const seqLen = Math.min(512, Math.max(8, parseInt(document.getElementById('param-seq').value) || 48));
                 const lr = parseFloat(document.getElementById('param-lr').value) || 0.008;
+                const maxEpochs = parseInt(document.getElementById('autopilot-epochs').value) || 2;
+                const targetLoss = parseFloat(document.getElementById('autopilot-target-loss').value) || 1.6;
+                const isTurbo = document.getElementById('turbo-mode-check').checked;
 
                 const tStart = performance.now();
                 let stepsThisFrame = 0;
+                const batchLimit = isTurbo ? 120 : 30; // Turbo mode runs 4x calculations per frame
 
-                // Keep frame budget ~22ms so UI stays 60fps responsive while maximizing throughput
-                while ((performance.now() - tStart) < 22 || stepsThisFrame === 0) {
+                while ((performance.now() - tStart) < (isTurbo ? 35 : 20) || stepsThisFrame === 0) {
                     if (dataPointer + 2 >= encodedCorpusIndices.length) {
-                        dataPointer = 0;
-                        hCarry = null;
-                        model.completedEpochs++;
+                        dataPointer = 0; hCarry = null;
+                        model.completedEpochs++; currentArticleEpochs++;
+
+                        if (autoPilotActive) {
+                            if (currentArticleEpochs >= maxEpochs || (currentArticleEpochs >= 1 && model.smoothLoss <= targetLoss)) {
+                                model.articlesMastered++;
+                                saveToIndexedDB(true);
+                                updateDashboardUI();
+                                fetchNextAutonomousData(false);
+                                return;
+                            }
+                        }
                     }
 
                     const actualChunk = Math.min(seqLen, encodedCorpusIndices.length - 1 - dataPointer);
@@ -1331,14 +1237,13 @@
                     tokensSinceLastCheck += actualChunk;
                     stepsThisFrame++;
 
-                    if (stepsThisFrame >= 32) break;
+                    if (stepsThisFrame >= batchLimit) break;
                 }
 
                 const now = performance.now();
                 if (now - lastSpeedCheckTime >= 400) {
                     currentTokPerSec = Math.round((tokensSinceLastCheck * 1000) / (now - lastSpeedCheckTime));
-                    tokensSinceLastCheck = 0;
-                    lastSpeedCheckTime = now;
+                    tokensSinceLastCheck = 0; lastSpeedCheckTime = now;
                 }
 
                 if (model.smoothLoss !== null) {
@@ -1346,15 +1251,25 @@
                     if (model.lossHistory.length > 180) model.lossHistory.shift();
                 }
 
-                updateDashboardUI();
+                // In turbo mode, update UI at a reduced frequency to save CPU cycles
+                if (!isTurbo || model.totalSteps % 5 === 0) {
+                    updateDashboardUI();
+                }
+
                 animationFrameId = requestAnimationFrame(trainLoop);
             }
 
             trainLoop();
         }
 
-        function stopTraining() {
+        function stopAllTraining() {
             isTraining = false;
+            if (autoPilotActive) {
+                autoPilotActive = false;
+                const btn = document.getElementById('btn-autopilot');
+                btn.className = "flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/30 transition-all active:scale-95 flex items-center justify-center gap-2";
+                btn.innerHTML = `<span>🕷️ 連想クローラー稼働 ON（全自動学習）</span>`;
+            }
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             currentTokPerSec = 0;
             document.getElementById('speed-badge').textContent = "0 tok/s";
@@ -1367,264 +1282,157 @@
 
         function resetModelConfirm() {
             if (!model) return;
-            if (confirm("現在のAIモデルを初期化しますか？（隠れ層サイズ・次元数・分割方式を再設定できるようになります）")) {
-                stopTraining();
-                model = null;
-                dataPointer = 0;
+            if (confirm("モデルを初期化しますか？")) {
+                stopAllTraining();
+                model = null; dataPointer = 0; currentArticleEpochs = 0;
                 document.getElementById('param-hidden').disabled = false;
                 document.getElementById('param-embed').disabled = false;
-                document.getElementById('tokenizer-mode').disabled = false;
                 document.getElementById('vocab-badge').textContent = "語彙: 0";
                 document.getElementById('param-badge').textContent = "Params: 0";
-                document.getElementById('step-display').textContent = "0";
-                document.getElementById('tokens-trained-display').textContent = "0";
-                document.getElementById('epoch-display').textContent = "0 周";
                 document.getElementById('loss-display').textContent = "---";
-                document.getElementById('epoch-progress-bar').style.width = "0%";
-                document.getElementById('epoch-progress-text').textContent = "Epoch 1 (0.0%)";
                 appendSystemMessage("🔄 モデルを初期化しました。");
             }
         }
 
         // ============================================================================
-        // 5. Persistence: IndexedDB & Compact Binary (.bin)
+        // 6. Persistence & Chat
         // ============================================================================
         function openModelDB() {
             return new Promise((resolve, reject) => {
-                const req = indexedDB.open("JapaneseExtremeMinGRUDB", 1);
-                req.onupgradeneeded = (e) => {
-                    e.target.result.createObjectStore("models");
-                };
+                const req = indexedDB.open("JapaneseCrawlerMinGRUDB", 1);
+                req.onupgradeneeded = (e) => { e.target.result.createObjectStore("models"); };
                 req.onsuccess = (e) => resolve(e.target.result);
                 req.onerror = (e) => reject(e.target.error);
             });
         }
 
-        async function saveToIndexedDB() {
-            if (!model) {
-                alert("まだ保存するモデルがありません。");
-                return;
-            }
+        async function saveToIndexedDB(silent = false) {
+            if (!model) { if (!silent) alert("モデルがありません。"); return; }
             try {
                 const db = await openModelDB();
                 const tx = db.transaction("models", "readwrite");
-                tx.objectStore("models").put(model.toRawSnapshot(), "latest_mingru_model");
-                document.getElementById('save-status').textContent = "✓ ブラウザ保存完了";
-                appendSystemMessage(`💾 モデル（語彙: ${model.vocabSize.toLocaleString()}, Loss: ${model.smoothLoss ? model.smoothLoss.toFixed(4) : '---'}）を保存しました。`);
-            } catch (err) {
-                alert("保存エラー: " + err.message);
-            }
+                tx.objectStore("models").put(model.toRawSnapshot(), "latest_crawler_model");
+                document.getElementById('save-status').textContent = `✓ 保存完了 (${new Date().toLocaleTimeString()})`;
+                if (!silent) appendSystemMessage(`💾 データをブラウザに保存しました（読破: ${model.articlesMastered}件）`);
+            } catch (err) { if (!silent) alert("保存エラー: " + err.message); }
         }
 
         async function loadFromIndexedDB(silent = false) {
             try {
                 const db = await openModelDB();
                 const tx = db.transaction("models", "readonly");
-                const req = tx.objectStore("models").get("latest_mingru_model");
+                const req = tx.objectStore("models").get("latest_crawler_model");
                 req.onsuccess = () => {
                     if (req.result) {
-                        stopTraining();
+                        stopAllTraining();
                         model = FastMinGRUTokenRNN.fromSnapshot(req.result);
-                        tokenizer.mode = model.tokenizerMode;
-                        tokenizer.bpeMerges = model.bpeMerges || [];
                         document.getElementById('param-hidden').value = model.hiddenSize;
                         document.getElementById('param-embed').value = model.embedSize;
-                        document.getElementById('tokenizer-mode').value = model.tokenizerMode;
                         document.getElementById('param-hidden').disabled = true;
                         document.getElementById('param-embed').disabled = true;
-                        document.getElementById('tokenizer-mode').disabled = true;
                         enableGenerationUI();
                         refreshCorpusTokenization(false);
                         updateDashboardUI();
-                        document.getElementById('save-status').textContent = "✓ 復元済み";
-                        appendSystemMessage(`🔄 保存済みMinGRUモデルを復元しました！（隠れ層: ${model.hiddenSize}, 語彙: ${model.vocabSize.toLocaleString()}）`);
-                    } else if (!silent) {
-                        alert("保存されたモデルが見つかりません。");
-                    }
+                        appendSystemMessage(`🔄 モデルを復元しました（語彙: ${model.vocabSize.toLocaleString()}語）`);
+                    } else if (!silent) alert("保存されたモデルが見つかりません。");
                 };
-            } catch (err) {
-                if (!silent) alert("復元エラー: " + err.message);
-            }
+            } catch (err) { if (!silent) alert("復元エラー: " + err.message); }
         }
 
         function exportModelBinary() {
-            if (!model) {
-                alert("まだ出力するモデルがありません。");
-                return;
-            }
+            if (!model) { alert("モデルがありません。"); return; }
             const arrays = [model.C, model.Wxz, model.uz, model.bz, model.Wxh, model.uh, model.bh, model.Who, model.bo, model.Woy, model.by];
             const lengths = arrays.map(a => a.length);
             const totalFloats = lengths.reduce((a, b) => a + b, 0);
 
-            const meta = {
-                magic: "JP_MINGRU_V5",
-                tokenizerMode: model.tokenizerMode,
-                bpeMerges: model.bpeMerges || [],
-                vocabSize: model.vocabSize,
-                hiddenSize: model.hiddenSize,
-                embedSize: model.embedSize,
-                revVocab: model.revVocab,
-                totalSteps: model.totalSteps,
-                totalTokensTrained: model.totalTokensTrained,
-                completedEpochs: model.completedEpochs,
-                smoothLoss: model.smoothLoss,
-                lossHistory: model.lossHistory.slice(-200),
-                lengths
-            };
-
+            const meta = { magic: "JP_MINGRU_V7", vocabSize: model.vocabSize, hiddenSize: model.hiddenSize, embedSize: model.embedSize, revVocab: model.revVocab, totalSteps: model.totalSteps, totalTokensTrained: model.totalTokensTrained, completedEpochs: model.completedEpochs, articlesMastered: model.articlesMastered, smoothLoss: model.smoothLoss, lossHistory: model.lossHistory.slice(-200), lengths };
             const metaBytes = new TextEncoder().encode(JSON.stringify(meta));
-            const headerLen = metaBytes.byteLength;
-            const pad = (4 - (headerLen % 4)) % 4;
-            const totalByteLen = 4 + headerLen + pad + totalFloats * 4;
-
-            const buffer = new ArrayBuffer(totalByteLen);
+            const headerLen = metaBytes.byteLength, pad = (4 - (headerLen % 4)) % 4;
+            const buffer = new ArrayBuffer(4 + headerLen + pad + totalFloats * 4);
             const view = new DataView(buffer);
             view.setUint32(0, headerLen, true);
             new Uint8Array(buffer, 4, headerLen).set(metaBytes);
 
             const floatView = new Float32Array(buffer, 4 + headerLen + pad, totalFloats);
             let offset = 0;
-            for (const arr of arrays) {
-                floatView.set(arr, offset);
-                offset += arr.length;
-            }
+            arrays.forEach(arr => { floatView.set(arr, offset); offset += arr.length; });
 
             const blob = new Blob([buffer], { type: "application/octet-stream" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `jp-mingru-h${model.hiddenSize}-v${model.vocabSize}.bin`;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `crawler-ai-v${model.vocabSize}.bin`; a.click();
             URL.revokeObjectURL(url);
-            appendSystemMessage(`⬇️ バイナリモデル（${(totalByteLen / 1024 / 1024).toFixed(2)} MB）を出力しました。`);
+            appendSystemMessage(`⬇️ バイナリモデルを出力しました。`);
         }
 
         async function importModelFile(event) {
             const file = event.target.files[0];
             if (!file) return;
             try {
-                stopTraining();
-                if (file.name.endsWith('.bin')) {
-                    const buf = await file.arrayBuffer();
-                    const view = new DataView(buf);
-                    const headerLen = view.getUint32(0, true);
-                    const pad = (4 - (headerLen % 4)) % 4;
-                    const metaStr = new TextDecoder().decode(new Uint8Array(buf, 4, headerLen));
-                    const meta = JSON.parse(metaStr);
+                stopAllTraining();
+                const buf = await file.arrayBuffer();
+                const view = new DataView(buf);
+                const headerLen = view.getUint32(0, true), pad = (4 - (headerLen % 4)) % 4;
+                const meta = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, headerLen)));
+                const floatView = new Float32Array(buf, 4 + headerLen + pad);
+                const keys = ['C', 'Wxz', 'uz', 'bz', 'Wxh', 'uh', 'bh', 'Who', 'bo', 'Woy', 'by'];
+                let offset = 0;
+                keys.forEach((k, idx) => { meta[k] = floatView.subarray(offset, offset + meta.lengths[idx]); offset += meta.lengths[idx]; });
+                model = FastMinGRUTokenRNN.fromSnapshot(meta);
 
-                    const floatView = new Float32Array(buf, 4 + headerLen + pad);
-                    const keys = ['C', 'Wxz', 'uz', 'bz', 'Wxh', 'uh', 'bh', 'Who', 'bo', 'Woy', 'by'];
-                    let offset = 0;
-                    keys.forEach((k, idx) => {
-                        const len = meta.lengths[idx];
-                        meta[k] = floatView.subarray(offset, offset + len);
-                        offset += len;
-                    });
-                    model = FastMinGRUTokenRNN.fromSnapshot(meta);
-                } else {
-                    const text = await file.text();
-                    const data = JSON.parse(text);
-                    model = FastMinGRUTokenRNN.fromSnapshot(data);
-                }
-
-                tokenizer.mode = model.tokenizerMode;
-                tokenizer.bpeMerges = model.bpeMerges || [];
                 document.getElementById('param-hidden').value = model.hiddenSize;
                 document.getElementById('param-embed').value = model.embedSize;
-                document.getElementById('tokenizer-mode').value = model.tokenizerMode;
                 document.getElementById('param-hidden').disabled = true;
                 document.getElementById('param-embed').disabled = true;
-                document.getElementById('tokenizer-mode').disabled = true;
                 enableGenerationUI();
                 refreshCorpusTokenization(false);
                 updateDashboardUI();
-                appendSystemMessage(`⬆️ モデル「${file.name}」を復元しました！`);
-            } catch (err) {
-                alert("モデル読込エラー: " + err.message);
-            }
+                appendSystemMessage(`⬆️ モデルファイルを読込ました！`);
+            } catch (err) { alert("読込エラー: " + err.message); }
             event.target.value = "";
         }
 
-        // ============================================================================
-        // 6. Chat & Generation UI
-        // ============================================================================
         function enableGenerationUI() {
             document.getElementById('prompt-input').disabled = false;
             document.getElementById('btn-generate').disabled = false;
         }
-
-        function clearChat() {
-            document.getElementById('chat-log').innerHTML = "";
-        }
-
+        function clearChat() { document.getElementById('chat-log').innerHTML = ""; }
         function appendSystemMessage(msg) {
-            const chatLog = document.getElementById('chat-log');
+            const log = document.getElementById('chat-log');
             const div = document.createElement('div');
-            div.className = "text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 p-2.5 rounded-xl";
+            div.className = "text-xs text-violet-400 bg-violet-950/40 border border-violet-900/50 p-2.5 rounded-xl";
             div.textContent = msg;
-            chatLog.appendChild(div);
-            chatLog.scrollTop = chatLog.scrollHeight;
+            log.appendChild(div); log.scrollTop = log.scrollHeight;
         }
 
         function generateText() {
             if (!model) return;
             const promptInput = document.getElementById('prompt-input');
             let promptText = promptInput.value.trim();
-
-            let promptTokens = [];
-            if (promptText) {
-                promptTokens = tokenizer.tokenize(promptText, false);
-            } else {
-                const startIdx = Math.max(1, Math.floor(Math.random() * model.revVocab.length));
-                const randomStarter = model.revVocab[startIdx] || "こんにちは";
-                promptTokens = [randomStarter];
-                promptText = randomStarter;
-            }
+            const promptTokens = promptText ? tokenizer.tokenize(promptText, false) : [model.revVocab[Math.floor(Math.random() * model.revVocab.length)] || "人工知能"];
+            if (!promptText) promptText = promptTokens[0];
 
             const temp = parseFloat(document.getElementById('param-temp').value) || 0.65;
             const topK = parseInt(document.getElementById('param-topk').value) || 8;
             const repPen = parseFloat(document.getElementById('param-rep-pen').value) || 1.15;
             const numTokens = parseInt(document.getElementById('param-length').value) || 50;
-            const showBorders = document.getElementById('show-token-borders').checked;
 
             const chatLog = document.getElementById('chat-log');
-
             const userMsg = document.createElement('div');
             userMsg.className = "self-end bg-slate-800 text-slate-200 px-3.5 py-2 rounded-2xl rounded-tr-sm max-w-[85%] text-xs sm:text-sm";
-            userMsg.textContent = `入力: 「${promptText}」 (${promptTokens.length} トークン)`;
+            userMsg.textContent = `入力: 「${promptText}」`;
             chatLog.appendChild(userMsg);
 
             const outTokens = model.generateTokens(promptTokens, numTokens, temp, topK, repPen);
-
             const aiMsg = document.createElement('div');
-            aiMsg.className = "self-start bg-emerald-950/50 border border-emerald-900/60 text-emerald-100 px-3.5 py-2.5 rounded-2xl rounded-tl-sm max-w-[92%] text-xs sm:text-sm leading-relaxed";
-
-            if (showBorders) {
-                const wrapper = document.createElement('div');
-                wrapper.className = "flex flex-wrap gap-1 items-center";
-                outTokens.forEach((tok, i) => {
-                    const span = document.createElement('span');
-                    const isPrompt = i < promptTokens.length;
-                    span.className = isPrompt
-                        ? "px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono text-xs"
-                        : "px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-200 border border-emerald-700/60 font-mono text-xs";
-                    span.textContent = tok === '\n' ? '↵' : tok;
-                    wrapper.appendChild(span);
-                });
-                aiMsg.appendChild(wrapper);
-            } else {
-                aiMsg.textContent = outTokens.join('');
-            }
-
+            aiMsg.className = "self-start bg-violet-950/50 border border-violet-900/60 text-violet-100 px-3.5 py-2.5 rounded-2xl rounded-tl-sm max-w-[92%] text-xs sm:text-sm leading-relaxed";
+            aiMsg.textContent = outTokens.join('');
             chatLog.appendChild(aiMsg);
             chatLog.scrollTop = chatLog.scrollHeight;
             promptInput.value = "";
         }
 
         document.getElementById('prompt-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !document.getElementById('btn-generate').disabled) {
-                generateText();
-            }
+            if (e.key === 'Enter' && !document.getElementById('btn-generate').disabled) generateText();
         });
 
         window.addEventListener('DOMContentLoaded', () => {
